@@ -24,3 +24,13 @@
 | Victor Castelo Branco  | Personalidade, identidade e experiência-Funcionalidades e características já definidas  | características deverão influenciar a solução e qual necessidade ela atende |
 | Wilia Francisco da Silva | Restrições e condições-Pontos de atenção  | Desenvolvimento das telas e fluxos |
 | Leon Mendonça | - | - |
+
+## Registro das responsabilidades 09/09/2026
+
+| Integrante | Responsabilidade | O que deverá realizar |
+| --- | --- | --- |
+| Gabriel de Oliveira Alves | Pesquisa | problema, Necessidades e dificuldades dos usuários, Dados que possam influenciar o aplicativo, Fontes |
+| Lizandra Bispo Nascimento | Benchmark  | Principais funcionalidades, Pontos positivos, Pontos negativos |
+| Victor Castelo Branco  | Benchmark  | Aspectos de interface/experiência, O que pode ser aproveitado ou melhorado no projeto, O que nosso aplicativo poderá fazer de diferente ou melhor? |
+| Wilia Francisco da Silva | Restrições e condições-Pontos de atenção  | Desenvolvimento das telas e fluxos |
+| Leon Mendonça | Personas | Crie 2 personas principais para o projeto (Nome fictício, Perfil/contexto, Objetivos, Necessidades, Dores, Comportamentos, Relação com o aplicativo) | 
