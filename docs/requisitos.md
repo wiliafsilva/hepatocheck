@@ -44,6 +44,12 @@ Defina as principais funcionalidades do aplicativo.
 - **Necessidade do usuário:** O clínico geral, gastroenterologista ou hepatologista precisa entender rapidamente o quadro do paciente numa consulta curta, sem navegar por telas complexas.
 - **Justificativa:** Um dos contextos de uso explicitados no estudo de caso é justamente "durante consulta médica". Sem esse recurso, o app perderia valor para metade do seu público-alvo (os profissionais), que são tão importantes quanto o paciente na jornada de cuidado.
 
+**8. Alertas e Lembretes de Acompanhamento**
+
+- **Descrição:** Notificações programadas que lembram o usuário de repetir os exames laboratoriais periodicamente (conforme a faixa de risco do FIB-4) e de registrar o consumo de álcool quando ele esquecer de fazê-lo por alguns dias.
+- **Necessidade do usuário:** Manter a rotina de monitoramento mesmo sem lembrar sozinho, já que o problema (DHGNA) é silencioso e fácil de "esquecer" quando não há sintomas.
+- **Justificativa:** Como o FIB-4 recomenda reavaliação periódica (a cada 1–2 anos em risco baixo, mais frequente em risco intermediário/alto) e o diário de álcool só é útil se alimentado com constância, o app perde valor de prevenção se depender só da iniciativa do usuário. Os lembretes reduzem o abandono, especialmente do perfil "em negação", que tende a esquecer o app depois da primeira semana.
+
 ## Requisitos funcionais
 
 Transforme as principais funcionalidades em **requisitos funcionais**, descrevendo o que o sistema deverá fazer.
