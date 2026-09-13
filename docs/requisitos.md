@@ -50,15 +50,58 @@ Defina as principais funcionalidades do aplicativo.
 - **Necessidade do usuário:** Manter a rotina de monitoramento mesmo sem lembrar sozinho, já que o problema (DHGNA) é silencioso e fácil de "esquecer" quando não há sintomas.
 - **Justificativa:** Como o FIB-4 recomenda reavaliação periódica (a cada 1–2 anos em risco baixo, mais frequente em risco intermediário/alto) e o diário de álcool só é útil se alimentado com constância, o app perde valor de prevenção se depender só da iniciativa do usuário. Os lembretes reduzem o abandono, especialmente do perfil "em negação", que tende a esquecer o app depois da primeira semana.
 
+**9. Tela "Quando Procurar o Médico" com Linguagem Educativa**
+
+* **Descrição:** Tela dedicada que explica, em linguagem simples, o que cada faixa de risco (Verde/Amarelo/Vermelho) significa na prática, o que fazer em cada caso e reforça que o app é uma triagem, não um diagnóstico.
+* **Necessidade do usuário:** Entender o próprio resultado sem interpretar sozinho um termo clínico e sem ficar em dúvida se precisa mesmo procurar um profissional.
+* **Justificativa:** O estudo de caso lista essa tela como uma das 4 principais do protótipo, separada do dashboard de risco. A pesquisa reforça isso ao apontar que profissionais de saúde precisam confiar que o app deixa claro que a triagem não substitui avaliação clínica formal, e que o tom da experiência deve ser franco sem causar terrorismo médico.
+
+**10. Metas de Redução e Dias sem Consumo**
+
+* **Descrição:** Dentro do diário de álcool, o usuário pode definir metas pequenas e progressivas, como "3 dias sem beber por semana", com feedback positivo quando a meta é cumprida.
+* **Necessidade do usuário:** Sentir que está no controle da própria mudança de hábito, sem uma abordagem punitiva.
+* **Justificativa:** Esse recurso vem diretamente do benchmark do MyDrinkaware, apontado como algo a aproveitar por evitar uma abordagem punitiva e incentivar mudança gradual. Encaixa bem na persona de Ricardo, que precisa de baixa fricção e nenhum julgamento para continuar usando o app.
+
+**11. Histórico e Linha do Tempo de Exames**
+
+* **Descrição:** Na tela de input de exames, o usuário visualiza não só o resultado atual, mas um histórico dos exames já registrados, mostrando a evolução do FIB-4 ao longo do tempo.
+* **Necessidade do usuário:** Entender se o risco está melhorando, piorando ou estável, e não apenas ver um número isolado.
+* **Justificativa:** A pesquisa recomenda reavaliação periódica do FIB-4 conforme a faixa de risco, então o app só cumpre esse papel preventivo se guardar o histórico, não só o último resultado. Isso também alimenta diretamente o gráfico "vida do fígado" já previsto no estudo de caso, sem exigir uma tela nova.
+
+
 ## Requisitos funcionais
 
-Transforme as principais funcionalidades em **requisitos funcionais**, descrevendo o que o sistema deverá fazer.
+**RF01 - Cálculo do escore FIB-4:** O sistema deve calcular automaticamente o escore FIB-4 a partir dos dados informados pelo usuário (idade, AST/TGO, ALT/TGP e plaquetas).
 
-Exemplo:
+**RF02 - Validação de idade para o FIB-4:** O sistema deve verificar a idade informada antes de exibir o resultado do FIB-4 e sinalizar quando o escore não é validado para essa faixa etária.
 
-> **RF01 — Cadastro de usuário:** O sistema deve permitir que o usuário realize seu cadastro informando os dados necessários.
+**RF03 - Registro de consumo de álcool:** O sistema deve permitir que o usuário registre o tipo e a quantidade de bebida consumida.
 
-Os requisitos devem ser numerados e escritos de forma clara e objetiva.
+**RF04 - Conversão para drinque padrão:** O sistema deve converter automaticamente cada bebida registrada em unidades de "drinque padrão", exibindo essa conversão antes da confirmação do primeiro registro.
+
+**RF05 - Registro rápido de drinque:** O sistema deve permitir que o usuário registre um drinque em no máximo 3 interações.
+
+**RF06 - Classificação de risco:** O sistema deve cruzar os dados do FIB-4 e do diário de álcool para classificar o risco do usuário em Verde, Amarelo ou Vermelho.
+
+**RF07 - Gráfico de evolução hepática:** O sistema deve exibir um gráfico "vida do fígado" (0 a 100%) que se atualiza e muda de cor conforme os dados registrados ao longo do tempo.
+
+**RF08 - Modo Convidado:** O sistema deve permitir que o usuário utilize as funcionalidades principais sem necessidade de cadastro ou sincronização automática com a nuvem.
+
+**RF09 - Modo Camuflagem:** O sistema deve permitir que o usuário oculte a tela do diário de álcool sob a aparência de uma calculadora comum.
+
+**RF10 - Armazenamento local dos dados:** O sistema deve armazenar 100% dos dados registrados localmente no dispositivo, garantindo o funcionamento do aplicativo sem conexão à internet.
+
+**RF11 - Sincronização condicionada e autorizada:** O sistema deve sincronizar os dados com o Firebase somente quando houver conexão Wi-Fi disponível e mediante autorização explícita do usuário.
+
+**RF12 - Modo de consulta para profissionais de saúde:** O sistema deve disponibilizar uma visão resumida dos principais indicadores (FIB-4, tendência do diário de álcool e classificação de risco) para leitura rápida durante o atendimento clínico.
+
+**RF13 - Lembretes de acompanhamento:** O sistema deve enviar notificações para lembrar o usuário de repetir os exames laboratoriais periodicamente e de registrar o consumo de álcool.
+
+**RF14 - Orientação sobre quando procurar o médico:** O sistema deve exibir uma tela explicativa que informa, para cada faixa de risco, o que ela significa e quando o usuário deve buscar um profissional de saúde.
+
+**RF15 - Definição de metas de redução:** O sistema deve permitir que o usuário defina metas de redução do consumo de álcool, incluindo dias sem consumo, com feedback ao atingi-las.
+
+**RF16 - Exportação de resumo em PDF:** O sistema deve permitir a exportação de um resumo em PDF contendo o resultado do FIB-4, a tendência do diário de álcool e a classificação de risco.
 
 ## Requisitos não funcionais
 

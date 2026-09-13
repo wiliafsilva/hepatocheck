@@ -11,3 +11,9 @@
 - Benchmark - Analise 3 soluções existentes relacionadas ao problema do projeto.
 - Personas - crie 2 personas principais para o projeto,
 - Apresentação
+
+## (16/09/2026)
+
+### Adicionado 
+- Funcionalidades - requisitos , Requisitos funcionais, Requisitos não funcionais, CRUD, Priorização.
+- Apresentação dos requisitos 
