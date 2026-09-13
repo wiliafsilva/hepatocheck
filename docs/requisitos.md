@@ -56,21 +56,39 @@ Os requisitos devem ser numerados e escritos de forma clara e objetiva.
 
 ## Requisitos não funcionais
 
-Defina as principais características e condições que o aplicativo deverá atender. Considere, quando aplicável:
+**RNF01 — Usabilidade:** A interface deve ser simples, intuitiva e de fácil compreensão considerando o público-alvo de pessoas entre 30 e 60 anos.
 
-- Usabilidade
-- Acessibilidade
-- Segurança e privacidade (LGPD)
-- Desempenho
-- Compatibilidade
-- Armazenamento de dados
-- Conectividade
-- Dispositivos e sistema operacional
-- Restrições definidas no estudo de caso
+**RNF02 — Acessibilidade:** O sistema deve utilizar textos legíveis, botões com tamanhos adequados, contrastes apropriados e elementos visuais que facilitem a utilização do usuário.
 
-Exemplo:
+**RNF03 — Segurança e privacidade LGPD:** O sistema deve proteger as informações dos usuários por meio de autenticação e controle de acesso, garantir a privacidade dos dados pessoais e das informações de saúde fornecidas pelos usuários, em conformidade com as normas aplicáveis de proteção de dados, incluindo a LGPD.
 
-> **RNF01 — Usabilidade:** O usuário deve conseguir acessar a funcionalidade principal em, no máximo, três interações.
+**RNF04 — Desempenho:** O aplicativo deve apresentar suas telas e funcionalidades principais em tempo adequado, evitando atrasos que prejudiquem a experiência dos usuários.
+
+**RNF05 — Disponibilidade:** O sistema deve permitir a utilização das funcionalidades essenciais mesmo sem conexão com a internet, incluindo o registro de dados e o acesso à calculadora de risco, respeitando as limitações definidas para o funcionamento offline.
+
+**RNF06 — Compatibilidade com dispositivo e sistema operacional:** O aplicativo deve ser compatível com smartphones que utilizam o sistema operacional Android 8.0 ou superior.
+
+**RNF07 — Armazenamento de dados:** O sistema deve armazenar os dados dos usuários de forma segura, garantindo sua integridade, persistência e recuperação, inclusive durante o funcionamento offline.
+
+**RNF08 — Conectividade:** O aplicativo deve permitir a sincronização dos dados registrados localmente com o firebase quando houver conexão com a internet, desde que exista autorização explícita do usuário, priorizando a utilização de redes wi-fi para evitar o consumo de dados móveis.
+
+**RNF09 — Escalabilidade:** O sistema deve possuir uma arquitetura que permita o aumento de usuários e registros armazenados sem comprometer seu desempenho.
+
+**RNF10 — Limitações do número de telas:** O protótipo deve possuir, no máximo, 4 telas, priorizando as funcionalidades essenciais, como registro  de álcool, cálculo de risco, visualização de indicadores e orientação de prevenção.
+
+**RNF11 — Limitações do número de interações:** As principais funcionalidades deverão ser executadas em até 3 interações, priorizando uma navegação simples, rápida e objetiva.
+
+**RNF12 — Compatibilidade:** O aplicativo deve ser desenvolvido para dispositivos móveis Android 8.0, ou superior, não sendo obrigatória, nesta versão, a compatibilidade com outros sistemas operacionais.
+
+**RNF13 — Funcionalidade offline:** O aplicativo deve permitir o registro e o armazenamento local dos dados essenciais sem conexão com a internet, possibilitando a sincronização posterior quando houver conectividade.
+
+**RNF14 — Sincronização wi-fi:** A sincronização dos dados com o firebase deverá ocorrer somente quando o dispositivo estiver conectado a uma rede wi-fi e mediante autorização explícita do usuário.
+
+**RNF15 — Privacidade:** Os dados sensíveis não poderão ser compartilhados ou sincronizados sem autorização do usuário.
+
+**RNF16 — Uso como convidado:** O aplicativo deve permitir o acesso a funcionalidades específicas sem exigir obrigatoriamente cadastro ou sincronização com a nuvem.
+
+**RNF17 — Escopo clínico:** O aplicativo deve atuar como ferramenta preventiva, educativa e de acompanhamento, não substituindo diagnóstico ou acompanhamento profissional.
 
 ## CRUD
 
