@@ -152,8 +152,73 @@ Caso alguma operação não seja necessária, justifique.
 
 ## Priorização
 
-Classifique as funcionalidades em:
+As funcionalidades foram classificadas em três níveis de prioridade com base no valor que entregam ao usuário, na viabilidade dentro das restrições do protótipo (máximo de 4 telas) e na criticidade para a proposta central do aplicativo — triagem de risco hepático com acompanhamento do consumo de álcool.
 
-- **Essenciais:** indispensáveis para a proposta principal
-- **Importantes:** agregam valor, mas não são fundamentais
-- **Secundárias:** podem ser desenvolvidas posteriormente
+---
+
+### Essenciais
+
+Funcionalidades indispensáveis para que o aplicativo cumpra sua proposta de valor mínima. Sem qualquer uma delas, o produto perde sentido clínico, educativo ou de usabilidade. Devem estar presentes na primeira versão funcional.
+
+**Calculadora de risco hepático (FIB-4)**
+Núcleo técnico do aplicativo. É a principal proposta de valor: permitir que o usuário insira seus exames laboratoriais e receba uma classificação objetiva de risco de fibrose hepática, sem precisar interpretar a fórmula sozinho.
+
+**Diário de consumo de álcool**
+Alimenta diretamente a classificação de risco e é o segundo pilar do aplicativo. Sem ele, o app se reduz a uma calculadora isolada, incapaz de acompanhar o comportamento do usuário ao longo do tempo.
+
+**Conversão das bebidas em drinques padrão**
+A pesquisa identificou que a maioria dos usuários não sabe traduzir bebidas comuns em unidades padronizadas. Sem o conversor, os dados que alimentam toda a lógica de risco ficam imprecisos desde a entrada.
+
+**Registro rápido do consumo**
+Fluxo otimizado para ser feito em até 3 interações, mesmo em contextos de pouca atenção (bar, evento social). Sem essa redução de fricção, o público de maior risco — que já é resistente ao uso — abandona o app na primeira semana.
+
+**Classificação do risco em verde, amarelo e vermelho**
+Traduz dados clínicos e comportamentais em uma linguagem visual e emocionalmente clara. É o que transforma números abstratos em uma informação que o usuário consegue entender e agir, sem depender de um profissional para interpretar.
+
+**Armazenamento local e funcionamento offline**
+Garante que o aplicativo funcione em qualquer contexto, independente de conexão à internet. Atende à exigência de arquitetura offline-first e é pré-requisito para a confiança do usuário em relação à privacidade de seus dados sensíveis.
+
+**Tela de orientação sobre quando procurar um médico**
+Listada como uma das 4 telas principais do protótipo. Cumpre o papel educativo e preventivo do app, esclarecendo o significado de cada faixa de risco e reforçando que a triagem não substitui avaliação clínica. Sem ela, o app corre risco de ser interpretado como ferramenta diagnóstica.
+
+---
+
+### Importantes
+
+Funcionalidades que enriquecem significativamente a experiência e ampliam o valor do aplicativo, mas cuja ausência não impede o funcionamento do núcleo. Devem ser priorizadas logo após as essenciais.
+
+**Gráfico de evolução da saúde do fígado**
+Dá ao usuário a percepção de tendência ao longo do tempo — se o risco está melhorando, piorando ou estável. Transforma dados pontuais em uma narrativa visual contínua, reforçando o engajamento com o acompanhamento.
+
+**Histórico dos exames e resultados do FIB-4**
+Permite visualizar a evolução dos exames já registrados, não apenas o último resultado. Alimenta diretamente o gráfico de evolução e é essencial para que o app cumpra seu papel de acompanhamento periódico, conforme recomendado pela literatura clínica.
+
+**Modo convidado**
+Permite o uso imediato do app sem exigir cadastro, reduzindo a barreira de entrada para usuários resistentes ou curiosos. É especialmente relevante para o perfil "em negação", que precisa de zero compromisso inicial para experimentar o aplicativo.
+
+**Sincronização dos dados via Wi-Fi**
+Complementa o armazenamento local ao permitir backup seguro dos dados mediante autorização explícita do usuário e apenas em rede Wi-Fi. Atende à LGPD ao exigir consentimento e evita exposição em redes públicas ou móveis.
+
+**Modo de consulta para profissionais de saúde**
+Visão resumida dos indicadores para leitura rápida durante o atendimento clínico. Como o estudo de caso aponta o contexto "durante consulta médica" como um dos principais cenários de uso, essa funcionalidade amplia o público-alvo do app para além do paciente.
+
+**Alertas e lembretes de acompanhamento**
+Notificações que lembram o usuário de repetir exames e registrar o consumo. Reduzem o abandono, especialmente nos perfis que tendem a "esquecer" o app quando não há sintomas visíveis — o que é a norma na DHGNA.
+
+---
+
+### Secundárias
+
+Funcionalidades desejáveis que agregam valor incremental, mas que podem ser implementadas em versões futuras sem comprometer a proposta central do aplicativo.
+
+**Modo camuflagem**
+Disfarça a tela do diário de álcool como uma calculadora comum, protegendo o usuário de exposição em contextos sociais ou profissionais. Relevante para a confiança do público mais vulnerável, mas pode ser adicionado após a validação do núcleo funcional.
+
+**Metas de redução do consumo de álcool**
+Permite que o usuário defina metas progressivas de redução, com feedback positivo ao atingi-las. Inspirada no benchmark do MyDrinkaware, promove mudança de comportamento gradual e sem julgamento — mas depende de um diário de álcool já consolidado para ter efeito.
+
+**Dias sem consumo**
+Complemento das metas de redução, mostra visualmente os dias em que o usuário não consumiu álcool. Reforça o senso de progresso e controle, mas seu valor só se manifesta com uso contínuo do diário ao longo de semanas.
+
+**Exportação do resumo em PDF**
+Permite gerar um documento com o resultado do FIB-4, a tendência do diário de álcool e a classificação de risco para compartilhamento com profissionais de saúde fora do app. Útil, mas o modo de consulta já cobre o cenário presencial.
