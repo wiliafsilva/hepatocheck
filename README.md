@@ -40,7 +40,7 @@
 | Integrante | Responsabilidade | O que deverá realizar |
 | --- | --- | --- |
 | Gabriel de Oliveira Alves |  Funcionalidades | Defina as principais funcionalidades do aplicativo. |
-| Lizandra Bispo Nascimento | Requisitos não funcionais  | Defina as principais características e condições que o aplicativo deverá atender. |
+| Lizandra Bispo Nascimento | Requisitos não funcionais + apresentação  | Defina as principais características e condições que o aplicativo deverá atender. |
 | Victor Castelo Branco  | CRUD  | Identifique, quando aplicável, quais informações do aplicativo precisarão ser. |
 | Wilia Francisco da Silva | Requisitos funcionais  | Transforme as principais funcionalidades em requisitos funcionais, descrevendo o  que o sistema deverá fazer. |
 | Leon Mendonça | Priorização | Classifique as funcionalidades (Essenciais, Importantes, Secundárias) | 
