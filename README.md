@@ -34,3 +34,13 @@
 | Victor Castelo Branco  | Benchmark  | Aspectos de interface/experiência, O que pode ser aproveitado ou melhorado no projeto, O que nosso aplicativo poderá fazer de diferente ou melhor? |
 | Wilia Francisco da Silva | Restrições e condições-Pontos de atenção  | Desenvolvimento das telas e fluxos |
 | Leon Mendonça | Personas | Crie 2 personas principais para o projeto (Nome fictício, Perfil/contexto, Objetivos, Necessidades, Dores, Comportamentos, Relação com o aplicativo) | 
+
+## Registro das responsabilidades (16/09/2026) Atividade - 03 
+
+| Integrante | Responsabilidade | O que deverá realizar |
+| --- | --- | --- |
+| Gabriel de Oliveira Alves |  Funcionalidades | Defina as principais funcionalidades do aplicativo. |
+| Lizandra Bispo Nascimento | Requisitos não funcionais  | Defina as principais características e condições que o aplicativo deverá atender. |
+| Victor Castelo Branco  | CRUD  | Identifique, quando aplicável, quais informações do aplicativo precisarão ser. |
+| Wilia Francisco da Silva | Requisitos funcionais  | Transforme as principais funcionalidades em requisitos funcionais, descrevendo o  que o sistema deverá fazer. |
+| Leon Mendonça | Priorização | Classifique as funcionalidades (Essenciais, Importantes, Secundárias) | 
