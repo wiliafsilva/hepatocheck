@@ -141,15 +141,6 @@ Defina as principais funcionalidades do aplicativo.
 
 ## CRUD
 
-Identifique, quando aplicável, quais informações do aplicativo precisarão ser:
-
-- **C** — Criadas
-- **R** — Consultadas
-- **U** — Atualizadas
-- **D** — Excluídas
-
-Caso alguma operação não seja necessária, justifique.
-
 O CRUD do HepatoCheck foi definido a partir das necessidades identificadas na pesquisa e nas personas: registrar o consumo de álcool com o mínimo de esforço, acompanhar exames e risco hepático ao longo do tempo e preservar a privacidade de informações sensíveis. Como o aplicativo funciona prioritariamente offline e pode ser usado como convidado, os dados devem ser mantidos localmente no dispositivo; qualquer sincronização depende de autorização explícita do usuário e de conexão Wi-Fi.
 
 ### Registros de consumo de álcool
