@@ -50,3 +50,39 @@ Login, cadastro, recuperação e alteração de senha e política de privacidade
 
 As metas de redução (RF15), de prioridade secundária, ficam para uma versão futura. Nesta versão, o Relatório já mostra os dias sem álcool, que servirão de base para essas metas.
 
+# Navegação
+
+A navegação principal é uma barra inferior fixa com cinco itens: Início, Relatório, Drinks, Exames e Perfil.
+
+Ela fica ao alcance do polegar, é um padrão conhecido tanto no Android quanto no iOS e mostra ícone e nome juntos, para que ninguém precise adivinhar o que cada ícone significa. O item ativo aparece em verde oliva e indica onde o usuário está.
+
+O registro rápido de bebida é o fluxo mais importante, porque acontece no bar, em pé e com pouca atenção. Ele cabe em três toques, conforme o RF05 e o RNF11:
+
+1. Tocar no botão + da tela Início.
+2. Escolher o tipo de bebida: cerveja, destilado ou vinho.
+3. Tocar em Adicionar.
+
+A quantidade começa em 1, e a data e a hora são preenchidas com o momento atual. Quem precisa registrar outra quantidade ou outro dia usa a aba Drinks, que tem todos os campos.
+
+Ao escolher o tipo, uma linha abaixo dos seletores mostra a conversão em drinque padrão, por exemplo **"1 lata de cerveja = 1 drinque padrão"**. Assim, a conversão aparece antes da confirmação do registro, como pede o RF04, sem acrescentar nenhum toque.
+
+A orientação sobre quando procurar o médico abre como uma sobreposição ao tocar no selo de risco do Início ou no cartão de risco do Relatório, sem tirar o usuário da tela em que ele está. Todas as telas, exceto o Início, têm a seta de voltar no canto superior esquerdo, que leva sempre à tela anterior.
+
+# Componentes
+
+A interface usa componentes do Material Design, que o Flutter oferece prontos e que funcionam da mesma forma no Android e no iOS.
+
+| Componente | Onde aparece | Por que foi escolhido |
+|---|---|---|
+| Barra de navegação inferior | Telas principais | Acesso direto às quatro funções centrais e ao perfil |
+| Botão flutuante + | Início | Atalho para o registro rápido, sempre no mesmo lugar |
+| Cartões | Início, Exames, Relatório e Perfil | Agrupam uma informação por bloco e facilitam a leitura rápida |
+| Seletores de tipo com ícone | Registro de drinks | O ícone é reconhecido mais rápido que uma lista, e o tipo escolhido ganha borda verde |
+| Contador com botões de menos e mais | Drinks | Ajusta a quantidade sem abrir o teclado |
+| Campos de data e hora com seletor | Drinks e Exames | Evitam erros de digitação |
+| Campos de texto com rótulo | Login, Cadastro e Exames | O nome do campo continua visível depois de preenchido, e notas curtas abaixo dos campos orientam o preenchimento, como a faixa de idade validada do FIB-4 e o valor de referência das plaquetas |
+| Selos de classificação | Início, Exames e Relatório | Mostram o risco com cor, ícone e texto |
+| Gráficos de barras e de linha | Relatório | Mostram o consumo por semana e a evolução do FIB-4 |
+| Interruptores | Perfil | Ligam e desligam sincronização, camuflagem e lembretes |
+| Controle segmentado | Relatório e histórico de Drinks | Troca o período ou a ordenação com um toque |
+| Sobreposição | Registro rápido e orientação médica | Mostra um conteúdo pontual sem trocar de tela |
