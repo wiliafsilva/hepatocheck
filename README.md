@@ -44,3 +44,13 @@
 | Victor Castelo Branco  | CRUD  | Identifique, quando aplicável, quais informações do aplicativo precisarão ser. |
 | Wilia Francisco da Silva | Requisitos funcionais  | Transforme as principais funcionalidades em requisitos funcionais, descrevendo o  que o sistema deverá fazer. |
 | Leon Mendonça | Priorização | Classifique as funcionalidades (Essenciais, Importantes, Secundárias) | 
+
+## Registro das responsabilidades (29/09/2026) Atividade - 04 e 05 - Prototipação Baixa Fidelidade, Alta Fidelidade, Justificativa e Slides deApresentação
+
+| Integrante | Responsabilidade | O que deverá realizar |
+| --- | --- | --- |
+| Gabriel de Oliveira Alves |  Prototipação, Slides, justificativa | Telas relatório e Exames, elaboração de slides, Escolha das cores |
+| Lizandra Bispo Nascimento | Prototipação, Justificativa, Slides  | Navegação do protótipo, Navegação, elaboração de slides |
+| Victor Castelo Branco  | Prototipação, Slides, justificativa  | Telas Login e Home, Tipografia, elaboração de slides |
+| Wilia Francisco da Silva | Prototipação baixa e alta fidelidade, Changelog e Readme, justificativa  | Protótipo de baixa e alta fidelidade, Changelog e Readme, Acessibilidade |
+| Leon Mendonça | Prototipação, Justificativa | Tela Drinks, Arquitetura do sistema | 

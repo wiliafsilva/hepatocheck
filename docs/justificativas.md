@@ -50,7 +50,7 @@ Login, cadastro, recuperação e alteração de senha e política de privacidade
 
 As metas de redução (RF15), de prioridade secundária, ficam para uma versão futura. Nesta versão, o Relatório já mostra os dias sem álcool, que servirão de base para essas metas.
 
-# Navegação
+## Navegação
 
 A navegação principal é uma barra inferior fixa com cinco itens: Início, Relatório, Drinks, Exames e Perfil.
 
@@ -68,7 +68,7 @@ Ao escolher o tipo, uma linha abaixo dos seletores mostra a conversão em drinqu
 
 A orientação sobre quando procurar o médico abre como uma sobreposição ao tocar no selo de risco do Início ou no cartão de risco do Relatório, sem tirar o usuário da tela em que ele está. Todas as telas, exceto o Início, têm a seta de voltar no canto superior esquerdo, que leva sempre à tela anterior.
 
-# Componentes
+## Componentes
 
 A interface usa componentes do Material Design, que o Flutter oferece prontos e que funcionam da mesma forma no Android e no iOS.
 
@@ -86,3 +86,32 @@ A interface usa componentes do Material Design, que o Flutter oferece prontos e 
 | Interruptores | Perfil | Ligam e desligam sincronização, camuflagem e lembretes |
 | Controle segmentado | Relatório e histórico de Drinks | Troca o período ou a ordenação com um toque |
 | Sobreposição | Registro rápido e orientação médica | Mostra um conteúdo pontual sem trocar de tela |
+
+## Acessibilidade
+
+O estudo de caso pede leitura rápida, contraste adequado e elementos visuais simples, e lembra que parte do público tem dificuldade com tecnologia. O RNF02 transforma isso em requisito. As decisões seguem as diretrizes WCAG 2.1 no nível AA e as recomendações de acessibilidade do Material Design:
+
+- **Contraste:** texto claro sobre fundo escuro, com mínimo de 4,5:1 para texto comum.
+- **Cor nunca sozinha:** a classificação de risco sempre traz cor, ícone e nome da faixa, para que pessoas com daltonismo também entendam o resultado.
+- **Áreas de toque:** botões e itens tocáveis com pelo menos 48 dp, o que facilita o uso em pé no bar e por quem tem menos precisão nos dedos.
+- **Rótulos visíveis:** todo campo tem o nome acima dele, que continua visível depois de preenchido.
+- **Linguagem simples:** termos clínicos explicados e orientações em frases curtas.
+- **Poucas etapas:** as funções principais em até três interações (RNF11) reduzem o esforço de quem tem pouca familiaridade com aplicativos.
+- **Leitor de tela e tamanho de fonte:** os componentes recebem descrições para o TalkBack, no Android, e para o VoiceOver, no iOS, e respeitam o tamanho de fonte escolhido nas configurações do aparelho.
+
+## Decisões relacionadas ao contexto de uso
+
+O mesmo aplicativo precisa funcionar em situações muito diferentes, por isso cada condição do estudo de caso gerou uma decisão concreta.
+
+| Contexto ou condição                    | Decisão                                                                                                   |
+| --------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| No bar, em pé e com distrações          | Registro rápido em três toques, botões grandes e tema escuro, que chama menos atenção                     |
+| Pessoas próximas vendo o celular        | Modo camuflagem, que disfarça o diário como calculadora, e modo convidado, sem cadastro                   |
+| Sem internet                            | Todos os dados são gravados no aparelho, e o app funciona 100% offline                                    |
+| Rede móvel ou pública                   | Sincronização apenas via Wi-Fi e somente com autorização explícita do usuário                             |
+| Em casa, com mais tempo                 | Relatório com gráficos e histórico para análise com calma                                                 |
+| Durante a consulta médica               | Modo consulta com os principais indicadores e exportação do resumo em PDF                                 |
+| Preocupação ao ver o resultado          | Classificação objetiva em três cores e orientação clara sobre quando procurar o médico, sem tom alarmista |
+| Pouco conhecimento sobre dose de álcool | Conversão de cada bebida em drinque padrão                                                                |
+
+Nas telas de resultado, como o Relatório, a orientação médica e o PDF, o app reforça que é uma ferramenta de triagem e não substitui o diagnóstico médico, conforme o RNF17.

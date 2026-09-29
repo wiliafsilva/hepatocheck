@@ -17,3 +17,11 @@
 ### Adicionado 
 - Funcionalidades - requisitos , Requisitos funcionais, Requisitos não funcionais, CRUD, Priorização.
 - Apresentação dos requisitos 
+
+## (26/09/2026)
+
+### Adicionado
+- Prototipação - Baixa Fidelidade
+- Prototipação - Alta Fidelidade 
+- Justificativas - Registre brevemente as principais decisões de interface e arquitetura
+- Apresentação Final Unidade I - Slide da apresentação
