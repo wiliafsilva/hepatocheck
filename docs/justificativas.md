@@ -115,3 +115,47 @@ O mesmo aplicativo precisa funcionar em situações muito diferentes, por isso c
 | Pouco conhecimento sobre dose de álcool | Conversão de cada bebida em drinque padrão                                                                |
 
 Nas telas de resultado, como o Relatório, a orientação médica e o PDF, o app reforça que é uma ferramenta de triagem e não substitui o diagnóstico médico, conforme o RNF17.
+
+## Arquitetura do sistema
+
+O HepatoCheck utiliza uma arquitetura **offline first**: os registros e as funcionalidades principais ficam disponíveis no aparelho, mesmo sem internet.
+
+A nuvem é opcional e serve como cópia de segurança. Os registros só são enviados quando há **conexão Wi-Fi e autorização do usuário**.
+
+```mermaid
+flowchart TD
+    UI["Interface do app — Flutter"]
+    RULES["Regras do app — Dart"]
+    DB["Banco local — SQLite"]
+    SYNC["Serviço de sincronização"]
+
+    subgraph CLOUD["Firebase — nuvem opcional"]
+        AUTH["Firebase Authentication"]
+        FIRESTORE["Cloud Firestore"]
+    end
+
+    UI --> RULES
+    RULES --> DB
+    DB --> SYNC
+    UI -->|"Login e cadastro"| AUTH
+    SYNC -->|"Wi-Fi e autorização do usuário"| FIRESTORE
+```
+
+### Componentes
+
+| Componente | Responsabilidade |
+|---|---|
+| **Interface do app** | Apresenta as telas Início, Drinks, Exames, Relatório e Perfil. Utiliza `CustomPainter` para desenhar a silhueta do fígado e os gráficos. |
+| **Regras do app** | Classifica o risco considerando FIB-4, idade e consumo de álcool. Converte bebidas em drinque padrão, organiza lembretes locais e gera o resumo em PDF. |
+| **Banco local — SQLite** | Guarda os registros no aparelho e permite o funcionamento sem internet, inclusive no modo convidado. |
+| **Serviço de sincronização** | Verifica a conexão Wi-Fi e a autorização do usuário antes de enviar os registros. Sem essas condições, os registros permanecem no aparelho. |
+| **Firebase Authentication** | Gerencia login, cadastro e senha para quem utiliza uma conta. |
+| **Cloud Firestore** | Armazena a cópia de segurança dos registros autorizados. |
+
+### Fluxo de funcionamento
+
+1. O usuário interage com as telas do aplicativo.
+2. Os serviços em Dart executam as regras do app.
+3. Os registros são lidos e gravados no SQLite.
+4. O serviço de sincronização verifica a conexão Wi-Fi e a autorização do usuário.
+5. Quando ambas as condições são atendidas, os registros autorizados são enviados ao Firestore.
