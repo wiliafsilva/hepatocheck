@@ -25,3 +25,15 @@
 - Prototipação - Alta Fidelidade 
 - Justificativas - Registre brevemente as principais decisões de interface e arquitetura
 - Apresentação Final Unidade I - Slide da apresentação
+
+## (02/11/2026)
+
+### Adicionado
+- Configuração do Firebase no app: projeto hepatocheck-unit com apps Android e Web
+- Firebase Authentication com login por e-mail e senha
+- Cloud Firestore em São Paulo (southamerica-east1) com regras de segurança (firestore.rules)
+- Pacotes firebase_core, firebase_auth e cloud_firestore
+
+### Alterado
+- Identificador do app Android de com.example.hepatochec_app para br.com.hepatocheck
+- main.dart passa a inicializar o Firebase antes de abrir o app

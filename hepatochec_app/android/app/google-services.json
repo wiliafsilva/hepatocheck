@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "118940025889",
+    "project_id": "hepatocheck-unit",
+    "storage_bucket": "hepatocheck-unit.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:118940025889:android:45343f19a26cc4c7a58f60",
+        "android_client_info": {
+          "package_name": "br.com.hepatocheck"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB4CHsoqjeHj72m-RhNrRzU3mSHKeHvKqI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -54,3 +54,9 @@
 | Victor Castelo Branco  | Prototipação, Slides, justificativa  | Telas Login e Home, Tipografia, elaboração de slides |
 | Wilia Francisco da Silva | Prototipação baixa e alta fidelidade, Changelog e Readme, justificativa  | Protótipo de baixa e alta fidelidade, Changelog e Readme, Acessibilidade |
 | Leon Mendonça | Prototipação, Justificativa | Tela Drinks, Arquitetura do sistema | 
+
+## Registro das responsabilidades (02/11/2026) Atividade - Configuração do Firebase
+
+| Integrante | Responsabilidade | O que deverá realizar |
+| --- | --- | --- |
+| Wilia Francisco da Silva | Configuração do Firebase | Criação do projeto hepatocheck-unit, registro dos apps Android e Web, Authentication por e-mail e senha, Cloud Firestore em São Paulo, regras de segurança do Firestore e inicialização do Firebase no app |

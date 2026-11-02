@@ -1,4 +1,4 @@
-package com.example.hepatochec_app
+package br.com.hepatocheck
 
 import io.flutter.embedding.android.FlutterActivity
 
