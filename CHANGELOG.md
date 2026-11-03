@@ -37,3 +37,17 @@
 ### Alterado
 - Identificador do app Android de com.example.hepatochec_app para br.com.hepatocheck
 - main.dart passa a inicializar o Firebase antes de abrir o app
+
+## (04/11/2026)
+
+### Adicionado
+- Semana 1 - Fundação e núcleo clínico
+- Estrutura do projeto - Camadas Presentation, Domain e Data, dependências e Riverpod
+- Tema - Cores, semáforo de risco e tipografia
+- Navegação - Barra inferior com as 5 abas
+- FIB-4 - Cálculo, validação das entradas, classificação de risco e testes automatizados
+- Exames - Repositório e tela de exames
+- Tela Início - Cartão de risco, botão de registro rápido e layout do medidor do fígado
+- Banco local - Entidades do domínio e Hive com criptografia AES
+- Documentação - Escopo, EAP, planejamento em sprints, diagrama de casos de uso e rascunho do diagrama de classes
+- Readme atualizado

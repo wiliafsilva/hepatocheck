@@ -60,3 +60,13 @@
 | Integrante | Responsabilidade | O que deverá realizar |
 | --- | --- | --- |
 | Wilia Francisco da Silva | Configuração do Firebase | Criação do projeto hepatocheck-unit, registro dos apps Android e Web, Authentication por e-mail e senha, Cloud Firestore em São Paulo, regras de segurança do Firestore e inicialização do Firebase no app |
+
+## Registro das responsabilidades (04/11/2026) Semana 1 - Fundação e núcleo clínico
+
+| Integrante | Responsabilidade | O que deverá realizar |
+| --- | --- | --- |
+| Gabriel de Oliveira Alves | FIB-4, Exames, Cores, Escopo | Cores do tema e do semáforo, cálculo do FIB-4, validação de entradas inconsistentes, classificação de risco Verde, Amarelo e Vermelho, testes automatizados do FIB-4, escopo do projeto, repositório e tela Exames |
+| Lizandra Bispo Nascimento | Navegação, EAP | Barra de navegação inferior com as 5 abas, telas iniciais de cada aba, EAP simplificada, layout da calculadora do Modo Camuflagem |
+| Victor Castelo Branco | Tipografia, Home, Casos de uso | Fonte Inter e níveis de texto, estrutura da tela Início com cartão de risco e botão de registro rápido, diagrama de casos de uso, layout do medidor do fígado |
+| Wilia Francisco da Silva | Estrutura do projeto, Sprints, Changelog e Readme | Reunião de início, fluxo de branches e pull requests, regras de commit, dependências do projeto, estrutura em camadas (Presentation, Domain e Data), Riverpod, planejamento em sprints, Changelog e Readme |
+| Leon Mendonça | Banco local, Diagrama de classes | Entidades do domínio, rascunho do diagrama de classes, banco local Hive com criptografia AES, adaptadores do Hive para exames e drinques |
