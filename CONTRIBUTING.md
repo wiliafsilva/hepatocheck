@@ -60,7 +60,7 @@ Prefira `git add` com o caminho do arquivo em vez de `git add .`, para não envi
 ### 3. Conferir antes de enviar
 
 ```powershell
-cd hepatochec_app
+cd hepatocheck_app
 flutter analyze
 flutter test
 ```
