@@ -140,13 +140,15 @@ class _TabPlaceholder extends StatelessWidget {
 class CamouflageCalculatorPage extends StatelessWidget {
   const CamouflageCalculatorPage({super.key});
 
-  static const _keys = <String>[
-    'C', '±', '%', '÷',
-    '7', '8', '9', '×',
-    '4', '5', '6', '−',
-    '1', '2', '3', '+',
-    '0', ',', '=',
+  static const _rows = <List<String>>[
+    ['C', '±', '%', '÷'],
+    ['7', '8', '9', '×'],
+    ['4', '5', '6', '−'],
+    ['1', '2', '3', '+'],
+    ['0', ',', '='],
   ];
+
+  static const _operators = {'÷', '×', '−', '+', '='};
 
   @override
   Widget build(BuildContext context) {
@@ -155,6 +157,9 @@ class CamouflageCalculatorPage extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: const Color(0xFFF6F6F6),
         foregroundColor: const Color(0xFF1B1B1B),
+        titleTextStyle: Theme.of(context).textTheme.titleLarge?.copyWith(
+          color: const Color(0xFF1B1B1B),
+        ),
         title: const Text('Calculadora'),
       ),
       body: SafeArea(
@@ -178,19 +183,28 @@ class CamouflageCalculatorPage extends StatelessWidget {
               const SizedBox(height: 20),
               Expanded(
                 flex: 3,
-                child: GridView.builder(
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: _keys.length,
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 4,
-                    crossAxisSpacing: 12,
-                    mainAxisSpacing: 12,
-                  ),
-                  itemBuilder: (context, index) {
-                    final key = _keys[index];
-                    final isOperator = const {'÷', '×', '−', '+', '='}.contains(key);
-                    return _CalculatorKey(label: key, highlighted: isOperator);
-                  },
+                child: Column(
+                  children: [
+                    for (final (rowIndex, row) in _rows.indexed) ...[
+                      if (rowIndex > 0) const SizedBox(height: 12),
+                      Expanded(
+                        child: Row(
+                          children: [
+                            for (final (keyIndex, key) in row.indexed) ...[
+                              if (keyIndex > 0) const SizedBox(width: 12),
+                              Expanded(
+                                flex: key == '0' ? 2 : 1,
+                                child: _CalculatorKey(
+                                  label: key,
+                                  highlighted: _operators.contains(key),
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
               ),
             ],
