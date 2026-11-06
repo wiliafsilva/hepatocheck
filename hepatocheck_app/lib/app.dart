@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 
+import 'presentation/screens/home_screen.dart';
+import 'presentation/theme/app_theme.dart';
+
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
@@ -8,7 +11,9 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'HepatoCheck',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(useMaterial3: true),
+      theme: AppTheme.dark,
+      darkTheme: AppTheme.dark,
+      themeMode: ThemeMode.dark,
       home: const AppNavigationShell(),
     );
   }
@@ -53,11 +58,13 @@ class _AppNavigationShellState extends State<AppNavigationShell> {
     final tab = _tabs[_selectedIndex];
 
     return Scaffold(
-      appBar: AppBar(title: Text(tab.label)),
-      body: _TabPlaceholder(
-        label: tab.label,
-        showCamouflagePreview: _selectedIndex == 4,
-      ),
+      appBar: _selectedIndex == 0 ? null : AppBar(title: Text(tab.label)),
+      body: _selectedIndex == 0
+          ? const HomeScreen()
+          : _TabPlaceholder(
+              label: tab.label,
+              showCamouflagePreview: _selectedIndex == 4,
+            ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _selectedIndex,
         labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
