@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 
+import 'presentation/screens/exams_screen.dart';
 import 'presentation/screens/home_screen.dart';
 import 'presentation/theme/app_theme.dart';
 
@@ -14,6 +16,9 @@ class MyApp extends StatelessWidget {
       theme: AppTheme.dark,
       darkTheme: AppTheme.dark,
       themeMode: ThemeMode.dark,
+      locale: const Locale('pt', 'BR'),
+      supportedLocales: const [Locale('pt', 'BR')],
+      localizationsDelegates: GlobalMaterialLocalizations.delegates,
       home: const AppNavigationShell(),
     );
   }
@@ -30,7 +35,11 @@ class _AppNavigationShellState extends State<AppNavigationShell> {
   int _selectedIndex = 0;
 
   static const _tabs = <_AppTab>[
-    _AppTab(label: 'Início', icon: Icons.home_outlined, selectedIcon: Icons.home),
+    _AppTab(
+      label: 'Início',
+      icon: Icons.home_outlined,
+      selectedIcon: Icons.home,
+    ),
     _AppTab(
       label: 'Relatório',
       icon: Icons.bar_chart_outlined,
@@ -59,16 +68,19 @@ class _AppNavigationShellState extends State<AppNavigationShell> {
 
     return Scaffold(
       appBar: _selectedIndex == 0 ? null : AppBar(title: Text(tab.label)),
-      body: _selectedIndex == 0
-          ? const HomeScreen()
-          : _TabPlaceholder(
-              label: tab.label,
-              showCamouflagePreview: _selectedIndex == 4,
-            ),
+      body: switch (_selectedIndex) {
+        0 => const HomeScreen(),
+        3 => const ExamsScreen(),
+        _ => _TabPlaceholder(
+          label: tab.label,
+          showCamouflagePreview: _selectedIndex == 4,
+        ),
+      },
       bottomNavigationBar: NavigationBar(
         selectedIndex: _selectedIndex,
         labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
-        onDestinationSelected: (index) => setState(() => _selectedIndex = index),
+        onDestinationSelected: (index) =>
+            setState(() => _selectedIndex = index),
         destinations: [
           for (final tab in _tabs)
             NavigationDestination(
@@ -110,10 +122,7 @@ class _TabPlaceholder extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            label,
-            style: Theme.of(context).textTheme.headlineMedium,
-          ),
+          Text(label, style: Theme.of(context).textTheme.headlineMedium),
           const Spacer(),
           if (showCamouflagePreview)
             Align(
@@ -157,9 +166,8 @@ class CamouflageCalculatorPage extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: const Color(0xFFF6F6F6),
         foregroundColor: const Color(0xFF1B1B1B),
-        titleTextStyle: Theme.of(context).textTheme.titleLarge?.copyWith(
-          color: const Color(0xFF1B1B1B),
-        ),
+        titleTextStyle: Theme.of(context).textTheme.titleLarge
+            ?.copyWith(color: const Color(0xFF1B1B1B)),
         title: const Text('Calculadora'),
       ),
       body: SafeArea(
