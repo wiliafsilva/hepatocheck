@@ -9,6 +9,8 @@ abstract final class HiveDatabase {
   static const drinksBoxName = 'drinks';
   static const examsBoxName = 'exams';
 
+  static bool _encryptionReady = false;
+
   static Future<void> init(EncryptionKeyProvider keyProvider) async {
     await Hive.initFlutter();
     Hive.registerAdapters();
@@ -16,6 +18,22 @@ abstract final class HiveDatabase {
     final cipher = HiveAesCipher(await keyProvider.getOrCreateKey());
     await Hive.openBox<DrinkEntry>(drinksBoxName, encryptionCipher: cipher);
     await Hive.openBox<LabExam>(examsBoxName, encryptionCipher: cipher);
+    _encryptionReady = true;
+  }
+
+  /// As caixas são abertas com AES-256 desde a fundação do aplicativo.
+  ///
+  /// A chamada ao ativar a camuflagem é uma garantia explícita de que dados
+  /// existentes já foram gravados usando o cipher antes de a tela sensível ser
+  /// ocultada. Em instalações legadas, a migração deve ocorrer antes de abrir
+  /// as caixas para que nenhum dado seja exposto entre a leitura e a regravação.
+  static Future<void> ensureEncrypted() async {
+    if (!_encryptionReady) {
+      throw StateError(
+        'O banco Hive ainda não foi inicializado com criptografia.',
+      );
+    }
+    await Future.wait([drinks.flush(), exams.flush()]);
   }
 
   static Box<DrinkEntry> get drinks => Hive.box<DrinkEntry>(drinksBoxName);
