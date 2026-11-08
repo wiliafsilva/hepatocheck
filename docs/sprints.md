@@ -42,7 +42,7 @@ Feriados no período: 15/11 (domingo) e 20/11 (sexta-feira).
 | Gabriel de Oliveira Alves | Histórico de exames, regras de cálculo dos relatórios semanais e mensais, estrutura da tela Relatório |
 | Lizandra Bispo Nascimento | Calculadora do Modo Camuflagem com troca instantânea, código secreto, camuflagem automática em segundo plano, criptografia do banco ao ativar a camuflagem, teste de criptografia |
 | Victor Castelo Branco | Medidor do fígado de 0 a 100% com dados reais, ligação da tela Início com exames e diário, telas de login e cadastro |
-| Wilia Francisco da Silva | Revisão dos pull requests, fila offline, detecção de Wi-Fi, atualização dos protótipos com as telas novas, README e CHANGELOG |
+| Wilia Francisco da Silva | Revisão dos pull requests, fila offline, detecção de Wi-Fi, README e CHANGELOG |
 | Leon Mendonça | Registro detalhado por tipo de bebida, conversão em drinque padrão, tela Drinks, registro rápido em até 3 toques, registro de alterações do diário |
 
 ## Sprint 3 — Nuvem, relatórios e metas (16/11 a 22/11)
