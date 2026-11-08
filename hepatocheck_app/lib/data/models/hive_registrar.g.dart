@@ -10,6 +10,10 @@ extension HiveRegistrar on HiveInterface {
     registerAdapter(DrinkEntryAdapter());
     registerAdapter(DrinkTypeAdapter());
     registerAdapter(LabExamAdapter());
+    registerAdapter(SyncEntityTypeAdapter());
+    registerAdapter(SyncItemAdapter());
+    registerAdapter(SyncOperationAdapter());
+    registerAdapter(SyncStatusAdapter());
   }
 }
 
@@ -18,5 +22,9 @@ extension IsolatedHiveRegistrar on IsolatedHiveInterface {
     registerAdapter(DrinkEntryAdapter());
     registerAdapter(DrinkTypeAdapter());
     registerAdapter(LabExamAdapter());
+    registerAdapter(SyncEntityTypeAdapter());
+    registerAdapter(SyncItemAdapter());
+    registerAdapter(SyncOperationAdapter());
+    registerAdapter(SyncStatusAdapter());
   }
 }

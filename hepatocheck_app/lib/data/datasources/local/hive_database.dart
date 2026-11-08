@@ -3,11 +3,13 @@ import 'package:hive_ce_flutter/hive_ce_flutter.dart';
 import '../../../core/crypto/encryption_key_provider.dart';
 import '../../../domain/entities/drink_entry.dart';
 import '../../../domain/entities/lab_exam.dart';
+import '../../../domain/entities/sync_item.dart';
 import '../../models/hive_registrar.g.dart';
 
 abstract final class HiveDatabase {
   static const drinksBoxName = 'drinks';
   static const examsBoxName = 'exams';
+  static const syncQueueBoxName = 'sync_queue';
 
   static bool _encryptionReady = false;
 
@@ -18,6 +20,7 @@ abstract final class HiveDatabase {
     final cipher = HiveAesCipher(await keyProvider.getOrCreateKey());
     await Hive.openBox<DrinkEntry>(drinksBoxName, encryptionCipher: cipher);
     await Hive.openBox<LabExam>(examsBoxName, encryptionCipher: cipher);
+    await Hive.openBox<SyncItem>(syncQueueBoxName, encryptionCipher: cipher);
     _encryptionReady = true;
   }
 
@@ -33,10 +36,12 @@ abstract final class HiveDatabase {
         'O banco Hive ainda não foi inicializado com criptografia.',
       );
     }
-    await Future.wait([drinks.flush(), exams.flush()]);
+    await Future.wait([drinks.flush(), exams.flush(), syncQueue.flush()]);
   }
 
   static Box<DrinkEntry> get drinks => Hive.box<DrinkEntry>(drinksBoxName);
 
   static Box<LabExam> get exams => Hive.box<LabExam>(examsBoxName);
+
+  static Box<SyncItem> get syncQueue => Hive.box<SyncItem>(syncQueueBoxName);
 }
