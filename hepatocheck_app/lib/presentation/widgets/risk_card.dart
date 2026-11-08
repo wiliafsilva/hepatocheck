@@ -32,16 +32,21 @@ class RiskCard extends StatelessWidget {
         child: Column(
           children: [
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Idade: $age', style: AppTextStyles.body),
-                    Text('FIB-4: $fib4', style: AppTextStyles.subtitle),
-                  ],
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Idade: $age', style: AppTextStyles.body),
+                      Text('FIB-4: $fib4', style: AppTextStyles.subtitle),
+                    ],
+                  ),
                 ),
-                _RiskBadge(label: riskLabel, color: riskColor),
+                const SizedBox(width: 12),
+                Flexible(
+                  child: _RiskBadge(label: riskLabel, color: riskColor),
+                ),
               ],
             ),
             const SizedBox(height: 20),
@@ -77,6 +82,7 @@ class _RiskBadge extends StatelessWidget {
       ),
       child: Text(
         label,
+        textAlign: TextAlign.center,
         style: AppTextStyles.label.copyWith(color: color),
       ),
     );
