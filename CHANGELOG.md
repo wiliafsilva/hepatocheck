@@ -55,3 +55,18 @@
 - Fluxo de trabalho - Guia de contribuição com branches, commits e pull requests
 - Correções - Título e teclas da calculadora e cartão de risco com fonte grande
 - Readme atualizado
+
+## (09/11/2026)
+
+### Adicionado
+- Semana 2 - Diário, privacidade e medidor
+- Diário de álcool - Registro por tipo de bebida, conversão em drinque padrão, registro rápido e tela Drinks
+- Registro de alterações - Log do diário sem expor o conteúdo
+- Modo Camuflagem - Calculadora funcional, código secreto, camuflagem em segundo plano e ocultação na tela de recentes
+- Criptografia - Banco criptografado ao ativar a camuflagem e teste automatizado
+- Tela Início - Medidor do fígado com dados reais e cor do risco
+- Exames - Histórico na tela Exames
+- Relatório - Regras dos relatórios semanais e mensais e estrutura da tela
+- Login - Telas de login e cadastro
+- Sincronização - Fila offline e detecção de Wi-Fi
+- Readme atualizado

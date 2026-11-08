@@ -70,3 +70,13 @@
 | Victor Castelo Branco | Tipografia, Home, Casos de uso | Fonte Inter e níveis de texto, estrutura da tela Início com cartão de risco e botão de registro rápido, diagrama de casos de uso, layout do medidor do fígado |
 | Wilia Francisco da Silva | Estrutura do projeto, Sprints, Changelog e Readme | Reunião de início, fluxo de branches e pull requests, regras de commit, dependências do projeto, estrutura em camadas (Presentation, Domain e Data), Riverpod, planejamento em sprints, Changelog e Readme |
 | Leon Mendonça | Banco local, Diagrama de classes | Entidades do domínio, rascunho do diagrama de classes, banco local Hive com criptografia AES, adaptadores do Hive para exames e drinques |
+
+## Registro das responsabilidades (09/11/2026) Semana 2 - Diário, privacidade e medidor
+
+| Integrante | Responsabilidade | O que deverá realizar |
+| --- | --- | --- |
+| Gabriel de Oliveira Alves | Exames, Relatório | Histórico de exames na tela Exames, regras de cálculo dos relatórios semanais e mensais, estrutura da tela Relatório com filtro de período |
+| Lizandra Bispo Nascimento | Modo Camuflagem | Calculadora funcional com troca instantânea para o diário, código secreto para voltar ao diário, camuflagem automática em segundo plano, criptografia do banco ao ativar a camuflagem, ocultação do app na tela de recentes, teste automatizado da criptografia |
+| Victor Castelo Branco | Home, Medidor, Login | Medidor do fígado de 0 a 100% com dados reais e cor do risco, ligação da tela Início com os exames e o diário, telas de login e cadastro |
+| Wilia Francisco da Silva | Fila offline, Changelog e Readme | Revisão dos pull requests, fila offline de sincronização, detecção de Wi-Fi, Changelog e Readme |
+| Leon Mendonça | Drinks | Registro detalhado por tipo de bebida, conversão em drinque padrão, repositório do diário, tela Drinks com histórico, edição e exclusão, registro rápido em até 3 toques, registro de alterações do diário |

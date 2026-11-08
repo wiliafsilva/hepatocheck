@@ -60,8 +60,7 @@ flowchart LR
     E8 --> E8b["8.2 Diagrama de classes"]
     E8 --> E8c["8.3 Modelagem do Firestore"]
     E8 --> E8d["8.4 Fluxo de navegação real"]
-    E8 --> E8e["8.5 Protótipos atualizados"]
-    E8 --> E8f["8.6 Registro de uso de IA"]
+    E8 --> E8e["8.5 Registro de uso de IA"]
 
     E9 --> E9a["9.1 Testes automatizados"]
     E9 --> E9b["9.2 Testes em Android 8.0 ou superior"]
@@ -114,8 +113,7 @@ flowchart LR
 | 8.2 | Diagrama de classes | Entidades do domínio com atributos, métodos e relacionamentos | 1 e 4 |
 | 8.3 | Modelagem do Firestore | Coleções e documentos e o mapeamento das classes Dart | 3 |
 | 8.4 | Fluxo de navegação real | Como as telas do app pronto se conectam | 4 |
-| 8.5 | Protótipos atualizados | Protótipos de baixa e alta fidelidade com as telas da Unidade II | 2 |
-| 8.6 | Registro de uso de IA | Prompts, erros da IA, soluções e justificativa das bibliotecas | 4 |
+| 8.5 | Registro de uso de IA | Prompts, erros da IA, soluções e justificativa das bibliotecas | 4 |
 | **9** | **Qualidade e entrega** | Verificação e entrega final | 1 a 4 |
 | 9.1 | Testes automatizados | Testes do FIB-4, da validação, da criptografia, da sincronização e da anonimização | 1 a 3 |
 | 9.2 | Testes em Android 8.0 ou superior | Execução do app em aparelho ou emulador | 4 |
