@@ -81,7 +81,7 @@ class _AppNavigationShellState extends State<AppNavigationShell>
 
   Future<void> _loadCamouflage() async {
     await _camouflageController.load();
-    if (_camouflageController.isLocked) {
+    if (_camouflageController.isEnabled) {
       await AppSwitcherPrivacy.setProtection(true);
     }
     if (mounted) setState(() => _isReady = true);
@@ -117,7 +117,6 @@ class _AppNavigationShellState extends State<AppNavigationShell>
   Future<bool> _tryToUnlock(String code) async {
     final unlocked = await _camouflageController.unlock(code);
     if (unlocked) {
-      await AppSwitcherPrivacy.setProtection(false);
       if (mounted) setState(() => _selectedIndex = 2);
     }
     return unlocked;
@@ -227,7 +226,7 @@ class _ProfileScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Text(
-                'Use um código numérico de 4 a 8 dígitos para voltar ao diário.',
+                'Use um código numérico de 4 a 8 dígitos para voltar ao diário. Ele funciona mesmo após uma conta; basta digitá-lo na calculadora.',
               ),
               const SizedBox(height: 16),
               TextField(

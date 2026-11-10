@@ -45,4 +45,24 @@ void main() {
 
     expect(attempt, '2580');
   });
+
+  testWidgets('reconhece o código após uma conta anterior', (tester) async {
+    String? attempt;
+    await tester.pumpWidget(
+      MaterialApp(
+        home: CamouflageCalculatorScreen(
+          onSecretCodeAttempt: (code) async {
+            attempt = code;
+            return code == '2580';
+          },
+        ),
+      ),
+    );
+
+    for (final key in ['1', '2', '3', '+', '4', '2', '5', '8', '0']) {
+      await tapKey(tester, key);
+    }
+
+    expect(attempt, '2580');
+  });
 }
