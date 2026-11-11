@@ -413,10 +413,7 @@ class _DrinksScreenState extends ConsumerState<DrinksScreen> {
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(color: AppColors.oliveDark),
               ),
-              child: Text(
-                _conversionText(convert),
-                style: AppTextStyles.body,
-              ),
+              child: Text(_conversionText(convert), style: AppTextStyles.body),
             ),
           ],
         ),

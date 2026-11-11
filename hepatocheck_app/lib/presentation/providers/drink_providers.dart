@@ -24,7 +24,9 @@ final convertToStandardDrinksProvider = Provider(
   (ref) => const ConvertToStandardDrinks(),
 );
 
-final validateDrinkInputProvider = Provider((ref) => const ValidateDrinkInput());
+final validateDrinkInputProvider = Provider(
+  (ref) => const ValidateDrinkInput(),
+);
 
 final drinksProvider = NotifierProvider<DrinksNotifier, List<DrinkEntry>>(
   DrinksNotifier.new,

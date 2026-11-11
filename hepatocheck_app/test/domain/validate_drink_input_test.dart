@@ -27,7 +27,11 @@ void main() {
         quantity: 1,
         consumedAt: now,
       );
-      expect(result.errors.containsKey(DrinkField.volume), isTrue, reason: volume);
+      expect(
+        result.errors.containsKey(DrinkField.volume),
+        isTrue,
+        reason: volume,
+      );
     }
   });
 

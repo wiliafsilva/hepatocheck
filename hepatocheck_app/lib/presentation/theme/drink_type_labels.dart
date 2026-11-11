@@ -46,7 +46,8 @@ String describeDrink({
   int quantity = 1,
 }) {
   final serving = DrinkServing.matching(type, volumeMl);
-  final details = '(${formatDecimal(volumeMl)} ml, ${formatDecimal(alcoholPercent)}%)';
+  final details =
+      '(${formatDecimal(volumeMl)} ml, ${formatDecimal(alcoholPercent)}%)';
   if (serving == null) return '$quantity × ${type.label} $details';
   final name = serving.name.toLowerCase();
   final unit = quantity == 1 ? name : '${name}s';

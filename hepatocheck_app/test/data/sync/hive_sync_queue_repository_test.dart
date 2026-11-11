@@ -64,31 +64,34 @@ void main() {
     expect(pending.single.payload, {'ast': 38});
   });
 
-  test('várias edições do mesmo registro viram um só item com a última versão', () async {
-    await queue.enqueue(
-      entityType: SyncEntityType.drink,
-      entityId: 'drinque-1',
-      operation: SyncOperation.create,
-      payload: {'quantity': 1},
-    );
-    await queue.enqueue(
-      entityType: SyncEntityType.drink,
-      entityId: 'drinque-1',
-      operation: SyncOperation.update,
-      payload: {'quantity': 2},
-    );
-    await queue.enqueue(
-      entityType: SyncEntityType.drink,
-      entityId: 'drinque-1',
-      operation: SyncOperation.update,
-      payload: {'quantity': 3},
-    );
+  test(
+    'várias edições do mesmo registro viram um só item com a última versão',
+    () async {
+      await queue.enqueue(
+        entityType: SyncEntityType.drink,
+        entityId: 'drinque-1',
+        operation: SyncOperation.create,
+        payload: {'quantity': 1},
+      );
+      await queue.enqueue(
+        entityType: SyncEntityType.drink,
+        entityId: 'drinque-1',
+        operation: SyncOperation.update,
+        payload: {'quantity': 2},
+      );
+      await queue.enqueue(
+        entityType: SyncEntityType.drink,
+        entityId: 'drinque-1',
+        operation: SyncOperation.update,
+        payload: {'quantity': 3},
+      );
 
-    final pending = queue.pending();
-    expect(pending, hasLength(1));
-    expect(pending.single.operation, SyncOperation.create);
-    expect(pending.single.payload, {'quantity': 3});
-  });
+      final pending = queue.pending();
+      expect(pending, hasLength(1));
+      expect(pending.single.operation, SyncOperation.create);
+      expect(pending.single.payload, {'quantity': 3});
+    },
+  );
 
   test('criar e excluir antes de sincronizar remove o item da fila', () async {
     await queue.enqueue(
@@ -108,22 +111,25 @@ void main() {
     expect(box.isEmpty, isTrue);
   });
 
-  test('editar e depois excluir um registro já sincronizado envia só a exclusão', () async {
-    await queue.enqueue(
-      entityType: SyncEntityType.exam,
-      entityId: 'exame-1',
-      operation: SyncOperation.update,
-      payload: {'ast': 40},
-    );
-    await queue.enqueue(
-      entityType: SyncEntityType.exam,
-      entityId: 'exame-1',
-      operation: SyncOperation.delete,
-      payload: const {},
-    );
+  test(
+    'editar e depois excluir um registro já sincronizado envia só a exclusão',
+    () async {
+      await queue.enqueue(
+        entityType: SyncEntityType.exam,
+        entityId: 'exame-1',
+        operation: SyncOperation.update,
+        payload: {'ast': 40},
+      );
+      await queue.enqueue(
+        entityType: SyncEntityType.exam,
+        entityId: 'exame-1',
+        operation: SyncOperation.delete,
+        payload: const {},
+      );
 
-    expect(queue.pending().single.operation, SyncOperation.delete);
-  });
+      expect(queue.pending().single.operation, SyncOperation.delete);
+    },
+  );
 
   test('alteração feita durante o envio gera um item separado', () async {
     await queue.enqueue(

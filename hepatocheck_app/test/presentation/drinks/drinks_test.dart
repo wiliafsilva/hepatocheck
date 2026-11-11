@@ -8,6 +8,9 @@ import 'package:hepatocheck_app/presentation/providers/drink_providers.dart';
 import 'package:hepatocheck_app/presentation/screens/drinks_screen.dart';
 import 'package:hepatocheck_app/presentation/screens/home_screen.dart';
 import 'package:hepatocheck_app/presentation/theme/app_theme.dart';
+import 'package:hepatocheck_app/presentation/providers/exam_providers.dart';
+
+import '../../support/test_data.dart';
 
 class _MemoryDrinkRepository implements DrinkRepository {
   final _items = <String, DrinkEntry>{};
@@ -38,7 +41,11 @@ void main() {
     addTearDown(tester.view.reset);
     await tester.pumpWidget(
       ProviderScope(
-        overrides: [drinkRepositoryProvider.overrideWithValue(repository)],
+        overrides: [
+          drinkRepositoryProvider.overrideWithValue(repository),
+          // O Início também lê os exames para calcular o medidor.
+          examRepositoryProvider.overrideWithValue(MemoryExamRepository()),
+        ],
         child: MaterialApp(
           theme: AppTheme.dark,
           home: Scaffold(body: home),
