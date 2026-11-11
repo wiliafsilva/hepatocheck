@@ -10,6 +10,7 @@ import '../providers/exam_providers.dart';
 import '../providers/report_providers.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
+import '../theme/drink_type_labels.dart';
 import '../theme/risk_colors.dart';
 import '../widgets/delta_label.dart';
 import '../widgets/risk_badge.dart';
@@ -186,12 +187,12 @@ class _CurrentRiskCard extends ConsumerWidget {
 class _SummaryGrid extends StatelessWidget {
   const _SummaryGrid({required this.report, required this.type});
 
-  final ConsumptionReport? report;
+  final ConsumptionReport report;
   final ReportPeriodType type;
 
   @override
   Widget build(BuildContext context) {
-    final report = this.report;
+    final difference = _roundedDifference(report);
     final previousLabel = type == ReportPeriodType.week
         ? 'semana anterior'
         : 'mês anterior';
@@ -200,27 +201,25 @@ class _SummaryGrid extends StatelessWidget {
       _SummaryCard(
         icon: Icons.local_bar_outlined,
         title: 'Drinques padrão',
-        value: report == null ? '—' : formatDrinks(report.totalStandardDrinks),
+        value: formatDrinks(report.totalStandardDrinks),
       ),
       _SummaryCard(
         icon: Icons.today_outlined,
         title: 'Média por dia',
-        value: report == null ? '—' : formatDrinks(report.averagePerDay),
+        value: formatDrinks(report.averagePerDay),
       ),
       _SummaryCard(
         icon: Icons.event_available_outlined,
         title: 'Dias sem álcool',
-        value: report == null
-            ? '—'
-            : '${report.alcoholFreeDays} de ${report.elapsedDays}',
+        value: '${report.alcoholFreeDays} de ${report.elapsedDays}',
       ),
       _SummaryCard(
         icon: Icons.compare_arrows,
         title: 'Vs. $previousLabel',
-        value: report == null ? '—' : _differenceText(report),
-        footer: report == null || report.difference == 0
+        value: _differenceText(difference),
+        footer: difference == 0
             ? null
-            : DeltaLabel(delta: report.difference, text: _percentText(report)),
+            : DeltaLabel(delta: difference, text: _percentText(report)),
       ),
     ];
 
@@ -235,7 +234,7 @@ class _SummaryGrid extends StatelessWidget {
           childAspectRatio: 1.45,
           children: cards,
         ),
-        if (report == null || !report.hasData)
+        if (!report.hasData)
           const Padding(
             padding: EdgeInsets.only(top: 12),
             child: Text(
@@ -248,8 +247,10 @@ class _SummaryGrid extends StatelessWidget {
     );
   }
 
-  static String _differenceText(ConsumptionReport report) {
-    final difference = report.difference;
+  static double _roundedDifference(ConsumptionReport report) =>
+      double.parse(report.difference.toStringAsFixed(1));
+
+  static String _differenceText(double difference) {
     if (difference == 0) return 'Igual';
     final sign = difference > 0 ? '+' : '−';
     return '$sign${formatDrinks(difference.abs())}';
@@ -310,15 +311,13 @@ class _SummaryCard extends StatelessWidget {
 class _ByTypeCard extends StatelessWidget {
   const _ByTypeCard({required this.report});
 
-  final ConsumptionReport? report;
+  final ConsumptionReport report;
 
   @override
   Widget build(BuildContext context) {
-    final report = this.report;
-    final entries = report == null
-        ? <MapEntry<DrinkType, double>>[]
-        : (report.byType.entries.where((entry) => entry.value > 0).toList()
-            ..sort((a, b) => b.value.compareTo(a.value)));
+    final entries =
+        report.byType.entries.where((entry) => entry.value > 0).toList()
+          ..sort((a, b) => b.value.compareTo(a.value));
 
     if (entries.isEmpty) {
       return const Card(
@@ -341,7 +340,7 @@ class _ByTypeCard extends StatelessWidget {
             for (final (index, entry) in entries.indexed) ...[
               if (index > 0) const SizedBox(height: 12),
               _TypeBar(
-                label: _drinkTypeLabel(entry.key),
+                type: entry.key,
                 value: entry.value,
                 fraction: entry.value / highest,
               ),
@@ -355,12 +354,12 @@ class _ByTypeCard extends StatelessWidget {
 
 class _TypeBar extends StatelessWidget {
   const _TypeBar({
-    required this.label,
+    required this.type,
     required this.value,
     required this.fraction,
   });
 
-  final String label;
+  final DrinkType type;
   final double value;
   final double fraction;
 
@@ -371,7 +370,9 @@ class _TypeBar extends StatelessWidget {
       children: [
         Row(
           children: [
-            Expanded(child: Text(label, style: AppTextStyles.label)),
+            Icon(type.icon, size: 18, color: AppColors.textSecondary),
+            const SizedBox(width: 8),
+            Expanded(child: Text(type.label, style: AppTextStyles.label)),
             Text(formatDrinks(value), style: AppTextStyles.label),
           ],
         ),
@@ -389,11 +390,3 @@ class _TypeBar extends StatelessWidget {
     );
   }
 }
-
-String _drinkTypeLabel(DrinkType type) => switch (type) {
-  DrinkType.beer => 'Cerveja',
-  DrinkType.wine => 'Vinho',
-  DrinkType.spirit => 'Destilado',
-  DrinkType.cocktail => 'Drinque / coquetel',
-  DrinkType.other => 'Outros',
-};
