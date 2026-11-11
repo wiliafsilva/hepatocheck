@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../theme/app_text_styles.dart';
+import '../widgets/quick_drink_sheet.dart';
 import '../widgets/risk_card.dart';
 
 /// Tela Início: cartão de risco com o medidor e o botão + de registro rápido.
@@ -36,8 +37,7 @@ class HomeScreen extends StatelessWidget {
       ),
       floatingActionButton: FloatingActionButton(
         tooltip: 'Registrar drinque',
-        // O registro rápido (até 3 toques) entra na Sprint 2 (tarefa 19).
-        onPressed: () {},
+        onPressed: () => showQuickDrinkSheet(context),
         child: const Icon(Icons.add),
       ),
     );
