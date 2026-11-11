@@ -1,25 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../domain/entities/fib4_result.dart';
 import '../../domain/entities/lab_exam.dart';
 import '../../domain/usecases/validate_exam_input.dart';
+import '../formatters.dart';
+import '../input/exam_number_input_formatter.dart';
 import '../providers/exam_providers.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 import '../theme/risk_colors.dart';
-
-final _dateFormat = DateFormat('dd/MM/yyyy');
-
-String formatScore(double score) =>
-    score.toStringAsFixed(2).replaceAll('.', ',');
-
-String _formatInput(num value) {
-  if (value == value.roundToDouble()) return value.toInt().toString();
-  return value.toString().replaceAll('.', ',');
-}
+import '../widgets/exam_history.dart';
+import '../widgets/risk_badge.dart';
+import '../widgets/section_label.dart';
 
 class ExamsScreen extends ConsumerStatefulWidget {
   const ExamsScreen({super.key});
@@ -33,6 +27,7 @@ class _ExamsScreenState extends ConsumerState<ExamsScreen> {
   final _astController = TextEditingController();
   final _altController = TextEditingController();
   final _plateletsController = TextEditingController();
+  final _scrollController = ScrollController();
 
   DateTime? _examDate = DateUtils.dateOnly(DateTime.now());
   LabExam? _editing;
@@ -53,6 +48,7 @@ class _ExamsScreenState extends ConsumerState<ExamsScreen> {
     _astController.dispose();
     _altController.dispose();
     _plateletsController.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -86,7 +82,7 @@ class _ExamsScreenState extends ConsumerState<ExamsScreen> {
     final suggestion = _plateletSuggestion;
     if (suggestion == null) return;
     setState(() {
-      _plateletsController.text = _formatInput(suggestion);
+      _plateletsController.text = formatNumber(suggestion);
       _plateletSuggestion = null;
       _errors = Map.of(_errors)..remove(ExamField.platelets);
     });
@@ -163,13 +159,20 @@ class _ExamsScreenState extends ConsumerState<ExamsScreen> {
     setState(() {
       _editing = exam;
       _ageController.text = exam.age.toString();
-      _astController.text = _formatInput(exam.ast);
-      _altController.text = _formatInput(exam.alt);
-      _plateletsController.text = _formatInput(exam.platelets);
+      _astController.text = formatNumber(exam.ast);
+      _altController.text = formatNumber(exam.alt);
+      _plateletsController.text = formatNumber(exam.platelets);
       _examDate = exam.examDate;
       _errors = const {};
       _plateletSuggestion = null;
     });
+    if (_scrollController.hasClients) {
+      _scrollController.animateTo(
+        0,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOut,
+      );
+    }
   }
 
   Future<void> _confirmDelete(LabExam exam) async {
@@ -178,7 +181,7 @@ class _ExamsScreenState extends ConsumerState<ExamsScreen> {
       builder: (context) => AlertDialog(
         title: const Text('Excluir exame?'),
         content: Text(
-          'O exame de ${_dateFormat.format(exam.examDate)} e o resultado do '
+          'O exame de ${formatDate(exam.examDate)} e o resultado do '
           'FIB-4 serão removidos do histórico.',
         ),
         actions: [
@@ -226,12 +229,13 @@ class _ExamsScreenState extends ConsumerState<ExamsScreen> {
         _lastResult ?? (exams.isEmpty ? null : calculate(exams.first));
 
     return ListView(
+      controller: _scrollController,
       padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
       children: [
         Row(
           children: [
             Expanded(
-              child: _SectionLabel(
+              child: SectionLabel(
                 _editing == null ? 'NOVO EXAME' : 'EDITAR EXAME',
               ),
             ),
@@ -264,38 +268,26 @@ class _ExamsScreenState extends ConsumerState<ExamsScreen> {
         ),
         if (result != null) ...[
           const SizedBox(height: 24),
-          const _SectionLabel('RESULTADO'),
+          const SectionLabel('RESULTADO'),
           const SizedBox(height: 8),
           _ResultCard(result: result),
         ],
         const SizedBox(height: 24),
-        _SectionLabel(
+        SectionLabel(
           exams.isEmpty ? 'HISTÓRICO' : 'HISTÓRICO (${exams.length})',
         ),
         const SizedBox(height: 8),
-        if (exams.isEmpty)
-          const Padding(
-            padding: EdgeInsets.symmetric(vertical: 16),
-            child: Text(
-              'Nenhum exame registrado ainda.',
-              style: AppTextStyles.body,
-            ),
-          )
-        else
-          for (final (index, exam) in exams.indexed)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 10),
-              child: _HistoryTile(
-                result: calculate(exam),
-                previous: index + 1 < exams.length
-                    ? calculate(exams[index + 1])
-                    : null,
-                exam: exam,
-                selected: _editing?.id == exam.id,
-                onTap: () => _startEditing(exam),
-                onDelete: () => _confirmDelete(exam),
-              ),
-            ),
+        ExamHistory(
+          exams: exams,
+          calculate: calculate,
+          summary: ref.watch(summarizeExamHistoryProvider)(
+            exams,
+            today: DateTime.now(),
+          ),
+          selectedId: _editing?.id,
+          onEdit: _startEditing,
+          onDelete: _confirmDelete,
+        ),
         const SizedBox(height: 8),
         const Text(
           'Triagem preventiva. Não substitui avaliação médica.',
@@ -327,6 +319,7 @@ class _ExamsScreenState extends ConsumerState<ExamsScreen> {
                     suffix: 'anos',
                     error: _errors[ExamField.age],
                     decimal: false,
+                    maxIntegerDigits: 3,
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -356,6 +349,7 @@ class _ExamsScreenState extends ConsumerState<ExamsScreen> {
                     controller: _astController,
                     suffix: 'U/L',
                     error: _errors[ExamField.ast],
+                    maxIntegerDigits: 4,
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -365,6 +359,7 @@ class _ExamsScreenState extends ConsumerState<ExamsScreen> {
                     controller: _altController,
                     suffix: 'U/L',
                     error: _errors[ExamField.alt],
+                    maxIntegerDigits: 4,
                   ),
                 ),
               ],
@@ -375,13 +370,14 @@ class _ExamsScreenState extends ConsumerState<ExamsScreen> {
               controller: _plateletsController,
               suffix: '×10³/mm³',
               error: _errors[ExamField.platelets],
+              maxIntegerDigits: 6,
             ),
             if (_plateletSuggestion != null)
               Align(
                 alignment: Alignment.centerLeft,
                 child: TextButton(
                   onPressed: _applyPlateletSuggestion,
-                  child: Text('Usar ${_formatInput(_plateletSuggestion!)}'),
+                  child: Text('Usar ${formatNumber(_plateletSuggestion!)}'),
                 ),
               ),
             const SizedBox(height: 6),
@@ -415,7 +411,7 @@ class _ExamsScreenState extends ConsumerState<ExamsScreen> {
               ),
             ),
             child: Text(
-              date == null ? 'Selecionar' : _dateFormat.format(date),
+              date == null ? 'Selecionar' : formatDate(date),
               style: AppTextStyles.body,
             ),
           ),
@@ -458,6 +454,7 @@ class _NumberField extends StatelessWidget {
     required this.controller,
     required this.suffix,
     required this.error,
+    required this.maxIntegerDigits,
     this.decimal = true,
   });
 
@@ -466,6 +463,7 @@ class _NumberField extends StatelessWidget {
   final String suffix;
   final String? error;
   final bool decimal;
+  final int maxIntegerDigits;
 
   @override
   Widget build(BuildContext context) {
@@ -478,57 +476,16 @@ class _NumberField extends StatelessWidget {
           controller: controller,
           keyboardType: TextInputType.numberWithOptions(decimal: decimal),
           textInputAction: TextInputAction.next,
+          inputFormatters: [
+            ExamNumberInputFormatter(
+              decimal: decimal,
+              maxIntegerDigits: maxIntegerDigits,
+            ),
+          ],
           style: AppTextStyles.body,
           decoration: _inputDecoration(error: error, suffix: suffix),
         ),
       ],
-    );
-  }
-}
-
-class _SectionLabel extends StatelessWidget {
-  const _SectionLabel(this.text);
-
-  final String text;
-
-  @override
-  Widget build(BuildContext context) {
-    return Text(
-      text,
-      style: AppTextStyles.label.copyWith(
-        color: AppColors.textSecondary,
-        letterSpacing: 0.6,
-      ),
-    );
-  }
-}
-
-class _RiskBadge extends StatelessWidget {
-  const _RiskBadge({required this.result});
-
-  final Fib4Result result;
-
-  @override
-  Widget build(BuildContext context) {
-    final color = result.riskLevel.color;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.15),
-        borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: color),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(result.riskLevel.icon, size: 16, color: color),
-          const SizedBox(width: 6),
-          Text(
-            result.riskLevel.label.toUpperCase(),
-            style: AppTextStyles.label.copyWith(color: color),
-          ),
-        ],
-      ),
     );
   }
 }
@@ -552,7 +509,7 @@ class _ResultCard extends StatelessWidget {
                 const Expanded(
                   child: Text('Resultado FIB-4', style: AppTextStyles.body),
                 ),
-                _RiskBadge(result: result),
+                RiskBadge(riskLevel: result.riskLevel),
               ],
             ),
             const SizedBox(height: 8),
@@ -593,124 +550,6 @@ class _ResultCard extends StatelessWidget {
           ],
         ),
       ),
-    );
-  }
-}
-
-class _HistoryTile extends StatelessWidget {
-  const _HistoryTile({
-    required this.exam,
-    required this.result,
-    required this.previous,
-    required this.selected,
-    required this.onTap,
-    required this.onDelete,
-  });
-
-  final LabExam exam;
-  final Fib4Result result;
-  final Fib4Result? previous;
-  final bool selected;
-  final VoidCallback onTap;
-  final VoidCallback onDelete;
-
-  @override
-  Widget build(BuildContext context) {
-    final color = result.riskLevel.color;
-    final previousScore = previous?.score;
-    final delta = previousScore == null
-        ? null
-        : double.parse((result.score - previousScore).toStringAsFixed(2));
-
-    return Card(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: selected ? AppColors.olive : AppColors.outline),
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(12, 10, 4, 10),
-          child: Row(
-            children: [
-              Container(
-                width: 56,
-                height: 48,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: color.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Text(
-                  formatScore(result.score),
-                  style: AppTextStyles.label.copyWith(color: color),
-                ),
-              ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      _dateFormat.format(exam.examDate),
-                      style: AppTextStyles.subtitle,
-                    ),
-                    Text.rich(
-                      TextSpan(
-                        text: 'Faixa: ',
-                        style: AppTextStyles.caption,
-                        children: [
-                          TextSpan(
-                            text: result.riskLevel.label,
-                            style: AppTextStyles.caption.copyWith(color: color),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              if (delta != null && delta != 0) _DeltaLabel(delta: delta),
-              IconButton(
-                tooltip: 'Excluir exame',
-                onPressed: onDelete,
-                icon: const Icon(
-                  Icons.delete_outline,
-                  color: AppColors.riskRed,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _DeltaLabel extends StatelessWidget {
-  const _DeltaLabel({required this.delta});
-
-  final double delta;
-
-  @override
-  Widget build(BuildContext context) {
-    final improved = delta < 0;
-    final color = improved ? AppColors.riskGreen : AppColors.riskRed;
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(
-          improved ? Icons.arrow_downward : Icons.arrow_upward,
-          size: 14,
-          color: color,
-        ),
-        const SizedBox(width: 2),
-        Text(
-          formatScore(delta.abs()),
-          style: AppTextStyles.caption.copyWith(color: color),
-        ),
-      ],
     );
   }
 }

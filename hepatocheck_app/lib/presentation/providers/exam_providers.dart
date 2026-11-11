@@ -6,6 +6,7 @@ import '../../domain/entities/lab_exam.dart';
 import '../../domain/repositories/exam_repository.dart';
 import '../../domain/usecases/calculate_fib4.dart';
 import '../../domain/usecases/classify_risk.dart';
+import '../../domain/usecases/summarize_exam_history.dart';
 import '../../domain/usecases/validate_exam_input.dart';
 
 final examRepositoryProvider = Provider<ExamRepository>(
@@ -17,6 +18,10 @@ final calculateFib4Provider = Provider((ref) => const CalculateFib4());
 final classifyRiskProvider = Provider((ref) => const ClassifyRisk());
 
 final validateExamInputProvider = Provider((ref) => const ValidateExamInput());
+
+final summarizeExamHistoryProvider = Provider(
+  (ref) => SummarizeExamHistory(ref.watch(calculateFib4Provider)),
+);
 
 final examsProvider = NotifierProvider<ExamsNotifier, List<LabExam>>(
   ExamsNotifier.new,
