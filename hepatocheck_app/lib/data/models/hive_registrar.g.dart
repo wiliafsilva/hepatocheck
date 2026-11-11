@@ -7,6 +7,8 @@ import 'package:hepatocheck_app/data/models/hive_adapters.dart';
 
 extension HiveRegistrar on HiveInterface {
   void registerAdapters() {
+    registerAdapter(AuditEntryAdapter());
+    registerAdapter(AuditOperationAdapter());
     registerAdapter(DrinkEntryAdapter());
     registerAdapter(DrinkTypeAdapter());
     registerAdapter(LabExamAdapter());
@@ -19,6 +21,8 @@ extension HiveRegistrar on HiveInterface {
 
 extension IsolatedHiveRegistrar on IsolatedHiveInterface {
   void registerAdapters() {
+    registerAdapter(AuditEntryAdapter());
+    registerAdapter(AuditOperationAdapter());
     registerAdapter(DrinkEntryAdapter());
     registerAdapter(DrinkTypeAdapter());
     registerAdapter(LabExamAdapter());

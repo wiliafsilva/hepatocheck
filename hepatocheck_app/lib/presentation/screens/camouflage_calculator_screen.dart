@@ -38,7 +38,17 @@ class _CamouflageCalculatorScreenState
       if (_secretAttempt.length < 4 || _checkingCode) return;
 
       _checkingCode = true;
-      final isSecretCode = await widget.onSecretCodeAttempt(_secretAttempt);
+      final maximumLength = _secretAttempt.length.clamp(4, 8);
+      var isSecretCode = false;
+      for (var length = 4; length <= maximumLength; length++) {
+        final candidate = _secretAttempt.substring(
+          _secretAttempt.length - length,
+        );
+        if (await widget.onSecretCodeAttempt(candidate)) {
+          isSecretCode = true;
+          break;
+        }
+      }
       _checkingCode = false;
       if (!mounted) return;
       if (isSecretCode) return;

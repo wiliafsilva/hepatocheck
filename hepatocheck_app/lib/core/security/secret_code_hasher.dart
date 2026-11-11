@@ -6,4 +6,7 @@ import 'package:crypto/crypto.dart';
 abstract final class SecretCodeHasher {
   static String hash(String code) =>
       sha256.convert(utf8.encode(code)).toString();
+
+  static String keyedHash({required String code, required String key}) =>
+      Hmac(sha256, utf8.encode(key)).convert(utf8.encode(code)).toString();
 }

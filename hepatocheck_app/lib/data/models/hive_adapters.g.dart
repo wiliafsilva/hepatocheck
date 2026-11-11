@@ -349,3 +349,93 @@ class SyncItemAdapter extends TypeAdapter<SyncItem> {
           runtimeType == other.runtimeType &&
           typeId == other.typeId;
 }
+
+class AuditOperationAdapter extends TypeAdapter<AuditOperation> {
+  @override
+  final typeId = 7;
+
+  @override
+  AuditOperation read(BinaryReader reader) {
+    switch (reader.readByte()) {
+      case 0:
+        return AuditOperation.create;
+      case 1:
+        return AuditOperation.update;
+      case 2:
+        return AuditOperation.delete;
+      default:
+        return AuditOperation.create;
+    }
+  }
+
+  @override
+  void write(BinaryWriter writer, AuditOperation obj) {
+    switch (obj) {
+      case AuditOperation.create:
+        writer.writeByte(0);
+      case AuditOperation.update:
+        writer.writeByte(1);
+      case AuditOperation.delete:
+        writer.writeByte(2);
+    }
+  }
+
+  @override
+  int get hashCode => typeId.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is AuditOperationAdapter &&
+          runtimeType == other.runtimeType &&
+          typeId == other.typeId;
+}
+
+class AuditEntryAdapter extends TypeAdapter<AuditEntry> {
+  @override
+  final typeId = 8;
+
+  @override
+  AuditEntry read(BinaryReader reader) {
+    final numOfFields = reader.readByte();
+    final fields = <int, dynamic>{
+      for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
+    };
+    return AuditEntry(
+      id: fields[0] as String,
+      operation: fields[1] as AuditOperation,
+      entityId: fields[2] as String,
+      timestamp: fields[3] as DateTime,
+      contentHash: fields[4] as String,
+      previousHash: fields[5] as String,
+    );
+  }
+
+  @override
+  void write(BinaryWriter writer, AuditEntry obj) {
+    writer
+      ..writeByte(6)
+      ..writeByte(0)
+      ..write(obj.id)
+      ..writeByte(1)
+      ..write(obj.operation)
+      ..writeByte(2)
+      ..write(obj.entityId)
+      ..writeByte(3)
+      ..write(obj.timestamp)
+      ..writeByte(4)
+      ..write(obj.contentHash)
+      ..writeByte(5)
+      ..write(obj.previousHash);
+  }
+
+  @override
+  int get hashCode => typeId.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is AuditEntryAdapter &&
+          runtimeType == other.runtimeType &&
+          typeId == other.typeId;
+}
