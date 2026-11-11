@@ -9,6 +9,7 @@ import 'presentation/screens/camouflage_calculator_screen.dart';
 import 'presentation/screens/drinks_screen.dart';
 import 'presentation/screens/exams_screen.dart';
 import 'presentation/screens/home_screen.dart';
+import 'presentation/screens/report_screen.dart';
 import 'presentation/theme/app_theme.dart';
 
 class MyApp extends StatelessWidget {
@@ -152,6 +153,7 @@ class _AppNavigationShellState extends State<AppNavigationShell>
       appBar: _selectedIndex == 0 ? null : AppBar(title: Text(tab.label)),
       body: switch (_selectedIndex) {
         0 => const HomeScreen(),
+        1 => const ReportScreen(),
         2 => const DrinksScreen(),
         3 => const ExamsScreen(),
         4 => _ProfileScreen(
