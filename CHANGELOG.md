@@ -71,3 +71,20 @@
 - Sincronização - Fila offline e detecção de Wi-Fi
 - Layout - Largura máxima do conteúdo em telas largas
 - Readme atualizado
+
+## (16/11/2026)
+
+### Adicionado
+- Semana 3 - Nuvem, relatórios e metas
+- Login - Autenticação opcional com Firebase mantendo o modo convidado, cadastro e recuperação de senha
+- Sincronização - Consentimento, anonimização dos dados, envio em lote para o Firestore, tratamento de falhas parciais e tela de status
+- Segurança - Regras do Firestore para os dados sincronizados
+- Diário de álcool - Diário e exames ligados à fila de sincronização e opção de apagar todos os dados locais
+- Relatório - Relatórios semanais e mensais na tela e exportação em PDF com compartilhamento
+- Exames - Dashboard de evolução dos exames
+- Evolução do risco - Gráfico da evolução temporal do risco hepático
+- Metas - Metas de redução com aviso de meta cumprida ou perto de ser ultrapassada
+- Notificações - Notificações educativas personalizadas e lembretes de exame e de registro
+- Testes - Sincronização com falha parcial e anonimização
+- Documentação - Modelagem do Firestore e mapeamento das classes Dart
+- Readme atualizado

@@ -80,3 +80,13 @@
 | Victor Castelo Branco | Home, Medidor, Login | Medidor do fígado de 0 a 100% com dados reais e cor do risco, ligação da tela Início com os exames e o diário, telas de login e cadastro |
 | Wilia Francisco da Silva | Fila offline, Changelog e Readme | Revisão dos pull requests, fila offline de sincronização, detecção de Wi-Fi, Changelog e Readme |
 | Leon Mendonça | Drinks | Registro detalhado por tipo de bebida, conversão em drinque padrão, repositório do diário, tela Drinks com histórico, edição e exclusão, registro rápido em até 3 toques, registro de alterações do diário |
+
+## Registro das responsabilidades (16/11/2026) Semana 3 - Nuvem, relatórios e metas
+
+| Integrante | Responsabilidade | O que deverá realizar |
+| --- | --- | --- |
+| Gabriel de Oliveira Alves | Relatório, Dashboard, PDF | Relatórios semanais e mensais na tela, dashboard de evolução dos exames, exportação do relatório em PDF, compartilhamento do PDF |
+| Lizandra Bispo Nascimento | Metas, Notificações | Metas de redução com criação, acompanhamento, edição e exclusão, aviso de meta cumprida ou perto de ser ultrapassada, notificações educativas personalizadas, lembretes de exame e de registro |
+| Victor Castelo Branco | Login, Anonimização, Evolução do risco | Autenticação opcional mantendo o modo convidado, tela de consentimento da sincronização, anonimização dos dados, gráfico de evolução temporal do risco, telas de cadastro e recuperação de senha |
+| Wilia Francisco da Silva | Sincronização, Changelog e Readme | Revisão dos pull requests, sincronização em lote com o Firestore, tratamento de falhas parciais, regras de segurança do Firestore, testes automatizados da sincronização e da anonimização, tela de status da sincronização, Changelog e Readme |
+| Leon Mendonça | Drinks, Integração, Modelagem do Firebase | Ligação do diário e dos exames à fila de sincronização, modelagem das coleções e documentos do Firestore, mapeamento das classes Dart para o Firestore, ajustes do diário apontados nas revisões, opção de apagar todos os dados locais |
