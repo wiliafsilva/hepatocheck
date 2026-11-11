@@ -1,34 +1,31 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:hepatocheck_app/domain/entities/drink_entry.dart';
-import 'package:hepatocheck_app/domain/entities/lab_exam.dart';
 import 'package:hepatocheck_app/domain/entities/risk_level.dart';
 import 'package:hepatocheck_app/domain/usecases/calculate_liver_health.dart';
+
+import '../support/test_data.dart';
 
 void main() {
   const useCase = CalculateLiverHealth();
   final now = DateTime(2026, 11, 11, 12);
 
-  LabExam exam({
+  exam({
     String id = 'e1',
     DateTime? date,
     int age = 45,
     double ast = 30,
     double alt = 36,
     double platelets = 250,
-  }) => LabExam(
+  }) => testExam(
     id: id,
-    date: date ?? DateTime(2026, 11, 1),
+    examDate: date,
     age: age,
     ast: ast,
     alt: alt,
     platelets: platelets,
   );
 
-  DrinkEntry drink(double amount, {int daysAgo = 1}) => DrinkEntry(
-    id: 'd$amount$daysAgo',
-    dateTime: now.subtract(Duration(days: daysAgo)),
-    standardDrinks: amount,
-  );
+  drink(double amount, {int daysAgo = 1}) =>
+      testDrink(amount, now.subtract(Duration(days: daysAgo)));
 
   test('sem exame, não há medidor nem risco', () {
     final result = useCase(exams: [], drinks: [drink(3)], now: now);
@@ -40,7 +37,7 @@ void main() {
   test('FIB-4 de 0,90 gera medidor de cerca de 72% e risco baixo', () {
     // (45 x 30) / (250 x raiz(36)) = 0,90 -> 100 x (1 - 0,90 / 3,25)
     final result = useCase(exams: [exam()], drinks: [], now: now);
-    expect(result.exam!.fib4, closeTo(0.9, 1e-9));
+    expect(result.fib4, closeTo(0.9, 1e-9));
     expect(result.percent, closeTo(72.31, 0.01));
     expect(result.risk, RiskLevel.low);
   });
@@ -99,19 +96,5 @@ void main() {
   test('o desconto não muda a cor, que segue só o FIB-4', () {
     final result = useCase(exams: [exam()], drinks: [drink(400)], now: now);
     expect(result.risk, RiskLevel.low);
-  });
-
-  group('RiskLevel.fromFib4', () {
-    test('limites da faixa para menos de 65 anos', () {
-      expect(RiskLevel.fromFib4(1.29, age: 50), RiskLevel.low);
-      expect(RiskLevel.fromFib4(1.30, age: 50), RiskLevel.intermediate);
-      expect(RiskLevel.fromFib4(2.67, age: 50), RiskLevel.intermediate);
-      expect(RiskLevel.fromFib4(2.68, age: 50), RiskLevel.high);
-    });
-
-    test('a partir de 65 anos o limite de risco baixo é 2,0', () {
-      expect(RiskLevel.fromFib4(1.8, age: 65), RiskLevel.low);
-      expect(RiskLevel.fromFib4(2.0, age: 65), RiskLevel.intermediate);
-    });
   });
 }

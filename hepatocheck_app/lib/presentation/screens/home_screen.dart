@@ -4,9 +4,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../domain/usecases/calculate_liver_health.dart';
 import '../providers/liver_health_provider.dart';
 import '../theme/app_text_styles.dart';
+import '../widgets/content_width.dart';
+import '../widgets/quick_drink_sheet.dart';
 import '../widgets/risk_card.dart';
 import 'auth/login_screen.dart';
-import '../widgets/content_width.dart';
 
 /// Tela Início: cartão de risco com o medidor e o botão + de registro rápido.
 ///
@@ -55,8 +56,7 @@ class HomeScreen extends ConsumerWidget {
       ),
       floatingActionButton: FloatingActionButton(
         tooltip: 'Registrar drinque',
-        // O registro rápido (até 3 toques) é a tarefa 19 (Drinks).
-        onPressed: () {},
+        onPressed: () => showQuickDrinkSheet(context),
         child: const Icon(Icons.add),
       ),
     );

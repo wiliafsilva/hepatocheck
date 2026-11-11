@@ -1,31 +1,41 @@
-import 'dart:math' as math;
-
-/// Exame laboratorial usado no cálculo do FIB-4.
 class LabExam {
   const LabExam({
     required this.id,
-    required this.date,
+    required this.examDate,
     required this.age,
     required this.ast,
     required this.alt,
     required this.platelets,
+    required this.createdAt,
+    required this.updatedAt,
   });
 
   final String id;
-  final DateTime date;
-
-  /// Idade em anos na data do exame.
+  final DateTime examDate;
   final int age;
-
-  /// TGO (AST) em U/L.
   final double ast;
-
-  /// TGP (ALT) em U/L.
   final double alt;
-
-  /// Plaquetas em 10⁹/L.
   final double platelets;
+  final DateTime createdAt;
+  final DateTime updatedAt;
 
-  /// FIB-4 = (idade × TGO) / (plaquetas × √TGP). Sempre recalculado.
-  double get fib4 => (age * ast) / (platelets * math.sqrt(alt));
+  LabExam copyWith({
+    DateTime? examDate,
+    int? age,
+    double? ast,
+    double? alt,
+    double? platelets,
+    DateTime? updatedAt,
+  }) {
+    return LabExam(
+      id: id,
+      examDate: examDate ?? this.examDate,
+      age: age ?? this.age,
+      ast: ast ?? this.ast,
+      alt: alt ?? this.alt,
+      platelets: platelets ?? this.platelets,
+      createdAt: createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
+  }
 }

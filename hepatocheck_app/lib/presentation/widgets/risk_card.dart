@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../../domain/usecases/calculate_liver_health.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
-import '../theme/risk_style.dart';
+import '../theme/risk_colors.dart';
 import 'liver_gauge.dart';
 
 /// Cartão de risco da tela Início: idade, FIB-4, selo de risco e medidor,
@@ -17,6 +17,7 @@ class RiskCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final exam = health.exam;
     final risk = health.risk;
+    final fib4 = health.fib4;
     final color = risk?.color ?? AppColors.outline;
 
     return Card(
@@ -24,7 +25,7 @@ class RiskCard extends StatelessWidget {
         padding: const EdgeInsets.all(20),
         child: Column(
           children: [
-            if (exam != null && risk != null) ...[
+            if (exam != null && risk != null && fib4 != null) ...[
               SizedBox(
                 width: double.infinity,
                 child: Wrap(
@@ -35,15 +36,19 @@ class RiskCard extends StatelessWidget {
                   children: [
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
                       children: [
                         Text('Idade: ${exam.age}', style: AppTextStyles.body),
                         Text(
-                          'FIB-4: ${_formatFib4(exam.fib4)}',
+                          'FIB-4: ${_formatFib4(fib4)}',
                           style: AppTextStyles.subtitle,
                         ),
                       ],
                     ),
-                    _RiskBadge(label: risk.label, color: color),
+                    _RiskBadge(
+                      label: 'Risco ${risk.label.toLowerCase()}',
+                      color: color,
+                    ),
                   ],
                 ),
               ),
@@ -85,7 +90,11 @@ class _RiskBadge extends StatelessWidget {
         borderRadius: BorderRadius.circular(999),
         border: Border.all(color: color),
       ),
-      child: Text(label, style: AppTextStyles.label.copyWith(color: color)),
+      child: Text(
+        label,
+        textAlign: TextAlign.center,
+        style: AppTextStyles.label.copyWith(color: color),
+      ),
     );
   }
 }

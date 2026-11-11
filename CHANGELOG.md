@@ -45,9 +45,28 @@
 - Estrutura do projeto - Camadas Presentation, Domain e Data, dependências e Riverpod
 - Tema - Cores, semáforo de risco e tipografia
 - Navegação - Barra inferior com as 5 abas
+- Modo Camuflagem - Layout da calculadora
+- Idioma - App em português do Brasil
 - FIB-4 - Cálculo, validação das entradas, classificação de risco e testes automatizados
 - Exames - Repositório e tela de exames
 - Tela Início - Cartão de risco, botão de registro rápido e layout do medidor do fígado
 - Banco local - Entidades do domínio e Hive com criptografia AES
 - Documentação - Escopo, EAP, planejamento em sprints, diagrama de casos de uso e rascunho do diagrama de classes
+- Fluxo de trabalho - Guia de contribuição com branches, commits e pull requests
+- Correções - Título e teclas da calculadora e cartão de risco com fonte grande
+- Readme atualizado
+
+## (09/11/2026)
+
+### Adicionado
+- Semana 2 - Diário, privacidade e medidor
+- Diário de álcool - Registro por tipo de bebida, conversão em drinque padrão, registro rápido e tela Drinks
+- Registro de alterações - Log do diário sem expor o conteúdo
+- Modo Camuflagem - Calculadora funcional, código secreto, camuflagem em segundo plano e ocultação na tela de recentes
+- Criptografia - Banco criptografado ao ativar a camuflagem e teste automatizado
+- Tela Início - Medidor do fígado com dados reais e cor do risco
+- Exames - Histórico na tela Exames
+- Relatório - Regras dos relatórios semanais e mensais e estrutura da tela
+- Login - Telas de login e cadastro
+- Sincronização - Fila offline e detecção de Wi-Fi
 - Readme atualizado

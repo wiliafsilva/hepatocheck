@@ -4,12 +4,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:hepatocheck_app/domain/entities/lab_exam.dart';
-import 'package:hepatocheck_app/presentation/providers/repository_providers.dart';
+import 'package:hepatocheck_app/presentation/providers/exam_providers.dart';
+import 'package:hepatocheck_app/presentation/providers/drink_providers.dart';
 import 'package:hepatocheck_app/presentation/screens/auth/login_screen.dart';
 import 'package:hepatocheck_app/presentation/screens/auth/register_screen.dart';
 import 'package:hepatocheck_app/presentation/screens/home_screen.dart';
 import 'package:hepatocheck_app/presentation/theme/app_theme.dart';
+
+import '../support/test_data.dart';
 
 void main() {
   const sizes = <String, Size>{
@@ -48,20 +50,18 @@ void main() {
           tester.view.devicePixelRatio = 1;
           addTearDown(tester.view.reset);
 
-          final container = ProviderContainer();
+          final container = ProviderContainer(
+            overrides: [
+              examRepositoryProvider.overrideWithValue(MemoryExamRepository()),
+              drinkRepositoryProvider.overrideWithValue(
+                MemoryDrinkRepository(),
+              ),
+            ],
+          );
           addTearDown(container.dispose);
           await container
-              .read(examRepositoryProvider)
-              .save(
-                LabExam(
-                  id: 'e1',
-                  date: DateTime(2026, 11, 1),
-                  age: 45,
-                  ast: 40,
-                  alt: 36,
-                  platelets: 200,
-                ),
-              );
+              .read(examsProvider.notifier)
+              .save(testExam(ast: 40, platelets: 200));
 
           await tester.pumpWidget(
             UncontrolledProviderScope(
