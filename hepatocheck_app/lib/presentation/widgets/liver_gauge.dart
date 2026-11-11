@@ -7,8 +7,8 @@ import '../theme/app_text_styles.dart';
 
 /// Medidor de saúde do fígado (0 a 100%), em semicírculo.
 ///
-/// Nesta etapa o [value] é fixo, vindo de quem usa o widget; o cálculo real
-/// a partir do FIB-4 e do consumo entra na Sprint 2 (tarefa 29).
+/// O [value] vem do caso de uso `CalculateLiverHealth` (FIB-4 e consumo) e a
+/// cor segue a faixa de risco.
 class LiverGauge extends StatelessWidget {
   const LiverGauge({
     super.key,
