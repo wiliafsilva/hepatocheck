@@ -6,6 +6,7 @@ import 'core/platform/app_switcher_privacy.dart';
 import 'presentation/camouflage/camouflage_controller.dart';
 import 'presentation/camouflage/camouflage_preferences_store.dart';
 import 'presentation/screens/camouflage_calculator_screen.dart';
+import 'presentation/screens/drinks_screen.dart';
 import 'presentation/screens/exams_screen.dart';
 import 'presentation/screens/home_screen.dart';
 import 'presentation/theme/app_theme.dart';
@@ -151,6 +152,7 @@ class _AppNavigationShellState extends State<AppNavigationShell>
       appBar: _selectedIndex == 0 ? null : AppBar(title: Text(tab.label)),
       body: switch (_selectedIndex) {
         0 => const HomeScreen(),
+        2 => const DrinksScreen(),
         3 => const ExamsScreen(),
         4 => _ProfileScreen(
           camouflageEnabled: _camouflageController.isEnabled,
