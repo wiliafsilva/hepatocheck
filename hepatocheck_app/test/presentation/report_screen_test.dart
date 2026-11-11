@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:hepatocheck_app/domain/entities/drink_entry.dart';
+import 'package:hepatocheck_app/domain/entities/drink_type.dart';
 import 'package:hepatocheck_app/domain/entities/lab_exam.dart';
+import 'package:hepatocheck_app/domain/repositories/drink_repository.dart';
 import 'package:hepatocheck_app/domain/repositories/exam_repository.dart';
+import 'package:hepatocheck_app/presentation/providers/drink_providers.dart';
 import 'package:hepatocheck_app/presentation/providers/exam_providers.dart';
 import 'package:hepatocheck_app/presentation/providers/report_providers.dart';
 import 'package:hepatocheck_app/presentation/screens/report_screen.dart';
@@ -25,12 +29,46 @@ class _FakeExamRepository implements ExamRepository {
   Future<void> delete(String id) async {}
 }
 
-Future<void> _pump(WidgetTester tester, List<LabExam> exams) {
+class _FakeDrinkRepository implements DrinkRepository {
+  _FakeDrinkRepository(this._drinks);
+
+  final List<DrinkEntry> _drinks;
+
+  @override
+  List<DrinkEntry> getAll() => _drinks;
+
+  @override
+  DrinkEntry? getById(String id) => null;
+
+  @override
+  Future<void> save(DrinkEntry entry) async {}
+
+  @override
+  Future<void> delete(String id) async {}
+}
+
+DrinkEntry _beer(DateTime consumedAt, {int quantity = 1}) => DrinkEntry(
+  id: 'cerveja-${consumedAt.toIso8601String()}',
+  type: DrinkType.beer,
+  volumeMl: 350,
+  alcoholPercent: 5,
+  quantity: quantity,
+  consumedAt: consumedAt,
+  createdAt: consumedAt,
+  updatedAt: consumedAt,
+);
+
+Future<void> _pump(
+  WidgetTester tester,
+  List<LabExam> exams, {
+  List<DrinkEntry> drinks = const [],
+}) {
   return tester.pumpWidget(
     ProviderScope(
       overrides: [
         clockProvider.overrideWithValue(() => DateTime(2026, 11, 10)),
         examRepositoryProvider.overrideWithValue(_FakeExamRepository(exams)),
+        drinkRepositoryProvider.overrideWithValue(_FakeDrinkRepository(drinks)),
       ],
       child: const MaterialApp(home: Scaffold(body: ReportScreen())),
     ),
@@ -99,5 +137,31 @@ void main() {
     );
 
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('mostra o consumo do período com os dados do diário', (
+    tester,
+  ) async {
+    await _pump(
+      tester,
+      const [],
+      drinks: [
+        _beer(DateTime(2026, 11, 3, 20)),
+        _beer(DateTime(2026, 11, 9, 21), quantity: 2),
+      ],
+    );
+
+    expect(find.text('Nenhum drinque registrado neste período.'), findsNothing);
+    expect(find.text('2'), findsWidgets);
+    expect(find.text('1 de 2'), findsOneWidget);
+    expect(find.text('+1'), findsOneWidget);
+    expect(find.text('100%'), findsOneWidget);
+
+    await tester.scrollUntilVisible(
+      find.text('Cerveja'),
+      200,
+      scrollable: find.byType(Scrollable).first,
+    );
+    expect(find.text('Cerveja'), findsOneWidget);
   });
 }
