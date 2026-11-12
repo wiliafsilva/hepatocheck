@@ -10,6 +10,7 @@ import 'presentation/screens/drinks_screen.dart';
 import 'presentation/screens/exams_screen.dart';
 import 'presentation/screens/home_screen.dart';
 import 'presentation/screens/report_screen.dart';
+import 'presentation/screens/sync_status_screen.dart';
 import 'presentation/theme/app_theme.dart';
 
 class MyApp extends StatelessWidget {
@@ -298,6 +299,17 @@ class _ProfileScreen extends StatelessWidget {
               await onDisableCamouflage();
             }
           },
+        ),
+        const Divider(height: 32),
+        ListTile(
+          contentPadding: EdgeInsets.zero,
+          leading: const Icon(Icons.cloud_sync_outlined),
+          title: const Text('Sincronização'),
+          subtitle: const Text('Envio dos registros para a nuvem'),
+          trailing: const Icon(Icons.chevron_right),
+          onTap: () => Navigator.of(context).push(
+            MaterialPageRoute<void>(builder: (_) => const SyncStatusScreen()),
+          ),
         ),
       ],
     );
