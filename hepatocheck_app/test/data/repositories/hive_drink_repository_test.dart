@@ -6,9 +6,11 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:hepatocheck_app/data/models/hive_registrar.g.dart';
 import 'package:hepatocheck_app/data/repositories/hive_audit_log_repository.dart';
 import 'package:hepatocheck_app/data/repositories/hive_drink_repository.dart';
+import 'package:hepatocheck_app/data/sync/hive_sync_queue_repository.dart';
 import 'package:hepatocheck_app/domain/entities/audit_entry.dart';
 import 'package:hepatocheck_app/domain/entities/drink_entry.dart';
 import 'package:hepatocheck_app/domain/entities/drink_type.dart';
+import 'package:hepatocheck_app/domain/entities/sync_item.dart';
 import 'package:hive_ce/hive_ce.dart';
 
 void main() {
@@ -17,6 +19,7 @@ void main() {
   late Box<DrinkEntry> drinksBox;
   late Box<AuditEntry> auditBox;
   late HiveAuditLogRepository auditLog;
+  late HiveSyncQueueRepository syncQueue;
   late HiveDrinkRepository repository;
   var clock = DateTime(2026, 11, 11, 20);
 
@@ -41,7 +44,15 @@ void main() {
       now: () => clock = clock.add(const Duration(minutes: 1)),
       newId: () => 'log-${++counter}',
     );
-    repository = HiveDrinkRepository(drinksBox, auditLog);
+    syncQueue = HiveSyncQueueRepository(
+      await Hive.openBox<SyncItem>(
+        'sync_queue',
+        encryptionCipher: HiveAesCipher(key),
+      ),
+      now: () => clock = clock.add(const Duration(minutes: 1)),
+      newId: () => 'fila-${++counter}',
+    );
+    repository = HiveDrinkRepository(drinksBox, auditLog, syncQueue);
   });
 
   tearDown(() async {
@@ -166,7 +177,7 @@ void main() {
     await repository.save(drink('drinque-secreto', quantity: 9));
     await Hive.close();
 
-    for (final name in ['drinks', 'audit_log']) {
+    for (final name in ['drinks', 'audit_log', 'sync_queue']) {
       final raw = latin1.decode(
         await File('${dir.path}/$name.hive').readAsBytes(),
       );
@@ -176,5 +187,56 @@ void main() {
       await File('${dir.path}/audit_log.hive').readAsBytes(),
     );
     expect(rawLog.contains('drinque-secreto'), isFalse);
+  });
+
+  test('salvar coloca o drinque na fila de sincronização', () async {
+    await repository.save(drink('a', quantity: 2));
+
+    final item = syncQueue.pending().single;
+    expect(item.entityType, SyncEntityType.drink);
+    expect(item.entityId, 'a');
+    expect(item.operation, SyncOperation.create);
+    expect(item.payload['type'], 'beer');
+    expect(item.payload['quantity'], 2);
+    expect(item.payload['consumedAt'], DateTime(2026, 11, 11, 19).toUtc());
+  });
+
+  test(
+    'editar antes de sincronizar mantém um só item com a última versão',
+    () async {
+      await repository.save(drink('a'));
+      await repository.save(drink('a', quantity: 3));
+
+      final item = syncQueue.pending().single;
+      expect(item.operation, SyncOperation.create);
+      expect(item.payload['quantity'], 3);
+    },
+  );
+
+  test('criar e excluir antes de sincronizar não envia nada', () async {
+    await repository.save(drink('a'));
+    await repository.delete('a');
+
+    expect(syncQueue.pending(), isEmpty);
+  });
+
+  test('editar e excluir um drinque já sincronizado vão para a fila', () async {
+    await repository.save(drink('a'));
+    final sent = syncQueue.pending().single.id;
+    await syncQueue.markSending([sent]);
+    await syncQueue.markSent([sent]);
+
+    await repository.save(drink('a', quantity: 2));
+    expect(syncQueue.pending().single.operation, SyncOperation.update);
+
+    await repository.delete('a');
+    final item = syncQueue.pending().single;
+    expect(item.operation, SyncOperation.delete);
+    expect(item.payload, isEmpty);
+  });
+
+  test('excluir um drinque inexistente não entra na fila', () async {
+    await repository.delete('nao-existe');
+    expect(syncQueue.pending(), isEmpty);
   });
 }

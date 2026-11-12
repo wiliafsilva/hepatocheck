@@ -12,6 +12,7 @@ import 'presentation/screens/home_screen.dart';
 import 'presentation/screens/report_screen.dart';
 import 'presentation/screens/sync_status_screen.dart';
 import 'presentation/theme/app_theme.dart';
+import 'presentation/widgets/erase_local_data_tile.dart';
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -311,6 +312,7 @@ class _ProfileScreen extends StatelessWidget {
             MaterialPageRoute<void>(builder: (_) => const SyncStatusScreen()),
           ),
         ),
+        const EraseLocalDataTile(),
       ],
     );
   }

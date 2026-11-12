@@ -2,14 +2,18 @@ import 'package:hive_ce/hive.dart';
 
 import '../../domain/entities/audit_entry.dart';
 import '../../domain/entities/drink_entry.dart';
+import '../../domain/entities/sync_item.dart';
 import '../../domain/repositories/audit_log_repository.dart';
 import '../../domain/repositories/drink_repository.dart';
+import '../../domain/repositories/sync_queue_repository.dart';
+import '../models/firestore_mappers.dart';
 
 class HiveDrinkRepository implements DrinkRepository {
-  HiveDrinkRepository(this._box, this._auditLog);
+  HiveDrinkRepository(this._box, this._auditLog, this._syncQueue);
 
   final Box<DrinkEntry> _box;
   final AuditLogRepository _auditLog;
+  final SyncQueueRepository _syncQueue;
 
   @override
   List<DrinkEntry> getAll() {
@@ -34,6 +38,12 @@ class HiveDrinkRepository implements DrinkRepository {
       entityId: entry.id,
       content: auditContent(entry),
     );
+    await _syncQueue.enqueue(
+      entityType: SyncEntityType.drink,
+      entityId: entry.id,
+      operation: isNew ? SyncOperation.create : SyncOperation.update,
+      payload: FirestoreMappers.drinkToFirestore(entry),
+    );
   }
 
   @override
@@ -41,6 +51,12 @@ class HiveDrinkRepository implements DrinkRepository {
     if (!_box.containsKey(id)) return;
     await _box.delete(id);
     await _auditLog.record(operation: AuditOperation.delete, entityId: id);
+    await _syncQueue.enqueue(
+      entityType: SyncEntityType.drink,
+      entityId: id,
+      operation: SyncOperation.delete,
+      payload: const {},
+    );
   }
 
   static Map<String, Object?> auditContent(DrinkEntry entry) => {

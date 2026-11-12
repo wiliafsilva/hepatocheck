@@ -8,6 +8,7 @@ import '../../domain/repositories/audit_log_repository.dart';
 import '../../domain/repositories/drink_repository.dart';
 import '../../domain/usecases/convert_to_standard_drinks.dart';
 import '../../domain/usecases/validate_drink_input.dart';
+import 'sync_providers.dart';
 
 final auditLogRepositoryProvider = Provider<AuditLogRepository>(
   (ref) => HiveAuditLogRepository(HiveDatabase.auditLog),
@@ -17,6 +18,7 @@ final drinkRepositoryProvider = Provider<DrinkRepository>(
   (ref) => HiveDrinkRepository(
     HiveDatabase.drinks,
     ref.watch(auditLogRepositoryProvider),
+    ref.watch(syncQueueRepositoryProvider),
   ),
 );
 

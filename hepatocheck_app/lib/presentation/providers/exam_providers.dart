@@ -8,9 +8,13 @@ import '../../domain/usecases/calculate_fib4.dart';
 import '../../domain/usecases/classify_risk.dart';
 import '../../domain/usecases/summarize_exam_history.dart';
 import '../../domain/usecases/validate_exam_input.dart';
+import 'sync_providers.dart';
 
 final examRepositoryProvider = Provider<ExamRepository>(
-  (ref) => HiveExamRepository(HiveDatabase.exams),
+  (ref) => HiveExamRepository(
+    HiveDatabase.exams,
+    ref.watch(syncQueueRepositoryProvider),
+  ),
 );
 
 final calculateFib4Provider = Provider((ref) => const CalculateFib4());
