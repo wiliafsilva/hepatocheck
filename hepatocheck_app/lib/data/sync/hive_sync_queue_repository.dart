@@ -91,6 +91,17 @@ class HiveSyncQueueRepository implements SyncQueueRepository {
   Future<void> markFailed(String id, String error) async {
     final item = _box.get(id);
     if (item == null) return;
+    final hasNewerVersion = _box.values.any(
+      (other) =>
+          other.id != id &&
+          other.entityType == item.entityType &&
+          other.entityId == item.entityId &&
+          other.status != SyncStatus.sending,
+    );
+    if (hasNewerVersion) {
+      await _box.delete(id);
+      return;
+    }
     await _box.put(
       id,
       item.copyWith(
