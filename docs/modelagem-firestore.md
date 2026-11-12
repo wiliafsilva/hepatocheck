@@ -107,7 +107,19 @@ Tela → Repositório (Hive) → Fila de sincronização → SyncPendingItems �
 
 As regras ficam em `hepatocheck_app/firestore.rules`:
 
-- só um usuário autenticado lê e grava em `users/{uid}`, e somente quando `uid` é o dele;
-- qualquer outro caminho é bloqueado.
+- só um usuário autenticado lê, grava e exclui em `users/{uid}/drinks`, `exams` e `goals`, e somente quando `uid` é o dele;
+- o documento `users/{uid}` em si e qualquer outro caminho são bloqueados;
+- cada documento precisa ter exatamente os campos da seção 2, nem mais nem menos, o que impede gravar nome, e-mail ou outro dado não previsto;
+- os tipos e as faixas de valores são os mesmos que o aplicativo valida na entrada:
 
-A validação dos campos de cada coleção (tipos e valores permitidos) será acrescentada às regras com base nas tabelas da seção 2 (tarefa 44).
+| Coleção | Validação |
+| --- | --- |
+| `drinks` | `type` entre os 5 tipos; `volumeMl` de 1 a 3000; `alcoholPercent` de 0,5 a 96; `quantity` inteiro de 1 a 50; `consumedAt` não pode estar mais de 1 dia no futuro |
+| `exams` | `age` inteiro de 18 a 120; `ast` e `alt` de 1 a 5000; `platelets` de 1 a 1000; `examDate` não pode estar mais de 1 dia no futuro |
+| `goals` | `type` entre os 2 tipos; `target` inteiro de 0 a 100 (dias sem álcool: de 0 a 7); `endDate` vazio ou data; `active` verdadeiro ou falso |
+
+Em todas, `createdAt` e `updatedAt` precisam ser datas. A tolerância de 1 dia no futuro cobre relógios de aparelho adiantados.
+
+Como o envio é em lote, se um único documento for recusado, o lote inteiro é recusado e os itens dele ficam com falha na fila, prontos para nova tentativa.
+
+Para publicar as regras: `firebase deploy --only firestore:rules --project hepatocheck-unit`, na pasta `hepatocheck_app`.

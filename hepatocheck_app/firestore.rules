@@ -2,8 +2,89 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    match /users/{uid}/{document=**} {
-      allow read, write: if request.auth != null && request.auth.uid == uid;
+    function isOwner(uid) {
+      return request.auth != null && request.auth.uid == uid;
+    }
+
+    function hasExactly(data, fields) {
+      return data.keys().hasAll(fields) && data.keys().hasOnly(fields);
+    }
+
+    function inRange(value, min, max) {
+      return value is number && value >= min && value <= max;
+    }
+
+    function intInRange(value, min, max) {
+      return value is int && value >= min && value <= max;
+    }
+
+    function hasValidDates(data) {
+      return data.createdAt is timestamp && data.updatedAt is timestamp;
+    }
+
+    function notInFuture(value) {
+      return value is timestamp
+        && value <= request.time + duration.value(1, 'd');
+    }
+
+    function isValidDrink(data) {
+      return hasExactly(data, [
+          'type', 'volumeMl', 'alcoholPercent', 'quantity',
+          'consumedAt', 'createdAt', 'updatedAt'
+        ])
+        && data.type in ['beer', 'wine', 'spirit', 'cocktail', 'other']
+        && inRange(data.volumeMl, 1, 3000)
+        && inRange(data.alcoholPercent, 0.5, 96)
+        && intInRange(data.quantity, 1, 50)
+        && notInFuture(data.consumedAt)
+        && hasValidDates(data);
+    }
+
+    function isValidExam(data) {
+      return hasExactly(data, [
+          'examDate', 'age', 'ast', 'alt', 'platelets',
+          'createdAt', 'updatedAt'
+        ])
+        && notInFuture(data.examDate)
+        && intInRange(data.age, 18, 120)
+        && inRange(data.ast, 1, 5000)
+        && inRange(data.alt, 1, 5000)
+        && inRange(data.platelets, 1, 1000)
+        && hasValidDates(data);
+    }
+
+    function isValidGoal(data) {
+      return hasExactly(data, [
+          'type', 'target', 'startDate', 'endDate', 'active',
+          'createdAt', 'updatedAt'
+        ])
+        && (
+          (data.type == 'maxDrinksPerWeek' && intInRange(data.target, 0, 100))
+          || (data.type == 'alcoholFreeDaysPerWeek'
+            && intInRange(data.target, 0, 7))
+        )
+        && data.startDate is timestamp
+        && (data.endDate == null || data.endDate is timestamp)
+        && data.active is bool
+        && hasValidDates(data);
+    }
+
+    match /users/{uid}/drinks/{drinkId} {
+      allow read, delete: if isOwner(uid);
+      allow create, update: if isOwner(uid)
+        && isValidDrink(request.resource.data);
+    }
+
+    match /users/{uid}/exams/{examId} {
+      allow read, delete: if isOwner(uid);
+      allow create, update: if isOwner(uid)
+        && isValidExam(request.resource.data);
+    }
+
+    match /users/{uid}/goals/{goalId} {
+      allow read, delete: if isOwner(uid);
+      allow create, update: if isOwner(uid)
+        && isValidGoal(request.resource.data);
     }
 
     match /{document=**} {

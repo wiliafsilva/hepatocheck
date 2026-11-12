@@ -7,11 +7,12 @@ import 'core/crypto/encryption_key_provider.dart';
 import 'data/datasources/local/hive_database.dart';
 import 'data/sync/hive_sync_queue_repository.dart';
 import 'firebase_options.dart';
+import 'presentation/widgets/auto_sync.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   await HiveDatabase.init(EncryptionKeyProvider());
   await HiveSyncQueueRepository(HiveDatabase.syncQueue).recoverInterrupted();
-  runApp(const ProviderScope(child: MyApp()));
+  runApp(const ProviderScope(child: AutoSync(child: MyApp())));
 }
