@@ -34,6 +34,21 @@ void main() {
     });
 
     final cases = <String, (List<String>, String)>{
+      'precedência de multiplicação': (['2', '+', '3', '×', '4', '='], '14'),
+      'parênteses explícitos': (
+        ['2', '×', '()', '3', '+', '4', '()', '='],
+        '14',
+      ),
+      'multiplicação implícita e fechamento automático': (
+        ['2', '()', '3', '+', '4', '='],
+        '14',
+      ),
+      'grupos aninhados': (['()', '2', '+', '()', '3', '×', '4', '='], '14'),
+      'subtração e divisão da esquerda para direita': (
+        ['8', '÷', '2', '×', '3', '−', '1', '='],
+        '11',
+      ),
+      'continua com resultado': (['2', '+', '3', '=', '×', '4', '='], '20'),
       'troca sinal do segundo operando': (['5', '+', '±', '2', '='], '3'),
       'troca sinal antes de digitar': (['±', '2'], '-2'),
       'porcentagem isolada': (['5', '0', '%'], '0,5'),

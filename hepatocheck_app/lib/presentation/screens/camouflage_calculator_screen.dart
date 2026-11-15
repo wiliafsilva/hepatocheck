@@ -3,6 +3,8 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import '../camouflage/calculator_engine.dart';
+import '../theme/app_colors.dart';
+import '../theme/app_text_styles.dart';
 
 class CamouflageCalculatorScreen extends StatefulWidget {
   const CamouflageCalculatorScreen({
@@ -66,7 +68,7 @@ class _CamouflageCalculatorScreenState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: AppColors.background,
       body: SafeArea(
         child: Center(
           child: ConstrainedBox(
@@ -78,29 +80,54 @@ class _CamouflageCalculatorScreenState
                   const spacing = 10.0;
                   final keySize = math.min(
                     (constraints.maxWidth - spacing * 3) / 4,
-                    constraints.maxHeight * 0.68 / 5,
+                    (constraints.maxHeight - 130 - spacing * 4) / 5,
                   );
                   return Column(
                     children: [
                       Expanded(
-                        child: Container(
-                          width: double.infinity,
+                        child: Align(
                           alignment: Alignment.bottomRight,
-                          padding: const EdgeInsets.only(right: 8, bottom: 20),
-                          child: Semantics(
-                            label: 'Visor da calculadora',
+                          child: Padding(
+                            padding: const EdgeInsets.only(bottom: 20),
                             child: FittedBox(
                               fit: BoxFit.scaleDown,
-                              alignment: Alignment.centerRight,
-                              child: Text(
-                                _engine.display,
-                                maxLines: 1,
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 72,
-                                  fontWeight: FontWeight.w300,
-                                  height: 1,
-                                ),
+                              alignment: Alignment.bottomRight,
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                children: [
+                                  FittedBox(
+                                    fit: BoxFit.scaleDown,
+                                    child: Text(
+                                      _engine.expression,
+                                      key: const ValueKey(
+                                        'calculator-expression',
+                                      ),
+                                      maxLines: 1,
+                                      style: AppTextStyles.body.copyWith(
+                                        color: AppColors.textSecondary,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Semantics(
+                                    label: 'Visor da calculadora',
+                                    child: FittedBox(
+                                      fit: BoxFit.scaleDown,
+                                      child: Text(
+                                        _engine.display,
+                                        key: const ValueKey(
+                                          'calculator-result',
+                                        ),
+                                        maxLines: 1,
+                                        style: AppTextStyles.display.copyWith(
+                                          fontSize: 64,
+                                          fontWeight: FontWeight.w300,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
                           ),
@@ -109,9 +136,11 @@ class _CamouflageCalculatorScreenState
                       for (final (rowIndex, row) in _rows.indexed) ...[
                         if (rowIndex > 0) const SizedBox(height: spacing),
                         Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            for (final key in row)
+                            for (final (columnIndex, key) in row.indexed) ...[
+                              if (columnIndex > 0)
+                                const SizedBox(width: spacing),
                               SizedBox.square(
                                 dimension: keySize,
                                 child: _CalculatorButton(
@@ -120,6 +149,7 @@ class _CamouflageCalculatorScreenState
                                   onPressed: () => _press(key),
                                 ),
                               ),
+                            ],
                           ],
                         ),
                       ],
@@ -139,7 +169,7 @@ class _CamouflageCalculatorScreenState
     if (key == String.fromCharCode(0x232B)) {
       return _CalculatorKeyStyle.function;
     }
-    if (key == 'C' || key == '±' || key == '%') {
+    if (key == 'C' || key == '()' || key == '%') {
       return _CalculatorKeyStyle.function;
     }
     return _CalculatorKeyStyle.number;
@@ -163,13 +193,17 @@ class _CalculatorButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final isFunction = style == _CalculatorKeyStyle.function;
     final backgroundColor = switch (style) {
-      _CalculatorKeyStyle.number => const Color(0xFF252629),
-      _CalculatorKeyStyle.function => const Color(0xFF1C1D1F),
-      _CalculatorKeyStyle.operator => const Color(0xFF303135),
+      _CalculatorKeyStyle.number => AppColors.surface,
+      _CalculatorKeyStyle.function => AppColors.surfaceVariant,
+      _CalculatorKeyStyle.operator => AppColors.surface,
     };
     final foregroundColor = label == 'C'
-        ? const Color(0xFFE77171)
-        : const Color(0xFFE2E3E6);
+        ? AppColors.riskRed
+        : label == '='
+        ? AppColors.onOlive
+        : style == _CalculatorKeyStyle.operator
+        ? AppColors.olive
+        : AppColors.textPrimary;
     final isEquals = label == '=';
 
     return Semantics(
@@ -178,7 +212,7 @@ class _CalculatorButton extends StatelessWidget {
       child: FilledButton(
         onPressed: onPressed,
         style: FilledButton.styleFrom(
-          backgroundColor: isEquals ? const Color(0xFF148C7B) : backgroundColor,
+          backgroundColor: isEquals ? AppColors.olive : backgroundColor,
           foregroundColor: foregroundColor,
           elevation: 0,
           padding: EdgeInsets.zero,
@@ -191,12 +225,12 @@ class _CalculatorButton extends StatelessWidget {
             child: label == '⌫'
                 ? const Icon(
                     Icons.backspace_outlined,
-                    color: Colors.white,
+                    color: AppColors.textPrimary,
                     size: 26,
                   )
                 : Text(
                     label,
-                    style: TextStyle(
+                    style: AppTextStyles.title.copyWith(
                       color: foregroundColor,
                       fontSize: isFunction ? 22 : 28,
                       fontWeight: FontWeight.w400,
