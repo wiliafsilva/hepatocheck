@@ -48,4 +48,21 @@ void main() {
 
     expect((await Hive.openBox<String>('drinks')).isEmpty, isTrue);
   });
+
+  test('roda a etapa final depois de limpar as caixas', () async {
+    final preferences = await Hive.openBox<String>('follow_up_preferences');
+    await preferences.putAll({
+      'settings': '{"education":true}',
+      'tracking_started_at': '2026-01-01T00:00:00.000',
+    });
+
+    await HiveLocalDataEraser(
+      [preferences],
+      afterErase: () =>
+          preferences.put('tracking_started_at', '2026-11-16T10:00:00.000'),
+    ).eraseAll();
+
+    expect(preferences.get('settings'), isNull);
+    expect(preferences.get('tracking_started_at'), '2026-11-16T10:00:00.000');
+  });
 }

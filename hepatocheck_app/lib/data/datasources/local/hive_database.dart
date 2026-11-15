@@ -17,6 +17,10 @@ abstract final class HiveDatabase {
   static const followUpBoxName = 'follow_up_preferences';
   static Box<String> get goals => Hive.box<String>(goalsBoxName);
   static Box<String> get followUp => Hive.box<String>(followUpBoxName);
+  static const trackingStartedAtKey = 'tracking_started_at';
+
+  static Future<void> markTrackingStarted() =>
+      followUp.put(trackingStartedAtKey, DateTime.now().toIso8601String());
 
   static bool _encryptionReady = false;
 
@@ -31,11 +35,8 @@ abstract final class HiveDatabase {
     await Hive.openBox<AuditEntry>(auditLogBoxName, encryptionCipher: cipher);
     await Hive.openBox<String>(goalsBoxName, encryptionCipher: cipher);
     await Hive.openBox<String>(followUpBoxName, encryptionCipher: cipher);
-    if (!followUp.containsKey('tracking_started_at')) {
-      await followUp.put(
-        'tracking_started_at',
-        DateTime.now().toIso8601String(),
-      );
+    if (!followUp.containsKey(trackingStartedAtKey)) {
+      await markTrackingStarted();
     }
     _encryptionReady = true;
   }

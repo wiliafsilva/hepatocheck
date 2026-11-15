@@ -13,7 +13,7 @@ class EraseLocalDataTile extends ConsumerWidget {
       builder: (dialogContext) => AlertDialog(
         title: const Text('Apagar todos os dados?'),
         content: const Text(
-          'Isso apaga deste aparelho todos os drinques, exames e registros que aguardam envio. Não é possível desfazer. Dados que já foram sincronizados com a nuvem não são apagados.',
+          'Isso apaga deste aparelho todos os drinques, exames, metas e registros que aguardam envio, e desliga os lembretes. Não é possível desfazer. Dados que já foram sincronizados com a nuvem não são apagados.',
         ),
         actions: [
           TextButton(
@@ -48,7 +48,7 @@ class EraseLocalDataTile extends ConsumerWidget {
         color: AppColors.riskRed,
       ),
       title: const Text('Apagar todos os dados'),
-      subtitle: const Text('Remove drinques e exames deste aparelho'),
+      subtitle: const Text('Remove drinques, exames e metas deste aparelho'),
       onTap: () => _confirmAndErase(context, ref),
     );
   }
