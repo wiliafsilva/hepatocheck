@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:hepatocheck_app/presentation/theme/app_colors.dart';
 import 'package:hepatocheck_app/presentation/screens/camouflage_calculator_screen.dart';
 
 void main() {
@@ -8,6 +9,52 @@ void main() {
     await tester.pump();
   }
 
+  for (final scale in [1.0, 2.0]) {
+    testWidgets('calculadora em 320x568 com fonte x$scale', (tester) async {
+      tester.view.physicalSize = const Size(320, 568);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      await tester.pumpWidget(
+        MaterialApp(
+          builder: (context, child) => MediaQuery(
+            data: MediaQuery.of(context)
+                .copyWith(textScaler: TextScaler.linear(scale)),
+            child: child!,
+          ),
+          home: CamouflageCalculatorScreen(
+            onSecretCodeAttempt: (_) async => false,
+          ),
+        ),
+      );
+      for (final key in ['2', '()', '3', '+', '4', '=']) {
+        await tapKey(tester, key);
+      }
+      expect(tester.takeException(), isNull);
+      expect(
+        tester
+            .widget<Text>(find.byKey(const ValueKey('calculator-result')))
+            .data,
+        '14',
+      );
+      expect(
+        tester
+            .widget<Text>(find.byKey(const ValueKey('calculator-expression')))
+            .data,
+        '2 × (3 + 4)',
+      );
+      final buttons = tester.widgetList<FilledButton>(
+        find.byType(FilledButton),
+      );
+      expect(buttons.length, 20);
+      final sizes = tester
+          .elementList(find.byType(FilledButton))
+          .map((e) => tester.getSize(find.byWidget(e.widget)))
+          .toSet();
+      expect(sizes.length, 1);
+      expect(find.textContaining('HepatoCheck'), findsNothing);
+    });
+  }
   testWidgets('calcula normalmente sem revelar o diário', (tester) async {
     await tester.pumpWidget(
       MaterialApp(
@@ -39,8 +86,8 @@ void main() {
     final numberLabel = tester.widget<Text>(find.text('7'));
     final operatorLabel = tester.widget<Text>(find.text('\u00F7'));
 
-    expect(numberLabel.style?.color, Colors.white);
-    expect(operatorLabel.style?.color, Colors.white);
+    expect(numberLabel.style?.color, AppColors.textPrimary);
+    expect(operatorLabel.style?.color, AppColors.olive);
   });
 
   testWidgets('envia o código secreto digitado para desbloquear o diário', (
@@ -98,8 +145,11 @@ void main() {
     await tester.tap(find.byIcon(Icons.backspace_outlined));
     await tester.pump();
     expect(find.text('12'), findsNothing);
-    expect(find.text('1'), findsNWidgets(2));
-    await tester.tap(find.text('AC'));
+    expect(
+      tester.widget<Text>(find.byKey(const ValueKey('calculator-result'))).data,
+      '1',
+    );
+    await tester.tap(find.text('C'));
     await tester.pump();
     expect(find.text('0'), findsNWidgets(2));
   });

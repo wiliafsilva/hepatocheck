@@ -17,6 +17,30 @@ void main() {
     await Hive.close();
     await directory.delete(recursive: true);
   });
+  test('aceita 0 e 100 drinques e rejeita valores fora do limite', () async {
+    final box = await Hive.openBox<String>('limits');
+    final repository = HiveGoalRepository(box);
+    final now = DateTime(2026, 11, 15);
+    final goal = ReductionGoal(
+      id: 'limit',
+      type: GoalType.maxDrinksPerWeek,
+      target: 0,
+      startDate: now,
+      active: true,
+      createdAt: now,
+      updatedAt: now,
+    );
+    for (final target in [0, 100]) {
+      await repository.save(goal.copyWith(target: target));
+      expect(repository.getAll().single.target, target);
+    }
+    for (final target in [-1, 101]) {
+      await expectLater(
+        repository.save(goal.copyWith(target: target)),
+        throwsArgumentError,
+      );
+    }
+  });
   test('CRUD criptografado preserva metas ao reabrir', () async {
     final now = DateTime(2026, 11, 9);
     final goal = ReductionGoal(

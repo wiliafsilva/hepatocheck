@@ -256,8 +256,8 @@ class _GoalFormScreenState extends ConsumerState<GoalFormScreen> {
 
   String? get _targetError {
     final target = int.tryParse(_target.text);
-    if (target == null || target < 0 || target > 1000) {
-      return 'Informe um número de 0 a 1000.';
+    if (target == null || target < 0 || target > 100) {
+      return 'Informe um número de 0 a 100.';
     }
     if (_type == GoalType.alcoholFreeDaysPerWeek &&
         (target < 1 || target > 7)) {

@@ -133,7 +133,7 @@ class _AppNavigationShellState extends State<AppNavigationShell>
   Future<bool> _tryToUnlock(String code) async {
     final unlocked = await _camouflageController.unlock(code);
     if (unlocked) {
-      if (mounted) setState(() => _selectedIndex = 4);
+      if (mounted) setState(() => _selectedIndex = 2);
     }
     return unlocked;
   }

@@ -19,7 +19,7 @@ class HiveGoalRepository implements GoalRepository {
   @override
   Future<void> save(ReductionGoal goal) async {
     if (goal.target < 0 ||
-        goal.target > 1000 ||
+        goal.target > 100 ||
         (goal.type == GoalType.alcoholFreeDaysPerWeek &&
             (goal.target < 1 || goal.target > 7))) {
       throw ArgumentError('Meta inválida.');
