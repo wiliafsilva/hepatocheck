@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
@@ -10,6 +11,9 @@ import 'presentation/screens/drinks_screen.dart';
 import 'presentation/screens/exams_screen.dart';
 import 'presentation/screens/home_screen.dart';
 import 'presentation/screens/report_screen.dart';
+import 'presentation/screens/goals_screen.dart';
+import 'presentation/screens/follow_up_screen.dart';
+import 'presentation/providers/goal_providers.dart';
 import 'presentation/screens/sync_status_screen.dart';
 import 'presentation/theme/app_theme.dart';
 import 'presentation/widgets/erase_local_data_tile.dart';
@@ -19,16 +23,18 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'HepatoCheck',
-      debugShowCheckedModeBanner: false,
-      theme: AppTheme.dark,
-      darkTheme: AppTheme.dark,
-      themeMode: ThemeMode.dark,
-      locale: const Locale('pt', 'BR'),
-      supportedLocales: const [Locale('pt', 'BR')],
-      localizationsDelegates: GlobalMaterialLocalizations.delegates,
-      home: const AppNavigationShell(),
+    return FollowUpCoordinator(
+      child: MaterialApp(
+        title: 'HepatoCheck',
+        debugShowCheckedModeBanner: false,
+        theme: AppTheme.dark,
+        darkTheme: AppTheme.dark,
+        themeMode: ThemeMode.dark,
+        locale: const Locale('pt', 'BR'),
+        supportedLocales: const [Locale('pt', 'BR')],
+        localizationsDelegates: GlobalMaterialLocalizations.delegates,
+        home: const AppNavigationShell(),
+      ),
     );
   }
 }
@@ -115,13 +121,19 @@ class _AppNavigationShellState extends State<AppNavigationShell>
   Future<void> _enableCamouflage(String code) async {
     await _camouflageController.enable(code);
     await AppSwitcherPrivacy.setProtection(true);
-    if (mounted) setState(() => _selectedIndex = 2);
+    if (mounted) {
+      ProviderScope.containerOf(
+        context,
+        listen: false,
+      ).invalidate(localFollowUpProvider);
+      setState(() => _selectedIndex = 2);
+    }
   }
 
   Future<bool> _tryToUnlock(String code) async {
     final unlocked = await _camouflageController.unlock(code);
     if (unlocked) {
-      if (mounted) setState(() => _selectedIndex = 2);
+      if (mounted) setState(() => _selectedIndex = 4);
     }
     return unlocked;
   }
@@ -129,6 +141,12 @@ class _AppNavigationShellState extends State<AppNavigationShell>
   Future<void> _disableCamouflage() async {
     await _camouflageController.disable();
     await AppSwitcherPrivacy.setProtection(false);
+    if (mounted) {
+      ProviderScope.containerOf(
+        context,
+        listen: false,
+      ).invalidate(localFollowUpProvider);
+    }
   }
 
   @override
@@ -152,7 +170,24 @@ class _AppNavigationShellState extends State<AppNavigationShell>
 
     final tab = _tabs[_selectedIndex];
     return Scaffold(
-      appBar: _selectedIndex == 0 ? null : AppBar(title: Text(tab.label)),
+      appBar: _selectedIndex == 0
+          ? null
+          : AppBar(
+              title: Text(tab.label),
+              actions: [
+                if (_selectedIndex == 2)
+                  IconButton(
+                    tooltip: 'Metas de redução',
+                    icon: const Icon(Icons.flag_outlined),
+                    onPressed: () => Navigator.push(
+                      context,
+                      MaterialPageRoute<void>(
+                        builder: (_) => const GoalsScreen(),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
       body: switch (_selectedIndex) {
         0 => const HomeScreen(),
         1 => const ReportScreen(),
@@ -278,6 +313,27 @@ class _ProfileScreen extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.all(24),
       children: [
+        ListTile(
+          contentPadding: EdgeInsets.zero,
+          leading: const Icon(Icons.flag_outlined),
+          title: const Text('Metas de redução'),
+          trailing: const Icon(Icons.chevron_right),
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute<void>(builder: (_) => const GoalsScreen()),
+          ),
+        ),
+        ListTile(
+          contentPadding: EdgeInsets.zero,
+          leading: const Icon(Icons.notifications_outlined),
+          title: const Text('Notificações e lembretes'),
+          trailing: const Icon(Icons.chevron_right),
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute<void>(builder: (_) => const FollowUpScreen()),
+          ),
+        ),
+        const Divider(height: 32),
         Text('Privacidade', style: Theme.of(context).textTheme.headlineMedium),
         const SizedBox(height: 12),
         const Text(

@@ -21,6 +21,30 @@ class ReductionGoal {
   final DateTime createdAt;
   final DateTime updatedAt;
 
+  Map<String, Object?> toJson() => {
+    'id': id,
+    'type': type.name,
+    'target': target,
+    'startDate': startDate.toIso8601String(),
+    'endDate': endDate?.toIso8601String(),
+    'active': active,
+    'createdAt': createdAt.toIso8601String(),
+    'updatedAt': updatedAt.toIso8601String(),
+  };
+
+  factory ReductionGoal.fromJson(Map<String, dynamic> data) => ReductionGoal(
+    id: data['id'] as String,
+    type: GoalType.values.byName(data['type'] as String),
+    target: data['target'] as int,
+    startDate: DateTime.parse(data['startDate'] as String),
+    endDate: data['endDate'] == null
+        ? null
+        : DateTime.parse(data['endDate'] as String),
+    active: data['active'] as bool,
+    createdAt: DateTime.parse(data['createdAt'] as String),
+    updatedAt: DateTime.parse(data['updatedAt'] as String),
+  );
+
   ReductionGoal copyWith({
     GoalType? type,
     int? target,
