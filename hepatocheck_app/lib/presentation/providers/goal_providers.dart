@@ -14,9 +14,13 @@ import '../../domain/usecases/build_follow_up_messages.dart';
 import 'drink_providers.dart';
 import 'exam_providers.dart';
 import 'report_providers.dart';
+import 'sync_providers.dart';
 
 final goalRepositoryProvider = Provider<GoalRepository>(
-  (ref) => HiveGoalRepository(HiveDatabase.goals),
+  (ref) => HiveGoalRepository(
+    HiveDatabase.goals,
+    ref.watch(syncQueueRepositoryProvider),
+  ),
 );
 final goalsProvider = NotifierProvider<GoalsNotifier, List<ReductionGoal>>(
   GoalsNotifier.new,

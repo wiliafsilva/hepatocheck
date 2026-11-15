@@ -5,6 +5,7 @@ import '../../data/datasources/local/hive_local_data_eraser.dart';
 import '../../domain/repositories/local_data_eraser.dart';
 import 'drink_providers.dart';
 import 'exam_providers.dart';
+import 'goal_providers.dart';
 import 'sync_providers.dart';
 
 final localDataEraserProvider = Provider<LocalDataEraser>(
@@ -13,7 +14,9 @@ final localDataEraserProvider = Provider<LocalDataEraser>(
     HiveDatabase.exams,
     HiveDatabase.syncQueue,
     HiveDatabase.auditLog,
-  ]),
+    HiveDatabase.goals,
+    HiveDatabase.followUp,
+  ], afterErase: HiveDatabase.markTrackingStarted),
 );
 
 Future<void> eraseAllLocalData(WidgetRef ref) async {
@@ -21,5 +24,7 @@ Future<void> eraseAllLocalData(WidgetRef ref) async {
   ref
     ..invalidate(drinksProvider)
     ..invalidate(examsProvider)
+    ..invalidate(goalsProvider)
+    ..invalidate(followUpSettingsProvider)
     ..invalidate(syncStatusProvider);
 }

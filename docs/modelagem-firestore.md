@@ -98,7 +98,7 @@ Regras da conversão:
 Tela → Repositório (Hive) → Fila de sincronização → SyncPendingItems → FirestoreSyncRemote → Firestore
 ```
 
-1. Ao salvar ou excluir um drinque ou exame, o repositório grava no Hive e coloca a alteração na fila (`SyncQueueRepository`), já convertida pelo mapeamento acima. Exclusões entram na fila sem conteúdo.
+1. Ao salvar ou excluir um drinque, exame ou meta, o repositório grava no Hive e coloca a alteração na fila (`SyncQueueRepository`), já convertida pelo mapeamento acima. Exclusões entram na fila sem conteúdo.
 2. Várias alterações do mesmo registro viram um só item na fila, com a última versão.
 3. Quando há conta, consentimento e Wi-Fi, a fila é enviada em lotes (`WriteBatch`). Criação e edição usam `set` (o documento inteiro é substituído) e exclusão usa `delete`.
 4. Antes do envio, o conteúdo passa pela anonimização (tarefa 41), que pode reduzir a precisão de campos sensíveis, como o horário exato de `consumedAt`.
