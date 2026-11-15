@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:hepatocheck_app/presentation/providers/goal_providers.dart';
+import 'package:hepatocheck_app/domain/repositories/goal_repository.dart';
+import 'package:hepatocheck_app/domain/entities/reduction_goal.dart';
 import 'package:hepatocheck_app/domain/entities/drink_entry.dart';
 import 'package:hepatocheck_app/domain/entities/drink_type.dart';
 import 'package:hepatocheck_app/domain/entities/lab_exam.dart';
@@ -66,6 +69,7 @@ Future<void> _pump(
   return tester.pumpWidget(
     ProviderScope(
       overrides: [
+        goalRepositoryProvider.overrideWithValue(_EmptyGoalRepository()),
         clockProvider.overrideWithValue(() => DateTime(2026, 11, 10)),
         examRepositoryProvider.overrideWithValue(_FakeExamRepository(exams)),
         drinkRepositoryProvider.overrideWithValue(_FakeDrinkRepository(drinks)),
@@ -164,4 +168,13 @@ void main() {
     );
     expect(find.text('Cerveja'), findsOneWidget);
   });
+}
+
+class _EmptyGoalRepository implements GoalRepository {
+  @override
+  List<ReductionGoal> getAll() => [];
+  @override
+  Future<void> save(ReductionGoal goal) async {}
+  @override
+  Future<void> delete(String id) async {}
 }

@@ -6,6 +6,7 @@ import '../../domain/entities/drink_type.dart';
 import '../../domain/entities/lab_exam.dart';
 import '../../domain/entities/report_period.dart';
 import '../formatters.dart';
+import 'goals_screen.dart';
 import '../providers/exam_providers.dart';
 import '../providers/report_providers.dart';
 import '../theme/app_colors.dart';
@@ -61,6 +62,8 @@ class ReportScreen extends ConsumerWidget {
         const SectionLabel('RESUMO DO CONSUMO'),
         const SizedBox(height: 8),
         _SummaryGrid(report: report, type: period.type),
+        const SizedBox(height: 24),
+        GoalReportSection(period: period),
         const SizedBox(height: 24),
         const SectionLabel('CONSUMO POR TIPO DE BEBIDA'),
         const SizedBox(height: 8),

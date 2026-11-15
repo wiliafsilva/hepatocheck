@@ -46,6 +46,9 @@ dependencies:
   intl: ^0.20.3
   crypto: ^3.0.7
   connectivity_plus: ^7.3.2
+  flutter_local_notifications: ^23.0.2
+  timezone: ^0.11.2
+  flutter_timezone: ^5.1.1
 
 dev_dependencies:
   flutter_test:

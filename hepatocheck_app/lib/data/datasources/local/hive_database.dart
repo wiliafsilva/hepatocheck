@@ -13,6 +13,11 @@ abstract final class HiveDatabase {
   static const syncQueueBoxName = 'sync_queue';
   static const auditLogBoxName = 'audit_log';
 
+  static const goalsBoxName = 'reduction_goals';
+  static const followUpBoxName = 'follow_up_preferences';
+  static Box<String> get goals => Hive.box<String>(goalsBoxName);
+  static Box<String> get followUp => Hive.box<String>(followUpBoxName);
+
   static bool _encryptionReady = false;
 
   static Future<void> init(EncryptionKeyProvider keyProvider) async {
@@ -24,6 +29,14 @@ abstract final class HiveDatabase {
     await Hive.openBox<LabExam>(examsBoxName, encryptionCipher: cipher);
     await Hive.openBox<SyncItem>(syncQueueBoxName, encryptionCipher: cipher);
     await Hive.openBox<AuditEntry>(auditLogBoxName, encryptionCipher: cipher);
+    await Hive.openBox<String>(goalsBoxName, encryptionCipher: cipher);
+    await Hive.openBox<String>(followUpBoxName, encryptionCipher: cipher);
+    if (!followUp.containsKey('tracking_started_at')) {
+      await followUp.put(
+        'tracking_started_at',
+        DateTime.now().toIso8601String(),
+      );
+    }
     _encryptionReady = true;
   }
 
@@ -44,6 +57,8 @@ abstract final class HiveDatabase {
       exams.flush(),
       syncQueue.flush(),
       auditLog.flush(),
+      goals.flush(),
+      followUp.flush(),
     ]);
   }
 

@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 
 import '../camouflage/calculator_engine.dart';
@@ -18,11 +20,11 @@ class CamouflageCalculatorScreen extends StatefulWidget {
 class _CamouflageCalculatorScreenState
     extends State<CamouflageCalculatorScreen> {
   static const _rows = <List<String>>[
-    ['C', '±', '%', '÷'],
+    ['C', '⌫', '%', '÷'],
     ['7', '8', '9', '×'],
     ['4', '5', '6', '−'],
     ['1', '2', '3', '+'],
-    ['0', ',', '='],
+    ['()', '0', ',', '='],
   ];
   static const _operators = {'÷', '×', '−', '+', '='};
 
@@ -64,94 +66,145 @@ class _CamouflageCalculatorScreenState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF6F6F6),
+      backgroundColor: Colors.black,
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            children: [
-              Expanded(
-                flex: 2,
-                child: Align(
-                  alignment: Alignment.bottomRight,
-                  child: Semantics(
-                    label: 'Visor da calculadora',
-                    child: Text(
-                      _engine.display,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: Theme.of(context).textTheme.displayLarge?.copyWith(
-                        color: const Color(0xFF1B1B1B),
-                        fontWeight: FontWeight.w300,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 20),
-              Expanded(
-                flex: 3,
-                child: Column(
-                  children: [
-                    for (final (rowIndex, row) in _rows.indexed) ...[
-                      if (rowIndex > 0) const SizedBox(height: 12),
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 440),
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 20),
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  const spacing = 10.0;
+                  final keySize = math.min(
+                    (constraints.maxWidth - spacing * 3) / 4,
+                    constraints.maxHeight * 0.68 / 5,
+                  );
+                  return Column(
+                    children: [
                       Expanded(
-                        child: Row(
+                        child: Container(
+                          width: double.infinity,
+                          alignment: Alignment.bottomRight,
+                          padding: const EdgeInsets.only(right: 8, bottom: 20),
+                          child: Semantics(
+                            label: 'Visor da calculadora',
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              alignment: Alignment.centerRight,
+                              child: Text(
+                                _engine.display,
+                                maxLines: 1,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 72,
+                                  fontWeight: FontWeight.w300,
+                                  height: 1,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      for (final (rowIndex, row) in _rows.indexed) ...[
+                        if (rowIndex > 0) const SizedBox(height: spacing),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            for (final (keyIndex, key) in row.indexed) ...[
-                              if (keyIndex > 0) const SizedBox(width: 12),
-                              Expanded(
-                                flex: key == '0' ? 2 : 1,
+                            for (final key in row)
+                              SizedBox.square(
+                                dimension: keySize,
                                 child: _CalculatorButton(
                                   label: key,
-                                  highlighted: _operators.contains(key),
+                                  style: _buttonStyleFor(key),
                                   onPressed: () => _press(key),
                                 ),
                               ),
-                            ],
                           ],
                         ),
-                      ),
+                      ],
                     ],
-                  ],
-                ),
+                  );
+                },
               ),
-            ],
+            ),
           ),
         ),
       ),
     );
   }
+
+  _CalculatorKeyStyle _buttonStyleFor(String key) {
+    if (_operators.contains(key)) return _CalculatorKeyStyle.operator;
+    if (key == String.fromCharCode(0x232B)) {
+      return _CalculatorKeyStyle.function;
+    }
+    if (key == 'C' || key == '±' || key == '%') {
+      return _CalculatorKeyStyle.function;
+    }
+    return _CalculatorKeyStyle.number;
+  }
 }
+
+enum _CalculatorKeyStyle { number, function, operator }
 
 class _CalculatorButton extends StatelessWidget {
   const _CalculatorButton({
     required this.label,
-    required this.highlighted,
+    required this.style,
     required this.onPressed,
   });
 
   final String label;
-  final bool highlighted;
+  final _CalculatorKeyStyle style;
   final VoidCallback onPressed;
 
   @override
   Widget build(BuildContext context) {
+    final isFunction = style == _CalculatorKeyStyle.function;
+    final backgroundColor = switch (style) {
+      _CalculatorKeyStyle.number => const Color(0xFF252629),
+      _CalculatorKeyStyle.function => const Color(0xFF1C1D1F),
+      _CalculatorKeyStyle.operator => const Color(0xFF303135),
+    };
+    final foregroundColor = label == 'C'
+        ? const Color(0xFFE77171)
+        : const Color(0xFFE2E3E6);
+    final isEquals = label == '=';
+
     return Semantics(
       button: true,
-      label: 'Tecla $label',
+      label: label == '⌫' ? 'Apagar último dígito' : 'Tecla $label',
       child: FilledButton(
         onPressed: onPressed,
         style: FilledButton.styleFrom(
-          backgroundColor: highlighted
-              ? const Color(0xFF3D3D3D)
-              : const Color(0xFFE6E6E6),
-          foregroundColor: highlighted ? Colors.white : const Color(0xFF1B1B1B),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(14),
+          backgroundColor: isEquals ? const Color(0xFF148C7B) : backgroundColor,
+          foregroundColor: foregroundColor,
+          elevation: 0,
+          padding: EdgeInsets.zero,
+          shape: const CircleBorder(),
+        ),
+        child: FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Padding(
+            padding: const EdgeInsets.all(8),
+            child: label == '⌫'
+                ? const Icon(
+                    Icons.backspace_outlined,
+                    color: Colors.white,
+                    size: 26,
+                  )
+                : Text(
+                    label,
+                    style: TextStyle(
+                      color: foregroundColor,
+                      fontSize: isFunction ? 22 : 28,
+                      fontWeight: FontWeight.w400,
+                      height: 1,
+                    ),
+                  ),
           ),
         ),
-        child: Text(label, style: Theme.of(context).textTheme.titleLarge),
       ),
     );
   }
