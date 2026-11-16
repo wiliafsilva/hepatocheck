@@ -1,5 +1,6 @@
 import 'package:intl/intl.dart';
 
+import '../domain/entities/consumption_report.dart';
 import '../domain/entities/report_period.dart';
 
 final _dateFormat = DateFormat('dd/MM/yyyy');
@@ -43,6 +44,9 @@ String _twoDigits(int value) => value.toString().padLeft(2, '0');
 String formatDayMonth(DateTime date) =>
     '${_twoDigits(date.day)}/${_twoDigits(date.month)}';
 
+String formatDayMonthYear(DateTime date) =>
+    '${formatDayMonth(date)}/${_twoDigits(date.year % 100)}';
+
 String formatPeriod(ReportPeriod period) {
   return switch (period.type) {
     ReportPeriodType.week =>
@@ -57,4 +61,14 @@ String formatPeriod(ReportPeriod period) {
 String formatDrinks(double value) {
   final rounded = double.parse(value.toStringAsFixed(1));
   return formatNumber(rounded);
+}
+
+String formatComparisonNote(ConsumptionReport report) {
+  final previous = report.period.type == ReportPeriodType.week
+      ? 'da semana anterior'
+      : 'do mês anterior';
+  final days = report.comparedDays == 1
+      ? 'o primeiro dia'
+      : 'os ${report.comparedDays} primeiros dias';
+  return 'Período em andamento: comparado com $days $previous.';
 }

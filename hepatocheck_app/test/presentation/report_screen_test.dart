@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hepatocheck_app/presentation/providers/goal_providers.dart';
@@ -11,6 +14,7 @@ import 'package:hepatocheck_app/domain/repositories/drink_repository.dart';
 import 'package:hepatocheck_app/domain/repositories/exam_repository.dart';
 import 'package:hepatocheck_app/presentation/providers/drink_providers.dart';
 import 'package:hepatocheck_app/presentation/providers/exam_providers.dart';
+import 'package:hepatocheck_app/presentation/providers/pdf_providers.dart';
 import 'package:hepatocheck_app/presentation/providers/report_providers.dart';
 import 'package:hepatocheck_app/presentation/screens/report_screen.dart';
 
@@ -61,25 +65,70 @@ DrinkEntry _beer(DateTime consumedAt, {int quantity = 1}) => DrinkEntry(
   updatedAt: consumedAt,
 );
 
+LabExam _exam(String id, DateTime date, {double ast = 35}) => LabExam(
+  id: id,
+  examDate: date,
+  age: 45,
+  ast: ast,
+  alt: 36,
+  platelets: 181,
+  createdAt: date,
+  updatedAt: date,
+);
+
+ReductionGoal _drinkLimit(int target) => ReductionGoal(
+  id: 'meta-1',
+  type: GoalType.maxDrinksPerWeek,
+  target: target,
+  startDate: DateTime(2026, 11, 2),
+  active: true,
+  createdAt: DateTime(2026, 11, 2),
+  updatedAt: DateTime(2026, 11, 2),
+);
+
 Future<void> _pump(
   WidgetTester tester,
   List<LabExam> exams, {
   List<DrinkEntry> drinks = const [],
+  List<ReductionGoal> goals = const [],
+  PdfOutput? output,
+  double textScale = 1,
 }) {
   return tester.pumpWidget(
     ProviderScope(
       overrides: [
-        goalRepositoryProvider.overrideWithValue(_EmptyGoalRepository()),
+        goalRepositoryProvider.overrideWithValue(_FakeGoalRepository(goals)),
         clockProvider.overrideWithValue(() => DateTime(2026, 11, 10)),
         examRepositoryProvider.overrideWithValue(_FakeExamRepository(exams)),
         drinkRepositoryProvider.overrideWithValue(_FakeDrinkRepository(drinks)),
+        healthSummaryPdfProvider.overrideWithValue(
+          (_) async => Uint8List.fromList('%PDF-teste'.codeUnits),
+        ),
+        if (output != null) pdfOutputProvider.overrideWithValue(output),
       ],
-      child: const MaterialApp(home: Scaffold(body: ReportScreen())),
+      child: MaterialApp(
+        home: MediaQuery(
+          data: MediaQueryData(textScaler: TextScaler.linear(textScale)),
+          child: const Scaffold(body: ReportScreen()),
+        ),
+      ),
     ),
   );
 }
 
+Future<void> _scrollTo(WidgetTester tester, Finder finder) => tester
+    .scrollUntilVisible(finder, 200, scrollable: find.byType(Scrollable).first);
+
 void main() {
+  setUpAll(() async {
+    final loader = FontLoader('Inter');
+    for (final f in ['Regular', 'Medium', 'SemiBold', 'Bold']) {
+      final bytes = File('assets/fonts/Inter-$f.ttf').readAsBytesSync();
+      loader.addFont(Future.value(ByteData.sublistView(bytes)));
+    }
+    await loader.load();
+  });
+
   testWidgets('alterna entre semana e mês e navega pelos períodos', (
     tester,
   ) async {
@@ -168,11 +217,185 @@ void main() {
     );
     expect(find.text('Cerveja'), findsOneWidget);
   });
+
+  testWidgets('avisa que a semana em andamento usa os mesmos dias', (
+    tester,
+  ) async {
+    const note =
+        'Período em andamento: comparado com os 2 primeiros dias da '
+        'semana anterior.';
+    await _pump(tester, const [], drinks: [_beer(DateTime(2026, 11, 9))]);
+    await _scrollTo(tester, find.text(note));
+
+    expect(find.text(note), findsOneWidget);
+  });
+
+  testWidgets('período encerrado não mostra o aviso', (tester) async {
+    await _pump(tester, const []);
+    await tester.tap(find.byTooltip('Período anterior'));
+    await tester.pump();
+
+    expect(find.textContaining('Período em andamento'), findsNothing);
+  });
+
+  testWidgets('com a fonte do celular em 200% nada transborda', (tester) async {
+    tester.view.physicalSize = const Size(320, 640);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+
+    await _pump(
+      tester,
+      [_exam('a', DateTime(2026, 5, 1)), _exam('b', DateTime(2026, 9, 12))],
+      drinks: [
+        _beer(DateTime(2026, 11, 3, 20)),
+        _beer(DateTime(2026, 11, 9, 21), quantity: 2),
+      ],
+      goals: [_drinkLimit(1)],
+      textScale: 2,
+    );
+    await _scrollTo(tester, find.text('Compartilhar'));
+
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('sobe o nível quando o consumo passa da meta semanal', (
+    tester,
+  ) async {
+    final date = DateTime(2026, 10, 1);
+    await _pump(
+      tester,
+      [
+        LabExam(
+          id: 'verde',
+          examDate: date,
+          age: 45,
+          ast: 30,
+          alt: 36,
+          platelets: 250,
+          createdAt: date,
+          updatedAt: date,
+        ),
+      ],
+      drinks: [_beer(DateTime(2026, 11, 9, 21), quantity: 3)],
+      goals: [_drinkLimit(1)],
+    );
+
+    expect(find.text('AMARELO'), findsOneWidget);
+    expect(find.textContaining('Nível elevado para Amarelo'), findsOneWidget);
+  });
+
+  testWidgets('dentro da meta mantém o nível do FIB-4', (tester) async {
+    await _pump(
+      tester,
+      [_exam('a', DateTime(2026, 9, 12))],
+      drinks: [_beer(DateTime(2026, 11, 9, 21))],
+      goals: [_drinkLimit(5)],
+    );
+
+    expect(find.text('AMARELO'), findsOneWidget);
+    expect(find.textContaining('Nível elevado'), findsNothing);
+  });
+
+  testWidgets('dashboard sem exames pede o primeiro registro', (tester) async {
+    await _pump(tester, const []);
+
+    expect(
+      find.text('Registre exames na aba Exames para acompanhar a evolução.'),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('dashboard com um exame pede outro para comparar', (
+    tester,
+  ) async {
+    await _pump(tester, [_exam('a', DateTime(2026, 9, 12))]);
+
+    expect(
+      find.text('Registre outro exame para ver a evolução.'),
+      findsOneWidget,
+    );
+    expect(find.text('Evolução do FIB-4'), findsNothing);
+  });
+
+  testWidgets('dashboard com três exames mostra gráfico e tendência', (
+    tester,
+  ) async {
+    await _pump(tester, [
+      _exam('a', DateTime(2026, 3, 1), ast: 45),
+      _exam('b', DateTime(2026, 6, 1), ast: 40),
+      _exam('c', DateTime(2026, 9, 12)),
+    ]);
+
+    expect(find.text('Evolução do FIB-4'), findsOneWidget);
+    expect(find.text('Melhorou'), findsOneWidget);
+    expect(find.text('Verde < 1,30'), findsOneWidget);
+
+    await tester.tap(find.text('Plaquetas'));
+    await tester.pump();
+    expect(find.text('Plaquetas (×10³/mm³)'), findsOneWidget);
+  });
+
+  testWidgets('compartilhar pede confirmação antes de enviar o PDF', (
+    tester,
+  ) async {
+    final output = _FakePdfOutput();
+    await _pump(tester, const [], output: output);
+    await _scrollTo(tester, find.text('Compartilhar'));
+
+    await tester.tap(find.text('Compartilhar'));
+    await tester.pumpAndSettle();
+    expect(find.text('Compartilhar o resumo?'), findsOneWidget);
+
+    await tester.tap(find.text('Cancelar'));
+    await tester.pumpAndSettle();
+    expect(output.shared, isEmpty);
+
+    await tester.tap(find.text('Compartilhar'));
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.descendant(
+        of: find.byType(AlertDialog),
+        matching: find.text('Compartilhar'),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(output.shared, ['resumo-saude-2026-11-10.pdf']);
+  });
+
+  testWidgets('visualizar abre o PDF sem pedir confirmação', (tester) async {
+    final output = _FakePdfOutput();
+    await _pump(tester, const [], output: output);
+    await _scrollTo(tester, find.text('Visualizar / salvar'));
+
+    await tester.tap(find.text('Visualizar / salvar'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Compartilhar o resumo?'), findsNothing);
+    expect(output.previewed, ['resumo-saude-2026-11-10.pdf']);
+  });
 }
 
-class _EmptyGoalRepository implements GoalRepository {
+class _FakePdfOutput implements PdfOutput {
+  final shared = <String>[];
+  final previewed = <String>[];
+
   @override
-  List<ReductionGoal> getAll() => [];
+  Future<void> preview(Uint8List bytes, String fileName) async =>
+      previewed.add(fileName);
+
+  @override
+  Future<void> share(Uint8List bytes, String fileName) async =>
+      shared.add(fileName);
+}
+
+class _FakeGoalRepository implements GoalRepository {
+  _FakeGoalRepository(this._goals);
+
+  final List<ReductionGoal> _goals;
+
+  @override
+  List<ReductionGoal> getAll() => _goals;
   @override
   Future<void> save(ReductionGoal goal) async {}
   @override

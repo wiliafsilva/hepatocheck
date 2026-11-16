@@ -168,11 +168,13 @@ void main() {
       expect(report.changePercent, isNull);
     });
 
-    test('o mês anterior entra completo', () {
+    test('o mês em andamento compara com os mesmos dias do mês anterior', () {
       final month = ReportPeriod.containing(today, ReportPeriodType.month);
       final report = build(
         [
           _drink(DateTime(2026, 10, 1)),
+          _drink(DateTime(2026, 10, 11, 23)),
+          _drink(DateTime(2026, 10, 12)),
           _drink(DateTime(2026, 10, 31, 23)),
           _drink(DateTime(2026, 11, 1)),
         ],
@@ -180,9 +182,93 @@ void main() {
         today: today,
       );
 
+      expect(report.inProgress, isTrue);
+      expect(report.comparedDays, 11);
       expect(report.previousTotal, closeTo(2 * _beerCan, 0.0001));
       expect(report.totalStandardDrinks, closeTo(_beerCan, 0.0001));
       expect(report.elapsedDays, 11);
+    });
+
+    test('na terça compara com segunda e terça da semana anterior', () {
+      final tuesday = DateTime(2026, 11, 10, 9);
+      final report = build(
+        [
+          _drink(DateTime(2026, 11, 2, 20)),
+          _drink(DateTime(2026, 11, 3, 23, 59)),
+          _drink(DateTime(2026, 11, 4)),
+          _drink(DateTime(2026, 11, 7), quantity: 5),
+          _drink(DateTime(2026, 11, 9), quantity: 2),
+        ],
+        ReportPeriod.containing(tuesday, ReportPeriodType.week),
+        today: tuesday,
+      );
+
+      expect(report.inProgress, isTrue);
+      expect(report.comparedDays, 2);
+      expect(report.previousTotal, closeTo(2 * _beerCan, 0.0001));
+      expect(report.difference, closeTo(0, 0.0001));
+    });
+
+    test('no dia 31 o mês anterior de 30 dias entra inteiro', () {
+      final lastDay = DateTime(2026, 12, 31, 10);
+      final report = build(
+        [
+          _drink(DateTime(2026, 11, 1)),
+          _drink(DateTime(2026, 11, 30, 22)),
+          _drink(DateTime(2026, 12, 1)),
+        ],
+        ReportPeriod.containing(lastDay, ReportPeriodType.month),
+        today: lastDay,
+      );
+
+      expect(report.comparedDays, 30);
+      expect(report.previousTotal, closeTo(2 * _beerCan, 0.0001));
+    });
+
+    test('período encerrado compara com o período anterior inteiro', () {
+      final report = build(
+        [
+          _drink(DateTime(2026, 10, 26)),
+          _drink(DateTime(2026, 11, 1, 23)),
+          _drink(DateTime(2026, 11, 2)),
+        ],
+        week.previous,
+        today: today,
+      );
+
+      expect(report.inProgress, isFalse);
+      expect(report.comparedDays, 7);
+      expect(report.previousTotal, closeTo(2 * _beerCan, 0.0001));
+    });
+  });
+
+  group('Consumo por dia', () {
+    test('tem um item por dia do período com a soma do dia', () {
+      final report = build(
+        [
+          _drink(DateTime(2026, 11, 10, 12)),
+          _drink(DateTime(2026, 11, 10, 22), quantity: 2),
+          _drink(DateTime(2026, 11, 13)),
+        ],
+        week,
+        today: today,
+      );
+
+      expect(report.daily, hasLength(7));
+      expect(report.daily.first.day, DateTime(2026, 11, 9));
+      expect(report.daily.first.standardDrinks, 0);
+      expect(report.daily[1].standardDrinks, closeTo(3 * _beerCan, 0.0001));
+      expect(report.daily[4].standardDrinks, closeTo(_beerCan, 0.0001));
+    });
+
+    test('o mês tem um item por dia do mês', () {
+      final report = build(
+        const [],
+        ReportPeriod.containing(DateTime(2027, 2, 10), ReportPeriodType.month),
+        today: today,
+      );
+
+      expect(report.daily, hasLength(28));
     });
   });
 }

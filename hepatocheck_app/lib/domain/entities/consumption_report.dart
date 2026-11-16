@@ -1,6 +1,13 @@
 import 'drink_type.dart';
 import 'report_period.dart';
 
+class DailyConsumption {
+  const DailyConsumption({required this.day, required this.standardDrinks});
+
+  final DateTime day;
+  final double standardDrinks;
+}
+
 class ConsumptionReport {
   const ConsumptionReport({
     required this.period,
@@ -12,6 +19,9 @@ class ConsumptionReport {
     required this.alcoholFreeDays,
     required this.byType,
     required this.previousTotal,
+    this.inProgress = false,
+    this.comparedDays = 0,
+    this.daily = const [],
   });
 
   final ReportPeriod period;
@@ -23,6 +33,9 @@ class ConsumptionReport {
   final int alcoholFreeDays;
   final Map<DrinkType, double> byType;
   final double previousTotal;
+  final bool inProgress;
+  final int comparedDays;
+  final List<DailyConsumption> daily;
 
   bool get hasData => entryCount > 0;
 

@@ -22,6 +22,7 @@ class BuildConsumptionReport {
     final previous = period.previous;
 
     final byType = <DrinkType, double>{};
+    final perDay = <DateTime, double>{};
     final drinkingDays = <DateTime>{};
     var total = 0.0;
     final endOfToday = DateTime(today.year, today.month, today.day + 1);
@@ -35,8 +36,14 @@ class BuildConsumptionReport {
         ifAbsent: () => standardDrinks,
       );
       final moment = entry.consumedAt;
+      final day = DateTime(moment.year, moment.month, moment.day);
+      perDay.update(
+        day,
+        (value) => value + standardDrinks,
+        ifAbsent: () => standardDrinks,
+      );
       if (standardDrinks > 0 && moment.isBefore(endOfToday)) {
-        drinkingDays.add(DateTime(moment.year, moment.month, moment.day));
+        drinkingDays.add(day);
       }
     }
 
@@ -44,6 +51,10 @@ class BuildConsumptionReport {
     final drinkingDayCount = drinkingDays.length > elapsedDays
         ? elapsedDays
         : drinkingDays.length;
+    final inProgress = period.isCurrent(today);
+    final comparedDays = inProgress
+        ? elapsedDays.clamp(0, previous.dayCount)
+        : previous.dayCount;
 
     return ConsumptionReport(
       period: period,
@@ -55,8 +66,17 @@ class BuildConsumptionReport {
       alcoholFreeDays: elapsedDays - drinkingDayCount,
       byType: byType,
       previousTotal: _convert.total(
-        entries.where((entry) => previous.contains(entry.consumedAt)),
+        entries.where(
+          (entry) =>
+              previous.containsInFirstDays(entry.consumedAt, comparedDays),
+        ),
       ),
+      inProgress: inProgress,
+      comparedDays: comparedDays,
+      daily: [
+        for (final day in period.days())
+          DailyConsumption(day: day, standardDrinks: perDay[day] ?? 0),
+      ],
     );
   }
 }

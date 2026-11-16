@@ -117,4 +117,29 @@ void main() {
       expect(days.last, DateTime(2026, 11, 15));
     });
   });
+
+  group('Primeiros dias do período', () {
+    test('limita o fim ao número de dias pedido', () {
+      final week = ReportPeriod.containing(
+        DateTime(2026, 11, 2),
+        ReportPeriodType.week,
+      );
+
+      expect(week.firstDaysEnd(2), DateTime(2026, 11, 4));
+      expect(
+        week.containsInFirstDays(DateTime(2026, 11, 3, 23, 59), 2),
+        isTrue,
+      );
+      expect(week.containsInFirstDays(DateTime(2026, 11, 4), 2), isFalse);
+    });
+
+    test('não passa do fim do período', () {
+      final february = ReportPeriod.containing(
+        DateTime(2027, 2, 1),
+        ReportPeriodType.month,
+      );
+
+      expect(february.firstDaysEnd(31), DateTime(2027, 3));
+    });
+  });
 }

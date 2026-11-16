@@ -49,6 +49,14 @@ class ReportPeriod {
 
   int get dayCount => _daysBetween(start, end);
 
+  DateTime firstDaysEnd(int days) {
+    final limit = DateTime(start.year, start.month, start.day + days);
+    return limit.isBefore(end) ? limit : end;
+  }
+
+  bool containsInFirstDays(DateTime moment, int days) =>
+      !moment.isBefore(start) && moment.isBefore(firstDaysEnd(days));
+
   bool contains(DateTime moment) =>
       !moment.isBefore(start) && moment.isBefore(end);
 

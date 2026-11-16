@@ -3,17 +3,21 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../domain/entities/consumption_report.dart';
 import '../../domain/entities/drink_type.dart';
-import '../../domain/entities/lab_exam.dart';
 import '../../domain/entities/report_period.dart';
+import '../../domain/usecases/assess_current_risk.dart';
 import '../formatters.dart';
 import 'goals_screen.dart';
 import '../providers/exam_providers.dart';
 import '../providers/report_providers.dart';
+import '../providers/risk_providers.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 import '../theme/drink_type_labels.dart';
 import '../theme/risk_colors.dart';
+import '../widgets/daily_consumption_chart.dart';
 import '../widgets/delta_label.dart';
+import '../widgets/exam_evolution_chart.dart';
+import '../widgets/export_summary_card.dart';
 import '../widgets/risk_badge.dart';
 import '../widgets/section_label.dart';
 
@@ -25,7 +29,12 @@ class ReportScreen extends ConsumerWidget {
     final period = ref.watch(reportPeriodProvider);
     final periodNotifier = ref.read(reportPeriodProvider.notifier);
     final report = ref.watch(consumptionReportProvider);
-    final exams = ref.watch(examsProvider);
+    final risk = ref.watch(currentRiskProvider);
+    final evolution = ref.watch(examEvolutionProvider);
+    final history = ref.watch(summarizeExamHistoryProvider)(
+      ref.watch(examsProvider),
+      today: ref.watch(clockProvider)(),
+    );
 
     return ListView(
       padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
@@ -57,17 +66,27 @@ class ReportScreen extends ConsumerWidget {
         const SizedBox(height: 20),
         const SectionLabel('RISCO ATUAL'),
         const SizedBox(height: 8),
-        _CurrentRiskCard(latest: exams.isEmpty ? null : exams.first),
+        _CurrentRiskCard(risk: risk),
+        const SizedBox(height: 24),
+        const SectionLabel('EVOLUÇÃO DOS EXAMES'),
+        const SizedBox(height: 8),
+        ExamEvolutionDashboard(points: evolution, summary: history),
         const SizedBox(height: 24),
         const SectionLabel('RESUMO DO CONSUMO'),
         const SizedBox(height: 8),
         _SummaryGrid(report: report, type: period.type),
+        const SizedBox(height: 24),
+        const SectionLabel('CONSUMO POR DIA'),
+        const SizedBox(height: 8),
+        DailyConsumptionChart(report: report),
         const SizedBox(height: 24),
         GoalReportSection(period: period),
         const SizedBox(height: 24),
         const SectionLabel('CONSUMO POR TIPO DE BEBIDA'),
         const SizedBox(height: 8),
         _ByTypeCard(report: report),
+        const SizedBox(height: 24),
+        const ExportSummaryCard(),
         const SizedBox(height: 16),
         const Text(
           'Triagem preventiva. Não substitui avaliação médica.',
@@ -116,15 +135,15 @@ class _PeriodNavigator extends StatelessWidget {
   }
 }
 
-class _CurrentRiskCard extends ConsumerWidget {
-  const _CurrentRiskCard({required this.latest});
+class _CurrentRiskCard extends StatelessWidget {
+  const _CurrentRiskCard({required this.risk});
 
-  final LabExam? latest;
+  final CurrentRisk? risk;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final exam = latest;
-    if (exam == null) {
+  Widget build(BuildContext context) {
+    final current = risk;
+    if (current == null) {
       return const Card(
         child: Padding(
           padding: EdgeInsets.all(16),
@@ -144,7 +163,7 @@ class _CurrentRiskCard extends ConsumerWidget {
       );
     }
 
-    final result = ref.watch(calculateFib4Provider)(exam);
+    final result = current.fib4;
     final color = result.riskLevel.color;
     return Card(
       child: Padding(
@@ -164,13 +183,13 @@ class _CurrentRiskCard extends ConsumerWidget {
                         style: AppTextStyles.title.copyWith(color: color),
                       ),
                       Text(
-                        'Exame de ${formatDate(exam.examDate)}',
+                        'Exame de ${formatDate(current.exam.examDate)}',
                         style: AppTextStyles.caption,
                       ),
                     ],
                   ),
                 ),
-                RiskBadge(riskLevel: result.riskLevel),
+                RiskBadge(riskLevel: current.level),
               ],
             ),
             const SizedBox(height: 10),
@@ -180,6 +199,27 @@ class _CurrentRiskCard extends ConsumerWidget {
                 color: AppColors.textSecondary,
               ),
             ),
+            if (current.raisedByConsumption) ...[
+              const SizedBox(height: 10),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(Icons.trending_up, size: 18, color: current.level.color),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Nível elevado para ${current.level.label}: o consumo '
+                      'desta semana '
+                      '(${formatDrinks(current.weeklyStandardDrinks)} drinques '
+                      'padrão) passou da sua meta de ${current.weeklyLimit}.',
+                      style: AppTextStyles.caption.copyWith(
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ],
         ),
       ),
@@ -227,16 +267,42 @@ class _SummaryGrid extends StatelessWidget {
     ];
 
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        GridView.count(
-          crossAxisCount: 2,
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          mainAxisSpacing: 10,
-          crossAxisSpacing: 10,
-          childAspectRatio: 1.45,
-          children: cards,
-        ),
+        for (var row = 0; row < cards.length; row += 2) ...[
+          if (row > 0) const SizedBox(height: 10),
+          IntrinsicHeight(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Expanded(child: cards[row]),
+                const SizedBox(width: 10),
+                Expanded(child: cards[row + 1]),
+              ],
+            ),
+          ),
+        ],
+        if (report.inProgress)
+          Padding(
+            padding: const EdgeInsets.only(top: 12),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Icon(
+                  Icons.info_outline,
+                  size: 16,
+                  color: AppColors.textSecondary,
+                ),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    formatComparisonNote(report),
+                    style: AppTextStyles.caption,
+                  ),
+                ),
+              ],
+            ),
+          ),
         if (!report.hasData)
           const Padding(
             padding: EdgeInsets.only(top: 12),
@@ -289,18 +355,14 @@ class _SummaryCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Icon(icon, size: 16, color: AppColors.olive),
                 const SizedBox(width: 6),
-                Expanded(
-                  child: Text(
-                    title,
-                    style: AppTextStyles.caption,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
+                Expanded(child: Text(title, style: AppTextStyles.caption)),
               ],
             ),
+            const SizedBox(height: 10),
             const Spacer(),
             Text(value, style: AppTextStyles.title),
             ?footer,
