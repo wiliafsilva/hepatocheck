@@ -9,6 +9,7 @@ import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 import '../theme/risk_colors.dart';
 import 'delta_label.dart';
+import 'fib4_evolution_summary.dart';
 
 class ExamHistory extends StatefulWidget {
   const ExamHistory({
@@ -61,7 +62,7 @@ class _ExamHistoryState extends State<ExamHistory> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         if (summary != null && summary.examCount >= 2) ...[
-          _EvolutionSummary(summary: summary),
+          Fib4EvolutionSummary(summary: summary),
           const SizedBox(height: 12),
         ],
         for (var index = 0; index < visibleCount; index++)
@@ -93,118 +94,6 @@ class _ExamHistoryState extends State<ExamHistory> {
               ),
             ),
           ),
-      ],
-    );
-  }
-}
-
-class _EvolutionSummary extends StatelessWidget {
-  const _EvolutionSummary({required this.summary});
-
-  final ExamHistorySummary summary;
-
-  @override
-  Widget build(BuildContext context) {
-    final (label, color, icon) = switch (summary.trend) {
-      Fib4Trend.improved => (
-        'Melhorou',
-        AppColors.riskGreen,
-        Icons.trending_down,
-      ),
-      Fib4Trend.worsened => ('Piorou', AppColors.riskRed, Icons.trending_up),
-      Fib4Trend.stable => (
-        'Estável',
-        AppColors.textSecondary,
-        Icons.trending_flat,
-      ),
-    };
-    final sign = summary.delta > 0
-        ? '+'
-        : summary.delta < 0
-        ? '−'
-        : '';
-
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                const Expanded(
-                  child: Text('Evolução do FIB-4', style: AppTextStyles.body),
-                ),
-                Icon(icon, size: 18, color: color),
-                const SizedBox(width: 6),
-                Text(label, style: AppTextStyles.label.copyWith(color: color)),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                Expanded(
-                  child: _ScoreAtDate(
-                    title: 'Primeiro',
-                    result: summary.first,
-                    date: summary.firstDate,
-                  ),
-                ),
-                const Icon(
-                  Icons.arrow_forward,
-                  color: AppColors.textSecondary,
-                  size: 18,
-                ),
-                Expanded(
-                  child: _ScoreAtDate(
-                    title: 'Último',
-                    result: summary.latest,
-                    date: summary.latestDate,
-                    alignEnd: true,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Text(
-              'Variação de $sign${formatScore(summary.delta.abs())} em '
-              '${summary.examCount} exames. Último exame '
-              '${formatElapsedDays(summary.daysSinceLatest)}.',
-              style: AppTextStyles.caption,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _ScoreAtDate extends StatelessWidget {
-  const _ScoreAtDate({
-    required this.title,
-    required this.result,
-    required this.date,
-    this.alignEnd = false,
-  });
-
-  final String title;
-  final Fib4Result result;
-  final DateTime date;
-  final bool alignEnd;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: alignEnd
-          ? CrossAxisAlignment.end
-          : CrossAxisAlignment.start,
-      children: [
-        Text(title, style: AppTextStyles.caption),
-        Text(
-          formatScore(result.score),
-          style: AppTextStyles.subtitle.copyWith(color: result.riskLevel.color),
-        ),
-        Text(formatDate(date), style: AppTextStyles.caption),
       ],
     );
   }
