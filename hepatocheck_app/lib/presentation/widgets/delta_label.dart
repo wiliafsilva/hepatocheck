@@ -27,7 +27,12 @@ class DeltaLabel extends StatelessWidget {
             color: color,
           ),
         if (delta != 0) const SizedBox(width: 2),
-        Text(text, style: AppTextStyles.caption.copyWith(color: color)),
+        Flexible(
+          child: Text(
+            text,
+            style: AppTextStyles.caption.copyWith(color: color),
+          ),
+        ),
       ],
     );
   }
