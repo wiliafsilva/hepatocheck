@@ -16,6 +16,7 @@ import 'presentation/screens/follow_up_screen.dart';
 import 'presentation/providers/goal_providers.dart';
 import 'presentation/screens/sync_status_screen.dart';
 import 'presentation/theme/app_theme.dart';
+import 'presentation/widgets/account_section.dart';
 import 'presentation/widgets/erase_local_data_tile.dart';
 
 class MyApp extends StatelessWidget {
@@ -313,6 +314,8 @@ class _ProfileScreen extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.all(24),
       children: [
+        const AccountSection(),
+        const Divider(height: 32),
         ListTile(
           contentPadding: EdgeInsets.zero,
           leading: const Icon(Icons.flag_outlined),

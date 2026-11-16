@@ -1,28 +1,34 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../providers/auth_providers.dart';
+import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
-import 'auth_validators.dart';
-import 'login_screen.dart' show AuthSubmit;
 import '../../widgets/content_width.dart';
+import 'auth_flow.dart';
+import 'auth_validators.dart';
+import 'privacy_policy_screen.dart';
 
 /// Tela de cadastro com e-mail e senha. Nome não é pedido: dados pessoais
 /// não são necessários e nunca vão para o Firestore.
-class RegisterScreen extends StatefulWidget {
+class RegisterScreen extends ConsumerStatefulWidget {
   const RegisterScreen({super.key, this.onSubmit});
 
+  /// Substitui o cadastro real (usado nos testes).
   final AuthSubmit? onSubmit;
 
   @override
-  State<RegisterScreen> createState() => _RegisterScreenState();
+  ConsumerState<RegisterScreen> createState() => _RegisterScreenState();
 }
 
-class _RegisterScreenState extends State<RegisterScreen> {
+class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   final _formKey = GlobalKey<FormState>();
   final _email = TextEditingController();
   final _password = TextEditingController();
   final _confirm = TextEditingController();
   bool _obscure = true;
   bool _busy = false;
+  String? _error;
 
   @override
   void dispose() {
@@ -34,21 +40,28 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
-    final onSubmit = widget.onSubmit;
-    if (onSubmit == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Cadastro de conta ainda não está disponível.'),
-        ),
-      );
+    setState(() {
+      _busy = true;
+      _error = null;
+    });
+    final email = _email.text.trim();
+    final password = _password.text;
+    final error = await runAuth(() async {
+      final custom = widget.onSubmit;
+      if (custom != null) return custom(email, password);
+      await ref
+          .read(authRepositoryProvider)
+          .register(email: email, password: password);
+    });
+    if (!mounted) return;
+    if (error != null) {
+      setState(() {
+        _busy = false;
+        _error = error;
+      });
       return;
     }
-    setState(() => _busy = true);
-    try {
-      await onSubmit(_email.text.trim(), _password.text);
-    } finally {
-      if (mounted) setState(() => _busy = false);
-    }
+    finishAuthFlow(context, ref);
   }
 
   @override
@@ -115,6 +128,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ],
                 ),
               ),
+              if (_error != null) ...[
+                const SizedBox(height: 12),
+                Text(
+                  _error!,
+                  style: AppTextStyles.body.copyWith(color: AppColors.riskRed),
+                ),
+              ],
               const SizedBox(height: 24),
               FilledButton(
                 onPressed: _busy ? null : _submit,
@@ -126,6 +146,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     : const Text('Criar conta'),
               ),
               const SizedBox(height: 12),
+              TextButton(
+                onPressed: () => Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => const PrivacyPolicyScreen(),
+                  ),
+                ),
+                child: const Text('Política de privacidade'),
+              ),
               TextButton(
                 onPressed: () => Navigator.of(context).maybePop(),
                 child: const Text('Já tenho conta'),

@@ -57,7 +57,9 @@ void main() {
 
   testWidgets('login valida os campos e leva ao cadastro', (tester) async {
     await tester.pumpWidget(
-      MaterialApp(theme: AppTheme.dark, home: const LoginScreen()),
+      ProviderScope(
+        child: MaterialApp(theme: AppTheme.dark, home: const LoginScreen()),
+      ),
     );
 
     await tester.tap(find.widgetWithText(FilledButton, 'Entrar'));

@@ -3,11 +3,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../domain/usecases/calculate_liver_health.dart';
 import '../providers/liver_health_provider.dart';
+import '../providers/risk_evolution_provider.dart';
 import '../theme/app_text_styles.dart';
 import '../widgets/content_width.dart';
 import '../widgets/quick_drink_sheet.dart';
 import '../widgets/risk_card.dart';
-import 'auth/login_screen.dart';
+import '../widgets/risk_evolution_chart.dart';
+import 'auth/account_screen.dart';
 
 /// Tela Início: cartão de risco com o medidor e o botão + de registro rápido.
 ///
@@ -30,11 +32,7 @@ class HomeScreen extends ConsumerWidget {
                 child: IconButton(
                   tooltip: 'Entrar ou criar conta',
                   icon: const Icon(Icons.account_circle_outlined),
-                  onPressed: () => Navigator.of(context).push(
-                    MaterialPageRoute<void>(
-                      builder: (_) => const LoginScreen(),
-                    ),
-                  ),
+                  onPressed: () => openAccount(context, ref),
                 ),
               ),
               const Text(
@@ -50,6 +48,8 @@ class HomeScreen extends ConsumerWidget {
               RiskCard(health: health),
               const SizedBox(height: 16),
               _ConsumptionCard(health: health),
+              const SizedBox(height: 16),
+              RiskEvolutionChart(points: ref.watch(riskEvolutionProvider)),
             ],
           ),
         ),

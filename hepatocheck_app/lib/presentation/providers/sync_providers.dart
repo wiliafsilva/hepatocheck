@@ -1,5 +1,4 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/network/wifi_monitor.dart';
@@ -9,7 +8,10 @@ import '../../data/sync/hive_sync_queue_repository.dart';
 import '../../domain/entities/sync_item.dart';
 import '../../domain/repositories/sync_queue_repository.dart';
 import '../../domain/repositories/sync_remote.dart';
+import '../../domain/usecases/anonymize_sync_payload.dart';
 import '../../domain/usecases/sync_pending_items.dart';
+import 'auth_providers.dart';
+import 'consent_providers.dart';
 
 final syncQueueRepositoryProvider = Provider<SyncQueueRepository>(
   (ref) => HiveSyncQueueRepository(HiveDatabase.syncQueue),
@@ -27,14 +29,15 @@ final syncRemoteProvider = Provider<SyncRemote>(
 
 final currentUserIdProvider = Provider<String? Function()>(
   (ref) =>
-      () => FirebaseAuth.instance.currentUser?.uid,
+      () => ref.read(authRepositoryProvider).currentUser?.uid,
 );
 
-final syncConsentProvider = Provider<bool>((ref) => false);
+final syncConsentProvider = Provider<bool>(
+  (ref) => ref.watch(syncConsentControllerProvider),
+);
 
 final payloadAnonymizerProvider = Provider<PayloadAnonymizer>(
-  (ref) =>
-      (entityType, payload) => payload,
+  (ref) => const AnonymizeSyncPayload().call,
 );
 
 final syncPendingItemsProvider = Provider(
