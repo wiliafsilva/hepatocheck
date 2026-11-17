@@ -181,6 +181,7 @@ void main() {
     await pump(tester, const DrinksScreen());
 
     await tester.enterText(find.widgetWithText(TextField, '350'), '0');
+    await scrollTo(tester, find.widgetWithText(FilledButton, 'Adicionar'));
     await tapVisible(tester, find.widgetWithText(FilledButton, 'Adicionar'));
     await tester.ensureVisible(find.text('Use um volume entre 1 e 3000 ml.'));
 
