@@ -95,3 +95,22 @@
 - Modo Camuflagem - Ajustes no layout da calculadora
 - Metas - Limite da meta de drinques por semana de 0 a 100
 - Repositório - Pasta tmp ignorada pelo Git
+## (23/11/2026)
+
+### Adicionado
+- Semana 4 - Estabilização e entrega
+- Modo consulta - Tela para o profissional de saúde
+- Orientação médica - Quando procurar o médico
+- Risco alto - Filtro amarelado de icterícia
+- Documentação - Uso de IA com a justificativa das bibliotecas, justificativas, arquitetura do sistema, requisitos e versão final do diagrama de classes
+- Fluxo de navegação - Fluxo real com capturas de tela
+- Apresentação - Slides da Unidade II e vídeo de demonstração
+- APK de release
+- Readme atualizado
+
+### Alterado
+- Telas - Ajustes para ficar fiel ao protótipo de alta fidelidade
+- Acessibilidade - Revisão de rótulos para leitor de tela e tamanho de fonte
+
+### Corrigido
+- Correções de Exames, Relatório, PDF, Drinks, banco local, camuflagem, metas, notificações, Início, login e anonimização

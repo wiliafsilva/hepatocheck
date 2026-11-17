@@ -15,6 +15,7 @@ import 'presentation/screens/goals_screen.dart';
 import 'presentation/screens/follow_up_screen.dart';
 import 'presentation/providers/goal_providers.dart';
 import 'presentation/screens/sync_status_screen.dart';
+import 'presentation/theme/app_colors.dart';
 import 'presentation/theme/app_theme.dart';
 import 'presentation/widgets/account_section.dart';
 import 'presentation/widgets/erase_local_data_tile.dart';
@@ -201,19 +202,56 @@ class _AppNavigationShellState extends State<AppNavigationShell>
         ),
         _ => _TabPlaceholder(label: tab.label),
       },
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _selectedIndex,
-        labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
-        onDestinationSelected: (index) =>
-            setState(() => _selectedIndex = index),
-        destinations: [
-          for (final tab in _tabs)
-            NavigationDestination(
-              icon: Icon(tab.icon),
-              selectedIcon: Icon(tab.selectedIcon),
-              label: tab.label,
+      bottomNavigationBar: _PillNavigationBar(
+        child: NavigationBar(
+          selectedIndex: _selectedIndex,
+          labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+          onDestinationSelected: (index) =>
+              setState(() => _selectedIndex = index),
+          destinations: [
+            for (final tab in _tabs)
+              NavigationDestination(
+                icon: Icon(tab.icon),
+                selectedIcon: Icon(tab.selectedIcon),
+                label: tab.label,
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _PillNavigationBar extends StatelessWidget {
+  const _PillNavigationBar({required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final shape = BorderRadius.circular(AppTheme.navigationRadius);
+    return SafeArea(
+      minimum: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+      child: Center(
+        heightFactor: 1,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 560),
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              color: AppColors.surface,
+              borderRadius: shape,
+              border: Border.all(color: AppColors.outline),
             ),
-        ],
+            child: ClipRRect(
+              borderRadius: shape,
+              child: MediaQuery.removePadding(
+                context: context,
+                removeBottom: true,
+                child: child,
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }
