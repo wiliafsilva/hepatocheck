@@ -396,14 +396,9 @@ class _DrinksScreenState extends ConsumerState<DrinksScreen> {
               ],
             ),
             const SizedBox(height: 14),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(child: _buildQuantity()),
-                const SizedBox(width: 12),
-                Expanded(child: _buildDateTimeField()),
-              ],
-            ),
+            _buildQuantity(),
+            const SizedBox(height: 14),
+            _buildDateTimeField(),
             const SizedBox(height: 14),
             Container(
               width: double.infinity,
