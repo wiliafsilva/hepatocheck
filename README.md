@@ -90,3 +90,13 @@
 | Victor Castelo Branco | Login, Anonimização, Evolução do risco | Autenticação opcional mantendo o modo convidado, tela de consentimento da sincronização com opção de revogar, anonimização dos dados com faixa etária e datas sem horário, gráfico de evolução temporal do risco na tela Início, telas de cadastro, recuperação de senha e política de privacidade |
 | Wilia Francisco da Silva | Sincronização, Changelog e Readme | Revisão dos pull requests, sincronização em lote com o Firestore, tratamento de falhas parciais, envio automático ao conectar no Wi-Fi, regras de segurança do Firestore com validação dos campos, metas na fila de sincronização, testes automatizados da sincronização e da anonimização, tela de status da sincronização, Changelog e Readme |
 | Leon Mendonça | Drinks, Integração, Modelagem do Firebase | Ligação do diário e dos exames à fila de sincronização, modelagem das coleções e documentos do Firestore, mapeamento das classes Dart para o Firestore, ajustes do diário apontados nas revisões, opção de apagar todos os dados locais |
+
+## Registro das responsabilidades (23/11/2026) Semana 4 - Estabilização e entrega
+
+| Integrante | Responsabilidade | O que deverá realizar |
+| --- | --- | --- |
+| Gabriel de Oliveira Alves | Correções, Uso de IA, Justificativas, Modo consulta | Correção dos erros de Exames, Relatório e PDF, registro do uso de IA com a justificativa das bibliotecas, atualização das justificativas, modo consulta para o profissional de saúde |
+| Lizandra Bispo Nascimento | Correções, Fluxo de navegação, Slides | Correção dos erros de camuflagem, metas e notificações, fluxo de navegação real com capturas de tela, slides da apresentação da Unidade II, filtro amarelado de icterícia em risco alto |
+| Victor Castelo Branco | Correções, Orientação médica, Vídeo | Correção dos erros de Início, login e anonimização, orientação "Quando procurar o médico", vídeo de demonstração |
+| Wilia Francisco da Silva | Validação, Protótipos, Changelog e Readme, Acessibilidade | Análise do código e testes automatizados sem erros, APK de release, conferência das telas com o protótipo de alta fidelidade, revisão final do Changelog e do Readme, revisão de acessibilidade |
+| Leon Mendonça | Correções, Arquitetura do sistema, Diagrama de classes | Correção dos erros de Drinks e do banco local, versão final do diagrama de classes, atualização da arquitetura do sistema, atualização dos requisitos com os novos requisitos |
