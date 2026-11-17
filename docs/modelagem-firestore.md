@@ -21,7 +21,7 @@ users/{uid}
 
 ## 2. Documentos
 
-As datas são gravadas como `timestamp` do Firestore, sempre em UTC. Valores calculados (drinques padrão, FIB-4, classificação de risco) **não** são guardados: o aplicativo recalcula a partir dos dados brutos, o que evita valores desatualizados na nuvem.
+As tabelas abaixo mostram os documentos **como chegam à nuvem**, depois da anonimização (seção 3.1). As datas são gravadas como `timestamp` do Firestore, só com o dia (meia-noite UTC do dia local), sem o horário. Valores calculados (drinques padrão, FIB-4, classificação de risco) **não** são guardados: o aplicativo recalcula a partir dos dados brutos, o que evita valores desatualizados na nuvem.
 
 ### 2.1 `users/{uid}/drinks/{drinkId}`
 
@@ -31,7 +31,7 @@ As datas são gravadas como `timestamp` do Firestore, sempre em UTC. Valores cal
 | `volumeMl` | number | `volumeMl` | Volume de uma unidade, em ml |
 | `alcoholPercent` | number | `alcoholPercent` | Teor alcoólico, em % |
 | `quantity` | number (inteiro) | `quantity` | Número de unidades |
-| `consumedAt` | timestamp | `consumedAt` | Quando a bebida foi consumida |
+| `consumedAt` | timestamp | `consumedAt` | Dia em que a bebida foi consumida, sem o horário |
 | `createdAt` | timestamp | `createdAt` | |
 | `updatedAt` | timestamp | `updatedAt` | |
 
@@ -40,7 +40,7 @@ As datas são gravadas como `timestamp` do Firestore, sempre em UTC. Valores cal
 | Campo | Tipo | Origem (`LabExam`) | Observação |
 | --- | --- | --- | --- |
 | `examDate` | timestamp | `examDate` | Data do exame |
-| `age` | number (inteiro) | `age` | Idade na data do exame, usada no FIB-4 |
+| `ageRange` | string | `age` | Faixa etária de 10 anos (ex.: `40-49`). A idade exata fica só no aparelho |
 | `ast` | number | `ast` | TGO (U/L) |
 | `alt` | number | `alt` | TGP (U/L) |
 | `platelets` | number | `platelets` | Plaquetas (×10⁹/L) |
@@ -69,9 +69,23 @@ As datas são gravadas como `timestamp` do Firestore, sempre em UTC. Valores cal
   "volumeMl": 350,
   "alcoholPercent": 5,
   "quantity": 2,
-  "consumedAt": "2026-11-14T22:30:00Z",
-  "createdAt": "2026-11-14T22:31:10Z",
-  "updatedAt": "2026-11-14T22:31:10Z"
+  "consumedAt": "2026-11-14T00:00:00Z",
+  "createdAt": "2026-11-14T00:00:00Z",
+  "updatedAt": "2026-11-14T00:00:00Z"
+}
+```
+
+`users/Xy12.../exams/9b8a7c6d-...`
+
+```json
+{
+  "examDate": "2026-11-10T00:00:00Z",
+  "ageRange": "40-49",
+  "ast": 38,
+  "alt": 41,
+  "platelets": 215,
+  "createdAt": "2026-11-15T00:00:00Z",
+  "updatedAt": "2026-11-15T00:00:00Z"
 }
 ```
 
@@ -92,6 +106,26 @@ Regras da conversão:
 - **`DateTime`** é enviado em UTC e chega como `Timestamp`; na volta, `Timestamp`, `DateTime` e texto ISO 8601 são aceitos.
 - **Números** são lidos como `num` e convertidos para `int` ou `double`, porque o Firestore pode devolver `3` em vez de `3.0`.
 
+### 3.1 O que a anonimização remove ou generaliza
+
+Antes do envio, cada documento passa por `AnonymizeSyncPayload` (`hepatocheck_app/lib/domain/usecases/anonymize_sync_payload.dart`, tarefa 41). Só os campos da seção 2 passam; qualquer outro é descartado.
+
+| Dado no aparelho | O que vai para o Firestore | Tratamento |
+| --- | --- | --- |
+| Nome e e-mail | Nada | Removido. O e-mail fica só no Firebase Authentication |
+| `uid` do Firebase | Só no caminho `users/{uid}/...`, nunca dentro do documento | Usado pelas regras de segurança |
+| Idade exata (`age`) | Faixa etária de 10 anos (`ageRange`, ex.: 47 → `40-49`) | Generalizado |
+| Data e hora (`consumedAt`, `examDate`, `startDate`, `endDate`, `createdAt`, `updatedAt`) | Só o dia, sem o horário | Generalizado |
+| Observações livres e campos não previstos | Nada | Removido |
+| Registro de alterações do diário (log de auditoria) | Nada | Não entra na fila |
+| Código secreto da camuflagem | Nada | Não entra na fila |
+| ID do registro | O mesmo UUID aleatório | Mantido; não carrega informação |
+| TGO, TGP, plaquetas, tipo, volume, teor e quantidade da bebida, metas | Valor original | Mantido; sem eles a cópia não teria utilidade |
+
+Como a idade vai só como faixa, o FIB-4 exato não pode ser recalculado a partir da nuvem. Isso não afeta o app, que calcula tudo com os dados do aparelho; a cópia na nuvem é só de ida. `FirestoreMappers.examFromFirestore` lê o formato antigo, com `age`, e precisará pedir a idade de novo se um dia houver restauração a partir da nuvem.
+
+O teste automatizado 5 (`hepatocheck_app/test/data/sync/anonymized_sync_test.dart`) salva um drinque, um exame e uma meta pelos repositórios reais, envia a fila para um Firestore de teste e confere que os documentos gravados não têm nome, e-mail, observações, `uid`, idade exata nem horário.
+
 ## 4. Como os dados chegam ao Firestore
 
 ```
@@ -101,7 +135,8 @@ Tela → Repositório (Hive) → Fila de sincronização → SyncPendingItems �
 1. Ao salvar ou excluir um drinque, exame ou meta, o repositório grava no Hive e coloca a alteração na fila (`SyncQueueRepository`), já convertida pelo mapeamento acima. Exclusões entram na fila sem conteúdo.
 2. Várias alterações do mesmo registro viram um só item na fila, com a última versão.
 3. Quando há conta, consentimento e Wi-Fi, a fila é enviada em lotes (`WriteBatch`). Criação e edição usam `set` (o documento inteiro é substituído) e exclusão usa `delete`.
-4. Antes do envio, o conteúdo passa pela anonimização (tarefa 41), que pode reduzir a precisão de campos sensíveis, como o horário exato de `consumedAt`.
+4. Antes do envio, o conteúdo passa pela anonimização (seção 3.1): a idade vira faixa etária e as datas perdem o horário. Exclusões não têm conteúdo e vão direto.
+5. Só há envio com conta, consentimento (tela de consentimento, tarefa 38) e Wi-Fi. Ao sair da conta, o consentimento é revogado.
 
 ## 5. Segurança
 
@@ -115,7 +150,7 @@ As regras ficam em `hepatocheck_app/firestore.rules`:
 | Coleção | Validação |
 | --- | --- |
 | `drinks` | `type` entre os 5 tipos; `volumeMl` de 1 a 3000; `alcoholPercent` de 0,5 a 96; `quantity` inteiro de 1 a 50; `consumedAt` não pode estar mais de 1 dia no futuro |
-| `exams` | `age` inteiro de 18 a 120; `ast` e `alt` de 1 a 5000; `platelets` de 1 a 1000; `examDate` não pode estar mais de 1 dia no futuro |
+| `exams` | `ageRange` texto no formato `40-49` (o campo `age` é recusado); `ast` e `alt` de 1 a 5000; `platelets` de 1 a 1000; `examDate` não pode estar mais de 1 dia no futuro |
 | `goals` | `type` entre os 2 tipos; `target` inteiro de 0 a 100 (dias sem álcool: de 0 a 7); `endDate` vazio ou data; `active` verdadeiro ou falso |
 
 Em todas, `createdAt` e `updatedAt` precisam ser datas. A tolerância de 1 dia no futuro cobre relógios de aparelho adiantados.

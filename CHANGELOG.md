@@ -76,15 +76,22 @@
 
 ### Adicionado
 - Semana 3 - Nuvem, relatórios e metas
-- Login - Autenticação opcional com Firebase mantendo o modo convidado, cadastro e recuperação de senha
-- Sincronização - Consentimento, anonimização dos dados, envio em lote para o Firestore, tratamento de falhas parciais e tela de status
-- Segurança - Regras do Firestore para os dados sincronizados
-- Diário de álcool - Diário e exames ligados à fila de sincronização e opção de apagar todos os dados locais
-- Relatório - Relatórios semanais e mensais na tela e exportação em PDF com compartilhamento
+- Login - Autenticação opcional com Firebase mantendo o modo convidado, cadastro, recuperação de senha e política de privacidade
+- Sincronização - Consentimento com opção de revogar, anonimização dos dados (faixa etária no lugar da idade e datas sem horário), envio em lote para o Firestore, tratamento de falhas parciais, envio automático ao conectar no Wi-Fi e tela de status no Perfil
+- Segurança - Regras do Firestore que validam os campos e as faixas de valores de drinques, exames e metas
+- Diário de álcool - Diário, exames e metas ligados à fila de sincronização e opção de apagar todos os dados locais
+- Relatório - Relatórios semanais e mensais na tela com gráfico de consumo por dia e exportação em PDF com compartilhamento
 - Exames - Dashboard de evolução dos exames
-- Evolução do risco - Gráfico da evolução temporal do risco hepático
+- Evolução do risco - Gráfico da evolução temporal do risco hepático na tela Início
 - Metas - Metas de redução com aviso de meta cumprida ou perto de ser ultrapassada
 - Notificações - Notificações educativas personalizadas e lembretes de exame e de registro
-- Testes - Sincronização com falha parcial e anonimização
-- Documentação - Modelagem do Firestore e mapeamento das classes Dart
+- Testes - Sincronização com falha parcial (teste 4) e anonimização no envio ao Firestore (teste 5), 318 testes passando
+- Documentação - Modelagem do Firestore, mapeamento das classes Dart e o que a anonimização remove ou generaliza
 - Readme atualizado
+
+### Alterado
+- Classificação de risco - Sobe de nível quando o consumo da semana passa da meta
+- Relatório - Período em andamento comparado com os mesmos dias do período anterior e cartões ajustados para fonte ampliada
+- Modo Camuflagem - Ajustes no layout da calculadora
+- Metas - Limite da meta de drinques por semana de 0 a 100
+- Repositório - Pasta tmp ignorada pelo Git
