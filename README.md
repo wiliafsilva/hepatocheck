@@ -14,6 +14,75 @@
 
 ### Este projeto trata-se de Aplicativo mobile voltado à prevenção da Doença Hepática Gordurosa Não Alcoólica (DHGNA) em adultos que consomem álcool socialmente ou possuem dieta rica em alimentos ultraprocessados, oferecendo uma calculadora de risco hepático baseada no escore **FIB-4**, a partir de exames de sangue, um **diário de consumo de álcool** em “drinques padrão” e uma classificação de risco em **Verde/Amarelo/Vermelho**, com orientações sobre quando procurar um gastroenterologista. O aplicativo é desenvolvido com foco em **privacidade**, garantindo que os dados relacionados ao consumo de álcool não sejam sincronizados sem permissão explícita, além de adotar uma abordagem **offline-first** e proporcionar leitura rápida tanto em ambientes cotidianos, como casa e bar, quanto durante consultas médicas.
 
+## Como rodar o app
+
+O código do aplicativo fica na pasta `hepatocheck_app`. A documentação do projeto fica em `docs`.
+
+### O que é preciso ter instalado
+
+- **Flutter 3.47.8** (canal stable), que já traz o Dart 3.13.7. Para conferir: `flutter --version`.
+- **Android Studio** com o Android SDK da **API 37** e o **JDK 17**. A API 37 é exigida pelo pacote de notificações.
+- Um **celular Android 8.0 ou superior** com a depuração USB ativada, ou um **emulador** criado no Android Studio.
+- **Git**, para baixar o projeto.
+
+Para ver se falta alguma coisa, rode `flutter doctor`.
+
+A configuração do Firebase (projeto `hepatocheck-unit`) já está no repositório, em `hepatocheck_app/android/app/google-services.json` e `hepatocheck_app/lib/firebase_options.dart`. Não é preciso criar um projeto no Firebase para rodar o app.
+
+### Passo a passo
+
+```bash
+git clone https://github.com/wiliafsilva/hepatocheck.git
+cd hepatocheck/hepatocheck_app
+flutter pub get
+flutter devices
+flutter run
+```
+
+- `flutter pub get` baixa as dependências do projeto.
+- `flutter devices` mostra os aparelhos e emuladores conectados.
+- `flutter run` instala e abre o app no aparelho. Se houver mais de um, escolha com `flutter run -d <id do aparelho>`.
+
+O app abre no **modo convidado**, sem conta. Criar uma conta só é necessário para testar a sincronização com a nuvem, que também exige autorizar o envio no Perfil e estar conectado a uma rede Wi-Fi.
+
+### Testes e análise do código
+
+Dentro da pasta `hepatocheck_app`:
+
+```bash
+flutter analyze
+flutter test
+```
+
+- `flutter analyze` confere o código e deve terminar com `No issues found!`.
+- `flutter test` roda todos os testes automatizados e deve terminar com `All tests passed!`.
+
+### Gerar o APK
+
+Dentro da pasta `hepatocheck_app`:
+
+```bash
+flutter build apk --release
+```
+
+O arquivo fica em `hepatocheck_app/build/app/outputs/flutter-apk/app-release.apk`. Para instalar no celular conectado, use `flutter install` ou copie o arquivo para o aparelho e abra-o, permitindo a instalação de fontes desconhecidas.
+
+### Regras de segurança do Firestore
+
+As regras ficam em `hepatocheck_app/firestore.rules`. Só quem tem acesso de editor ao projeto `hepatocheck-unit` pode publicá-las, com a [Firebase CLI](https://firebase.google.com/docs/cli), dentro da pasta `hepatocheck_app`:
+
+```bash
+firebase deploy --only firestore:rules --project hepatocheck-unit
+```
+
+### Observação para quem desenvolve no Windows
+
+O `flutter pub get` pode marcar como alterados alguns arquivos gerados das pastas `linux`, `macos` e `windows`, só por causa do tipo de quebra de linha. Para descartar essa mudança antes de um commit ou de um `git pull`, rode na raiz do repositório:
+
+```bash
+git restore hepatocheck_app/linux hepatocheck_app/macos hepatocheck_app/windows
+```
+
 
 ## Registro das responsabilidades 02/09/2026
 
