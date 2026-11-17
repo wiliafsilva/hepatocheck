@@ -1,31 +1,34 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../providers/auth_providers.dart';
+import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
-import 'auth_validators.dart';
-import 'register_screen.dart';
 import '../../widgets/content_width.dart';
-
-/// Chamado com e-mail e senha já validados. Será ligado ao Firebase
-/// Authentication na Sprint 3 (tarefa 37).
-typedef AuthSubmit = Future<void> Function(String email, String password);
+import 'auth_flow.dart';
+import 'auth_validators.dart';
+import 'forgot_password_screen.dart';
+import 'register_screen.dart';
 
 /// Tela de login. A conta é opcional: o modo convidado continua disponível
 /// (RF08) e só a sincronização em nuvem exige autenticação.
-class LoginScreen extends StatefulWidget {
+class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key, this.onSubmit});
 
+  /// Substitui o login real (usado nos testes).
   final AuthSubmit? onSubmit;
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  ConsumerState<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final _email = TextEditingController();
   final _password = TextEditingController();
   bool _obscure = true;
   bool _busy = false;
+  String? _error;
 
   @override
   void dispose() {
@@ -36,21 +39,28 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
-    final onSubmit = widget.onSubmit;
-    if (onSubmit == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Login com conta ainda não está disponível.'),
-        ),
-      );
+    setState(() {
+      _busy = true;
+      _error = null;
+    });
+    final email = _email.text.trim();
+    final password = _password.text;
+    final error = await runAuth(() async {
+      final custom = widget.onSubmit;
+      if (custom != null) return custom(email, password);
+      await ref
+          .read(authRepositoryProvider)
+          .signIn(email: email, password: password);
+    });
+    if (!mounted) return;
+    if (error != null) {
+      setState(() {
+        _busy = false;
+        _error = error;
+      });
       return;
     }
-    setState(() => _busy = true);
-    try {
-      await onSubmit(_email.text.trim(), _password.text);
-    } finally {
-      if (mounted) setState(() => _busy = false);
-    }
+    finishAuthFlow(context, ref);
   }
 
   @override
@@ -106,6 +116,13 @@ class _LoginScreenState extends State<LoginScreen> {
                   ],
                 ),
               ),
+              if (_error != null) ...[
+                const SizedBox(height: 12),
+                Text(
+                  _error!,
+                  style: AppTextStyles.body.copyWith(color: AppColors.riskRed),
+                ),
+              ],
               const SizedBox(height: 24),
               FilledButton(
                 onPressed: _busy ? null : _submit,
@@ -117,6 +134,15 @@ class _LoginScreenState extends State<LoginScreen> {
                     : const Text('Entrar'),
               ),
               const SizedBox(height: 12),
+              TextButton(
+                onPressed: () => Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) =>
+                        ForgotPasswordScreen(initialEmail: _email.text.trim()),
+                  ),
+                ),
+                child: const Text('Esqueci minha senha'),
+              ),
               TextButton(
                 onPressed: () => Navigator.of(context).push(
                   MaterialPageRoute<void>(

@@ -13,6 +13,10 @@ abstract final class HiveDatabase {
   static const syncQueueBoxName = 'sync_queue';
   static const auditLogBoxName = 'audit_log';
 
+  static const syncConsentBoxName = 'sync_consent';
+  static Box<String> get syncConsent =>
+      Hive.box<String>(syncConsentBoxName);
+
   static const goalsBoxName = 'reduction_goals';
   static const followUpBoxName = 'follow_up_preferences';
   static Box<String> get goals => Hive.box<String>(goalsBoxName);
@@ -35,6 +39,7 @@ abstract final class HiveDatabase {
     await Hive.openBox<AuditEntry>(auditLogBoxName, encryptionCipher: cipher);
     await Hive.openBox<String>(goalsBoxName, encryptionCipher: cipher);
     await Hive.openBox<String>(followUpBoxName, encryptionCipher: cipher);
+    await Hive.openBox<String>(syncConsentBoxName, encryptionCipher: cipher);
     if (!followUp.containsKey(trackingStartedAtKey)) {
       await markTrackingStarted();
     }
@@ -60,6 +65,7 @@ abstract final class HiveDatabase {
       auditLog.flush(),
       goals.flush(),
       followUp.flush(),
+      syncConsent.flush(),
     ]);
   }
 
