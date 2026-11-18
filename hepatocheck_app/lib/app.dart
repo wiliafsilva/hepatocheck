@@ -117,6 +117,8 @@ class _AppNavigationShellState extends State<AppNavigationShell>
       return;
     }
     _camouflageController.lockForBackground();
+    // Rotas e diálogos abertos também precisam desaparecer ao bloquear.
+    Navigator.of(context).popUntil((route) => route.isFirst);
     await AppSwitcherPrivacy.setProtection(true);
   }
 

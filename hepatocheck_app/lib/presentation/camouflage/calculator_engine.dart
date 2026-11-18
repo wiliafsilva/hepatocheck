@@ -83,7 +83,16 @@ class CalculatorEngine {
         value /= 100;
         final prefix = _input.substring(0, m.start);
         if (prefix.endsWith('+') || prefix.endsWith('−')) {
-          value *= _Parser(prefix.substring(0, prefix.length - 1)).parse();
+          // A porcentagem é relativa ao subtotal do grupo atual. Grupos
+          // externos ainda abertos não podem ser enviados ao parser.
+          var start = 0;
+          final openings = <int>[];
+          for (var index = 0; index < prefix.length; index++) {
+            if (prefix[index] == '(') openings.add(index);
+            if (prefix[index] == ')') openings.removeLast();
+          }
+          if (openings.isNotEmpty) start = openings.last + 1;
+          value *= _Parser(prefix.substring(start, prefix.length - 1)).parse();
         }
       }
       _input = _input.substring(0, m.start) + _format(value);

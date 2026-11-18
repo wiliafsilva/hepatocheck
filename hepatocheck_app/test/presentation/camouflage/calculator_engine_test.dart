@@ -34,6 +34,10 @@ void main() {
     });
 
     final cases = <String, (List<String>, String)>{
+      'porcentagem dentro de parênteses': (
+        ['2', '×', '()', '2', '0', '0', '+', '1', '0', '%', '='],
+        '440',
+      ),
       'precedência de multiplicação': (['2', '+', '3', '×', '4', '='], '14'),
       'parênteses explícitos': (
         ['2', '×', '()', '3', '+', '4', '()', '='],

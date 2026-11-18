@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../domain/usecases/calculate_liver_health.dart';
+import '../../domain/entities/risk_level.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 import '../theme/risk_colors.dart';
@@ -54,7 +55,23 @@ class RiskCard extends StatelessWidget {
               ),
               const SizedBox(height: 20),
             ],
-            LiverGauge(value: health.percent ?? 0, color: color),
+            if (risk == RiskLevel.high) ...[
+              ColorFiltered(
+                key: const ValueKey('high-risk-yellow-filter'),
+                colorFilter: ColorFilter.mode(
+                  AppColors.riskYellow.withValues(alpha: 0.28),
+                  BlendMode.srcATop,
+                ),
+                child: LiverGauge(value: health.percent ?? 0, color: color),
+              ),
+              const SizedBox(height: 12),
+              const Text(
+                'Alerta visual inspirado na icterícia. A cor é ilustrativa e não indica presença de icterícia.',
+                textAlign: TextAlign.center,
+                style: AppTextStyles.caption,
+              ),
+            ] else
+              LiverGauge(value: health.percent ?? 0, color: color),
             const SizedBox(height: 16),
             Text(
               exam == null

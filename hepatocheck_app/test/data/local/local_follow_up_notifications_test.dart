@@ -1,5 +1,7 @@
 import 'dart:io';
 
+import 'package:clock/clock.dart';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter/services.dart';
@@ -58,10 +60,13 @@ void main() {
     'agenda localmente e preserva privacidade; registro aguarda três dias',
     () async {
       final service = LocalFollowUpNotifications(box, now: () => now);
-      await service.refresh(
-        const FollowUpSettings(education: true, registration: true),
-        const [FollowUpMessage('education', 'Diário', 'Conteúdo sensível')],
-        [testDrink(1, now)],
+      await withClock(
+        Clock.fixed(now),
+        () => service.refresh(
+          const FollowUpSettings(education: true, registration: true),
+          const [FollowUpMessage('education', 'Diário', 'Conteúdo sensível')],
+          [testDrink(1, now)],
+        ),
       );
       final scheduled = calls
           .where((c) => c.method == 'zonedSchedule')
