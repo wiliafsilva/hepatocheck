@@ -169,3 +169,7 @@ git restore hepatocheck_app/linux hepatocheck_app/macos hepatocheck_app/windows
 | Victor Castelo Branco | Correções, Orientação médica, Vídeo | Correção dos erros de Início, login e anonimização, orientação "Quando procurar o médico", vídeo de demonstração |
 | Wilia Francisco da Silva | Validação, Protótipos, Changelog e Readme, Acessibilidade | Análise do código e testes automatizados sem erros, APK de release, conferência das telas com o protótipo de alta fidelidade, revisão final do Changelog e do Readme, revisão de acessibilidade |
 | Leon Mendonça | Correções, Arquitetura do sistema, Diagrama de classes | Correção dos erros de Drinks e do banco local, versão final do diagrama de classes, atualização da arquitetura do sistema, atualização dos requisitos com os novos requisitos |
+
+## Fluxo de navegação e revisão de estabilização
+
+O [fluxo de navegação real](docs/fluxo-de-navegacao.md) reúne diagramas Mermaid, 15 capturas das telas implementadas, as verificações de camuflagem, metas e notificações e a descrição do filtro ilustrativo em risco alto. A partir de 23/11/2026, o escopo fica congelado para novas funcionalidades, conforme a Sprint 4.

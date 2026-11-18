@@ -114,3 +114,20 @@
 
 ### Corrigido
 - Correções de Exames, Relatório, PDF, Drinks, banco local, camuflagem, metas, notificações, Início, login e anonimização
+
+
+## (18/11/2026) — Revisão da navegação e privacidade
+
+### Corrigido
+- Camuflagem fecha rotas sensíveis ao bloquear e retorna a Drinks após o código válido.
+- Porcentagem relativa da calculadora funciona dentro de parênteses ainda abertos.
+- Teste de agendamento de lembretes fixa também o relógio do plugin, evitando falhas conforme a data da execução.
+
+### Adicionado
+- Filtro amarelo ilustrativo no medidor em risco alto, preservando o selo vermelho e explicando o significado do efeito.
+- Documento A9 com diagramas Mermaid e 15 capturas reproduzíveis por teste de navegação.
+- Testes de regressão de bloqueio com rota aberta e do filtro nas faixas de risco.
+
+### Verificado
+- `flutter analyze` sem problemas; `flutter test`: 325 testes aprovados.
+- Metas de 0–100 drinques por semana e regras de notificações conferidas. Testes nativos simulados não substituem validação em Android.
