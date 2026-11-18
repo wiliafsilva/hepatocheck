@@ -42,14 +42,15 @@ final buildHealthSummaryProvider = Provider(
   ),
 );
 
-final healthSummaryProvider = Provider<HealthSummary>(
-  (ref) => ref.watch(buildHealthSummaryProvider)(
-    exams: ref.watch(examsProvider),
-    drinks: ref.watch(drinksProvider),
-    goals: ref.watch(goalsProvider),
-    period: ref.watch(reportPeriodProvider),
-    now: ref.watch(clockProvider)(),
-  ),
+final currentHealthSummaryProvider = Provider<HealthSummary Function()>(
+  (ref) =>
+      () => ref.read(buildHealthSummaryProvider)(
+        exams: ref.read(examsProvider),
+        drinks: ref.read(drinksProvider),
+        goals: ref.read(goalsProvider),
+        period: ref.read(reportPeriodProvider),
+        now: ref.read(clockProvider)(),
+      ),
 );
 
 final healthSummaryPdfProvider =

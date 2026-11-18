@@ -239,8 +239,9 @@ class HealthSummaryPdf {
             ),
             if (risk.raisedByConsumption)
               pw.Text(
-                'Classificação elevada um nível: o consumo desta semana '
-                '(${formatDrinks(risk.weeklyStandardDrinks)} drinques padrão) '
+                'Classificação elevada um nível: o consumo da semana atual, '
+                '${formatPeriod(ReportPeriod.containing(summary.generatedAt, ReportPeriodType.week))} '
+                '(${formatDrinks(risk.weeklyStandardDrinks)} drinques padrão), '
                 'passou da meta de ${risk.weeklyLimit} drinques definida pelo '
                 'usuário.',
               ),
@@ -309,16 +310,41 @@ class HealthSummaryPdf {
         .map((point) => point.fib4.score)
         .reduce((a, b) => a > b ? a : b);
     final top = (highest > 3.5 ? highest * 1.15 : 3.5);
+    final low = CalculateFib4.lowCutoffFor(points.last.exam.age);
+    final first = _dayOf(points.first.date);
+    final offsets = [
+      for (final point in points)
+        _dayOf(point.date).difference(first).inDays.toDouble(),
+    ];
+    final span = offsets.last;
+    final labels = {
+      for (final index in _labelIndexes(points.length))
+        offsets[index]: formatDayMonthYear(points[index].date),
+    };
+    final ticks = <double>[];
+    for (final tick in labels.keys) {
+      if (ticks.isNotEmpty && tick - ticks.last < span / 8) {
+        if (tick != span) continue;
+        ticks.removeLast();
+      }
+      ticks.add(tick);
+    }
+    if (span == 0) {
+      ticks
+        ..insert(0, -1)
+        ..add(1);
+    }
     return pw.Chart(
       grid: pw.CartesianGrid(
-        xAxis: pw.FixedAxis.fromStrings(
-          [for (final point in points) formatDayMonthYear(point.date)],
+        xAxis: pw.FixedAxis(
+          ticks,
+          format: (value) => labels[value.toDouble()] ?? '',
           marginStart: 20,
           marginEnd: 20,
           textStyle: const pw.TextStyle(fontSize: 8, color: _muted),
         ),
         yAxis: pw.FixedAxis(
-          [0, CalculateFib4.lowCutoff, CalculateFib4.highCutoff, top],
+          [0, low, CalculateFib4.highCutoff, top],
           format: (value) => formatScore(value.toDouble()),
           divisions: true,
           divisionsColor: _line,
@@ -329,7 +355,7 @@ class HealthSummaryPdf {
         pw.LineDataSet(
           data: [
             for (final (index, point) in points.indexed)
-              pw.PointChartValue(index.toDouble(), point.fib4.score),
+              pw.PointChartValue(offsets[index], point.fib4.score),
           ],
           color: _olive,
           pointColor: _olive,
@@ -340,17 +366,24 @@ class HealthSummaryPdf {
     );
   }
 
+  static const _maxDateLabels = 6;
+
+  static List<int> _labelIndexes(int count) {
+    if (count <= _maxDateLabels) return [for (var i = 0; i < count; i++) i];
+    return [
+      for (var k = 0; k < _maxDateLabels; k++)
+        (k * (count - 1) / (_maxDateLabels - 1)).round(),
+    ];
+  }
+
+  static DateTime _dayOf(DateTime date) =>
+      DateTime.utc(date.year, date.month, date.day);
+
   pw.Widget _consumptionSection(ConsumptionReport report) {
     final previous = report.period.type == ReportPeriodType.week
         ? 'semana anterior'
         : 'mês anterior';
-    final difference = report.difference;
-    final sign = difference > 0.05
-        ? '+'
-        : difference < -0.05
-        ? '−'
-        : '';
-    final percent = report.changePercent;
+    final difference = roundedDifference(report);
     return _section('Consumo de álcool no período', [
       pw.Wrap(
         spacing: 24,
@@ -367,12 +400,14 @@ class HealthSummaryPdf {
           ),
           _keyValue(
             'Vs. $previous',
-            '$sign${formatDrinks(difference.abs())}'
-                '${percent == null ? '' : ' (${percent.abs().round()}%)'}',
+            difference == 0
+                ? formatDifference(difference)
+                : '${formatDifference(difference)} '
+                      '(${formatChangePercent(report)})',
           ),
         ],
       ),
-      if (report.inProgress)
+      if (report.hasComparisonNote)
         pw.Padding(
           padding: const pw.EdgeInsets.only(top: 4),
           child: pw.Text(
@@ -539,11 +574,7 @@ class HealthSummaryPdf {
   };
 
   static String _riskRange(RiskLevel level, int age) {
-    final low = formatScore(
-      age >= CalculateFib4.elderlyAge
-          ? CalculateFib4.lowCutoffElderly
-          : CalculateFib4.lowCutoff,
-    );
+    final low = formatScore(CalculateFib4.lowCutoffFor(age));
     final high = formatScore(CalculateFib4.highCutoff);
     return switch (level) {
       RiskLevel.low => 'abaixo de $low',
