@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../domain/entities/consumption_report.dart';
@@ -7,17 +9,53 @@ import 'drink_providers.dart';
 
 final clockProvider = Provider<DateTime Function()>((ref) => DateTime.now);
 
+final todayProvider = NotifierProvider<TodayNotifier, DateTime>(
+  TodayNotifier.new,
+);
+
+class TodayNotifier extends Notifier<DateTime> {
+  Timer? _midnight;
+
+  @override
+  DateTime build() {
+    ref.onDispose(() => _midnight?.cancel());
+    return _schedule(ref.watch(clockProvider)());
+  }
+
+  void refresh() => state = _schedule(ref.read(clockProvider)());
+
+  DateTime _schedule(DateTime now) {
+    _midnight?.cancel();
+    final tomorrow = DateTime(now.year, now.month, now.day + 1);
+    _midnight = Timer(tomorrow.difference(now), refresh);
+    return now;
+  }
+}
+
 final reportPeriodProvider =
     NotifierProvider<ReportPeriodNotifier, ReportPeriod>(
       ReportPeriodNotifier.new,
     );
 
 class ReportPeriodNotifier extends Notifier<ReportPeriod> {
-  DateTime get _today => ref.read(clockProvider)();
+  DateTime? _shownOn;
+
+  DateTime get _today => ref.read(todayProvider);
 
   @override
-  ReportPeriod build() =>
-      ReportPeriod.containing(_today, ReportPeriodType.week);
+  ReportPeriod build() {
+    final today = ref.watch(todayProvider);
+    final shown = stateOrNull;
+    final shownOn = _shownOn;
+    _shownOn = today;
+    if (shown == null || shownOn == null) {
+      return ReportPeriod.containing(today, ReportPeriodType.week);
+    }
+    if (shown.isCurrent(shownOn)) {
+      return ReportPeriod.containing(today, shown.type);
+    }
+    return shown;
+  }
 
   bool get canGoNext => !state.next.isFuture(_today);
 
@@ -43,6 +81,6 @@ final consumptionReportProvider = Provider<ConsumptionReport>((ref) {
   return build(
     ref.watch(drinksProvider),
     ref.watch(reportPeriodProvider),
-    today: ref.read(clockProvider)(),
+    today: ref.watch(todayProvider),
   );
 });

@@ -19,10 +19,11 @@ class ConsumptionReport {
     required this.alcoholFreeDays,
     required this.byType,
     required this.previousTotal,
+    double? comparedTotal,
     this.inProgress = false,
     this.comparedDays = 0,
     this.daily = const [],
-  });
+  }) : comparedTotal = comparedTotal ?? totalStandardDrinks;
 
   final ReportPeriod period;
   final int entryCount;
@@ -33,13 +34,21 @@ class ConsumptionReport {
   final int alcoholFreeDays;
   final Map<DrinkType, double> byType;
   final double previousTotal;
+  final double comparedTotal;
   final bool inProgress;
   final int comparedDays;
   final List<DailyConsumption> daily;
 
   bool get hasData => entryCount > 0;
 
-  double get difference => totalStandardDrinks - previousTotal;
+  bool get comparesFewerDays => comparedDays < elapsedDays;
+
+  bool get comparesPartOfPrevious =>
+      comparedDays < period.previous.dayCount || inProgress;
+
+  bool get hasComparisonNote => comparesFewerDays || comparesPartOfPrevious;
+
+  double get difference => comparedTotal - previousTotal;
 
   double? get changePercent =>
       previousTotal == 0 ? null : difference / previousTotal * 100;

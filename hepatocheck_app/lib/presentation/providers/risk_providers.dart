@@ -20,7 +20,7 @@ final currentRiskProvider = Provider<CurrentRisk?>(
     exams: ref.watch(examsProvider),
     drinks: ref.watch(drinksProvider),
     goals: ref.watch(goalsProvider),
-    today: ref.watch(clockProvider)(),
+    today: ref.watch(todayProvider),
   ),
 );
 

@@ -48,4 +48,50 @@ void main() {
     notifier.selectType(ReportPeriodType.week);
     expect(container.read(reportPeriodProvider).start, DateTime(2026, 9, 28));
   });
+
+  group('Virada do dia', () {
+    late DateTime now;
+    late ProviderContainer container;
+
+    setUp(() {
+      now = DateTime(2026, 11, 15, 23, 50);
+      container = ProviderContainer(
+        overrides: [clockProvider.overrideWithValue(() => now)],
+      );
+      addTearDown(container.dispose);
+    });
+
+    test('o período atual passa para a semana nova', () {
+      expect(container.read(reportPeriodProvider).start, DateTime(2026, 11, 9));
+
+      now = DateTime(2026, 11, 16, 0, 1);
+      container.read(todayProvider.notifier).refresh();
+
+      final period = container.read(reportPeriodProvider);
+      expect(period.start, DateTime(2026, 11, 16));
+      expect(container.read(reportPeriodProvider.notifier).canGoNext, isFalse);
+    });
+
+    test('mantém o tipo do período ao virar o mês', () {
+      container
+          .read(reportPeriodProvider.notifier)
+          .selectType(ReportPeriodType.month);
+      now = DateTime(2026, 12, 1, 8);
+      container.read(todayProvider.notifier).refresh();
+
+      final period = container.read(reportPeriodProvider);
+      expect(period.type, ReportPeriodType.month);
+      expect(period.start, DateTime(2026, 12));
+    });
+
+    test('um período anterior escolhido continua o mesmo', () {
+      container.read(reportPeriodProvider.notifier).previous();
+      now = DateTime(2026, 11, 16, 0, 1);
+      container.read(todayProvider.notifier).refresh();
+
+      final notifier = container.read(reportPeriodProvider.notifier);
+      expect(container.read(reportPeriodProvider).start, DateTime(2026, 11, 2));
+      expect(notifier.canGoNext, isTrue);
+    });
+  });
 }
