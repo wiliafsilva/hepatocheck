@@ -8,6 +8,7 @@ import '../../domain/usecases/validate_exam_input.dart';
 import '../formatters.dart';
 import '../input/exam_number_input_formatter.dart';
 import '../providers/exam_providers.dart';
+import '../providers/report_providers.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 import '../theme/risk_colors.dart';
@@ -31,9 +32,10 @@ class _ExamsScreenState extends ConsumerState<ExamsScreen> {
 
   DateTime? _examDate = DateUtils.dateOnly(DateTime.now());
   LabExam? _editing;
+  String _draftId = const Uuid().v4();
   Map<ExamField, String> _errors = const {};
   double? _plateletSuggestion;
-  Fib4Result? _lastResult;
+  LabExam? _lastSaved;
   bool _saving = false;
 
   @override
@@ -64,7 +66,7 @@ class _ExamsScreenState extends ConsumerState<ExamsScreen> {
     final picked = await showDatePicker(
       context: context,
       initialDate: _examDate ?? today,
-      firstDate: DateTime(1900),
+      firstDate: ValidateExamInput.earliestExamDate(today),
       lastDate: today,
       helpText: 'Data do exame',
       cancelText: 'Cancelar',
@@ -107,7 +109,7 @@ class _ExamsScreenState extends ConsumerState<ExamsScreen> {
     final editing = _editing;
     final exam = editing == null
         ? LabExam(
-            id: const Uuid().v4(),
+            id: _draftId,
             examDate: validation.examDate!,
             age: validation.age!,
             ast: validation.ast!,
@@ -138,7 +140,7 @@ class _ExamsScreenState extends ConsumerState<ExamsScreen> {
 
     setState(() {
       _saving = false;
-      _lastResult = ref.read(calculateFib4Provider)(exam);
+      _lastSaved = exam;
       _resetForm(keepAge: true);
     });
     _showMessage(editing == null ? 'Exame salvo.' : 'Exame atualizado.');
@@ -146,6 +148,7 @@ class _ExamsScreenState extends ConsumerState<ExamsScreen> {
 
   void _resetForm({bool keepAge = false}) {
     _editing = null;
+    _draftId = const Uuid().v4();
     if (!keepAge) _ageController.clear();
     _astController.clear();
     _altController.clear();
@@ -210,7 +213,7 @@ class _ExamsScreenState extends ConsumerState<ExamsScreen> {
     if (!mounted) return;
     setState(() {
       if (_editing?.id == exam.id) _resetForm(keepAge: true);
-      if (_lastResult?.examId == exam.id) _lastResult = null;
+      if (_lastSaved?.id == exam.id) _lastSaved = null;
     });
     _showMessage('Exame excluído.');
   }
@@ -225,8 +228,11 @@ class _ExamsScreenState extends ConsumerState<ExamsScreen> {
   Widget build(BuildContext context) {
     final exams = ref.watch(examsProvider);
     final calculate = ref.watch(calculateFib4Provider);
-    final result =
-        _lastResult ?? (exams.isEmpty ? null : calculate(exams.first));
+    final latest = exams.isEmpty ? null : exams.first;
+    final shown = _lastSaved == null
+        ? latest
+        : exams.where((exam) => exam.id == _lastSaved!.id).firstOrNull ??
+              latest;
 
     return ListView(
       controller: _scrollController,
@@ -266,11 +272,15 @@ class _ExamsScreenState extends ConsumerState<ExamsScreen> {
             ),
           ),
         ),
-        if (result != null) ...[
+        if (shown != null) ...[
           const SizedBox(height: 24),
           const SectionLabel('RESULTADO'),
           const SizedBox(height: 8),
-          _ResultCard(result: result),
+          _ResultCard(
+            exam: shown,
+            result: calculate(shown),
+            isLatest: shown.id == latest?.id,
+          ),
         ],
         const SizedBox(height: 24),
         SectionLabel(
@@ -282,7 +292,7 @@ class _ExamsScreenState extends ConsumerState<ExamsScreen> {
           calculate: calculate,
           summary: ref.watch(summarizeExamHistoryProvider)(
             exams,
-            today: DateTime.now(),
+            today: ref.watch(todayProvider),
           ),
           selectedId: _editing?.id,
           onEdit: _startEditing,
@@ -491,9 +501,15 @@ class _NumberField extends StatelessWidget {
 }
 
 class _ResultCard extends StatelessWidget {
-  const _ResultCard({required this.result});
+  const _ResultCard({
+    required this.exam,
+    required this.result,
+    required this.isLatest,
+  });
 
+  final LabExam exam;
   final Fib4Result result;
+  final bool isLatest;
 
   @override
   Widget build(BuildContext context) {
@@ -517,6 +533,20 @@ class _ResultCard extends StatelessWidget {
               formatScore(result.score),
               style: AppTextStyles.display.copyWith(color: color),
             ),
+            Text(
+              'Exame de ${formatDate(exam.examDate)}',
+              style: AppTextStyles.caption,
+            ),
+            if (!isLatest) ...[
+              const SizedBox(height: 6),
+              Text(
+                'Este não é o exame mais recente. O risco atual usa o último '
+                'exame do histórico.',
+                style: AppTextStyles.caption.copyWith(
+                  color: AppColors.textPrimary,
+                ),
+              ),
+            ],
             const SizedBox(height: 8),
             Text(
               result.riskLevel.description,

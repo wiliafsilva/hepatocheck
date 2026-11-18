@@ -37,13 +37,19 @@ class ExamsNotifier extends Notifier<List<LabExam>> {
 
   Future<void> save(LabExam exam) async {
     final repository = ref.read(examRepositoryProvider);
-    await repository.save(exam);
-    state = repository.getAll();
+    try {
+      await repository.save(exam);
+    } finally {
+      state = repository.getAll();
+    }
   }
 
   Future<void> delete(String id) async {
     final repository = ref.read(examRepositoryProvider);
-    await repository.delete(id);
-    state = repository.getAll();
+    try {
+      await repository.delete(id);
+    } finally {
+      state = repository.getAll();
+    }
   }
 }

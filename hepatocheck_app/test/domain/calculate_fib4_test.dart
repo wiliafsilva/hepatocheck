@@ -79,6 +79,19 @@ void main() {
       expect(CalculateFib4.riskFor(score: 2.68, age: 45), RiskLevel.high);
     });
 
+    test('classifica pelo valor mostrado com duas casas', () {
+      expect(
+        CalculateFib4.riskFor(score: 1.296, age: 45),
+        RiskLevel.intermediate,
+      );
+      expect(CalculateFib4.riskFor(score: 1.294, age: 45), RiskLevel.low);
+      expect(
+        CalculateFib4.riskFor(score: 2.672, age: 45),
+        RiskLevel.intermediate,
+      );
+      expect(CalculateFib4.riskFor(score: 2.675, age: 45), RiskLevel.high);
+    });
+
     test('a partir de 65 anos o corte do risco baixo passa para 2,0', () {
       expect(CalculateFib4.riskFor(score: 1.9, age: 65), RiskLevel.low);
       expect(
