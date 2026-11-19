@@ -43,14 +43,14 @@ void main() {
   test('sem consumo no período anterior não mostra porcentagem', () {
     final report = _report(period: week, total: 3);
 
-    expect(formatDifference(roundedDifference(report)), '+3');
+    expect(formatDifference(roundedDifference(report)), '+3,0');
     expect(formatChangePercent(report), 'sem consumo antes');
   });
 
   test('diferença negativa usa o sinal de menos e a porcentagem', () {
     final report = _report(period: week, total: 1, previous: 4);
 
-    expect(formatDifference(roundedDifference(report)), '−3');
+    expect(formatDifference(roundedDifference(report)), '−3,0');
     expect(formatChangePercent(report), '75%');
   });
 

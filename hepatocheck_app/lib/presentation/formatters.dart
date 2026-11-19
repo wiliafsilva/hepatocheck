@@ -58,10 +58,9 @@ String formatPeriod(ReportPeriod period) {
   };
 }
 
-String formatDrinks(double value) {
-  final rounded = double.parse(value.toStringAsFixed(1));
-  return formatNumber(rounded);
-}
+String formatDrinks(double value) => value.abs().toStringAsFixed(1) == '0.0'
+    ? '0,0'
+    : value.toStringAsFixed(1).replaceAll('.', ',');
 
 String formatComparisonNote(ConsumptionReport report) {
   final isWeek = report.period.type == ReportPeriodType.week;

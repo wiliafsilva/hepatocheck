@@ -5,6 +5,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hepatocheck_app/presentation/providers/exam_providers.dart';
+import 'package:hepatocheck_app/presentation/providers/goal_providers.dart';
+import 'package:hepatocheck_app/presentation/providers/report_providers.dart';
 import 'package:hepatocheck_app/presentation/providers/drink_providers.dart';
 import 'package:hepatocheck_app/presentation/screens/auth/login_screen.dart';
 import 'package:hepatocheck_app/presentation/screens/auth/register_screen.dart';
@@ -53,6 +55,12 @@ void main() {
           final container = ProviderContainer(
             overrides: [
               examRepositoryProvider.overrideWithValue(MemoryExamRepository()),
+              goalRepositoryProvider.overrideWithValue(
+                InMemoryGoalRepository(),
+              ),
+              todayProvider.overrideWith(
+                () => FixedTodayNotifier(DateTime.now()),
+              ),
               drinkRepositoryProvider.overrideWithValue(
                 MemoryDrinkRepository(),
               ),

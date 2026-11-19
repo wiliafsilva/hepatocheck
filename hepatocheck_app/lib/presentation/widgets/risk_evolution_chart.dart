@@ -36,10 +36,7 @@ class _RiskEvolutionChartState extends State<RiskEvolutionChart> {
           children: [
             const Padding(
               padding: EdgeInsets.only(left: 4),
-              child: Text(
-                'Evolução do risco',
-                style: AppTextStyles.subtitle,
-              ),
+              child: Text('Evolução do risco', style: AppTextStyles.subtitle),
             ),
             const SizedBox(height: 12),
             if (points.isEmpty)
@@ -141,7 +138,7 @@ class _Chart extends StatelessWidget {
         maxX: single ? maxX + 1 : maxX,
         minY: 0,
         maxY: maxY,
-        clipData: const FlClipData.all(),
+        clipData: const FlClipData.vertical(),
         rangeAnnotations: RangeAnnotations(
           horizontalRangeAnnotations: _isMeter
               ? const []
@@ -200,6 +197,7 @@ class _Chart extends StatelessWidget {
                 if (index < 0) return const SizedBox.shrink();
                 return SideTitleWidget(
                   meta: meta,
+                  fitInside: SideTitleFitInsideData.fromTitleMeta(meta),
                   child: Text(
                     formatDayMonthYear(points[index].date),
                     style: AppTextStyles.caption,

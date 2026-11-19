@@ -225,9 +225,9 @@ void main() {
     );
 
     expect(find.text('Nenhum drinque registrado neste período.'), findsNothing);
-    expect(find.text('2'), findsWidgets);
+    expect(find.text('2,0'), findsWidgets);
     expect(find.text('1 de 2'), findsOneWidget);
-    expect(find.text('+1'), findsOneWidget);
+    expect(find.text('+1,0'), findsOneWidget);
     expect(find.text('100%'), findsOneWidget);
 
     await tester.scrollUntilVisible(

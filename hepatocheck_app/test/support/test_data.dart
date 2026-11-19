@@ -1,9 +1,12 @@
 import 'package:hepatocheck_app/domain/entities/drink_entry.dart';
 import 'package:hepatocheck_app/domain/entities/drink_type.dart';
 import 'package:hepatocheck_app/domain/entities/lab_exam.dart';
+import 'package:hepatocheck_app/domain/entities/reduction_goal.dart';
 import 'package:hepatocheck_app/domain/repositories/drink_repository.dart';
 import 'package:hepatocheck_app/domain/repositories/exam_repository.dart';
+import 'package:hepatocheck_app/domain/repositories/goal_repository.dart';
 import 'package:hepatocheck_app/domain/usecases/convert_to_standard_drinks.dart';
+import 'package:hepatocheck_app/presentation/providers/report_providers.dart';
 
 /// Exame de teste. Padrão: FIB-4 = (45 x 30) / (250 x raiz(36)) = 0,90.
 LabExam testExam({
@@ -75,4 +78,26 @@ class MemoryDrinkRepository implements DrinkRepository {
 
   @override
   Future<void> delete(String id) async => _items.remove(id);
+}
+
+class InMemoryGoalRepository implements GoalRepository {
+  final _items = <String, ReductionGoal>{};
+
+  @override
+  List<ReductionGoal> getAll() => _items.values.toList();
+
+  @override
+  Future<void> save(ReductionGoal goal) async => _items[goal.id] = goal;
+
+  @override
+  Future<void> delete(String id) async => _items.remove(id);
+}
+
+class FixedTodayNotifier extends TodayNotifier {
+  FixedTodayNotifier(this.today);
+
+  final DateTime today;
+
+  @override
+  DateTime build() => today;
 }

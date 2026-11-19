@@ -477,24 +477,35 @@ class HealthSummaryPdf {
         report.byType.entries.where((entry) => entry.value > 0).toList()
           ..sort((a, b) => b.value.compareTo(a.value));
     if (entries.isEmpty) return pw.SizedBox.shrink();
-    return _section('Consumo por tipo de bebida', [
-      _table(
-        ['Bebida', 'Drinques padrão'],
-        [
-          for (final entry in entries)
-            [entry.key.label, formatDrinks(entry.value)],
-        ],
-        right: {1},
-      ),
-    ]);
+    return pw.Inseparable(
+      child: _section('Consumo por tipo de bebida', [
+        _table(
+          ['Bebida', 'Drinques padrão'],
+          [
+            for (final entry in entries)
+              [entry.key.label, formatDrinks(entry.value)],
+          ],
+          right: {1},
+        ),
+      ]),
+    );
   }
 
   pw.Widget _goalsSection(List<GoalProgress> goals) {
     if (goals.isEmpty) {
-      return _section('Metas de redução', [
-        pw.Text('Nenhuma meta ativa no período.'),
-      ]);
+      return pw.Inseparable(
+        child: _section('Metas de redução', [
+          pw.Text('Nenhuma meta ativa no período.'),
+        ]),
+      );
     }
+    if (goals.length > 12) {
+      return _goalsTable(goals);
+    }
+    return pw.Inseparable(child: _goalsTable(goals));
+  }
+
+  pw.Widget _goalsTable(List<GoalProgress> goals) {
     return _section('Metas de redução', [
       _table(
         ['Semana', 'Meta', 'Resultado', 'Situação'],
