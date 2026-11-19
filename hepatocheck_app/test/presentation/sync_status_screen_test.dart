@@ -33,6 +33,7 @@ void main() {
         overrides: [
           syncQueueRepositoryProvider.overrideWithValue(queue),
           syncRemoteProvider.overrideWithValue(remote),
+          cloudVaultProvider.overrideWithValue(FakeCloudVault()),
           currentUserIdProvider.overrideWithValue(() => userId),
           syncConsentProvider.overrideWithValue(consent),
           wifiMonitorProvider.overrideWithValue(

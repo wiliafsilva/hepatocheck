@@ -1,4 +1,5 @@
 import 'package:hepatocheck_app/domain/entities/sync_item.dart';
+import 'package:hepatocheck_app/domain/repositories/cloud_vault.dart';
 import 'package:hepatocheck_app/domain/repositories/sync_queue_repository.dart';
 import 'package:hepatocheck_app/domain/repositories/sync_remote.dart';
 
@@ -79,5 +80,57 @@ class FakeSyncRemote implements SyncRemote {
       throw const SyncRemoteException('permission-denied');
     }
     batches++;
+  }
+}
+
+class FakeCloudVault implements CloudVault {
+  FakeCloudVault({this.unlocked = true});
+
+  bool unlocked;
+  final sealedPayloads = <Map<String, dynamic>>[];
+
+  @override
+  bool get isUnlocked => unlocked;
+
+  @override
+  int? get keyVersion => unlocked ? 1 : null;
+
+  @override
+  Future<void> create(String uid, String password) async => unlocked = true;
+
+  @override
+  Future<void> unlock(String uid, String password) async => unlocked = true;
+
+  @override
+  Future<bool> resume(String uid) async => unlocked;
+
+  @override
+  Future<void> reset(String uid, String password) async => unlocked = true;
+
+  @override
+  Future<void> rewrap(String uid, String newPassword) async {}
+
+  @override
+  Future<void> lock() async => unlocked = false;
+
+  @override
+  Future<void> forget(String uid) async => unlocked = false;
+
+  @override
+  Future<SealedData> seal(Map<String, dynamic> data) async {
+    if (!unlocked) throw const VaultLockedException();
+    sealedPayloads.add(data);
+    return SealedData(
+      sealed: 'selado-${sealedPayloads.length}',
+      nonce: 'nonce',
+      keyVersion: 1,
+    );
+  }
+
+  @override
+  Future<Map<String, dynamic>> open(SealedData data) async {
+    if (!unlocked) throw const VaultLockedException();
+    final index = int.parse(data.sealed.split('-').last) - 1;
+    return sealedPayloads[index];
   }
 }

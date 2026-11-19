@@ -4,7 +4,13 @@ import '../entities/sync_item.dart';
 import '../repositories/sync_queue_repository.dart';
 import '../repositories/sync_remote.dart';
 
-enum SyncSkipReason { alreadyRunning, signedOut, noConsent, noWifi }
+enum SyncSkipReason {
+  alreadyRunning,
+  signedOut,
+  noConsent,
+  noWifi,
+  vaultLocked,
+}
 
 class SyncReport {
   const SyncReport({this.sent = 0, this.failed = 0, this.skipped});
@@ -19,11 +25,17 @@ typedef PayloadAnonymizer = Map<String, dynamic> Function(
   Map<String, dynamic> payload,
 );
 
+typedef PayloadSealer = Future<Map<String, dynamic>> Function(
+  Map<String, dynamic> payload,
+);
+
 class SyncPendingItems {
   SyncPendingItems({
     required this._queue,
     required this._remote,
     required this._anonymize,
+    this._seal,
+    this._sealReady,
     this.batchSize = 20,
   });
 
@@ -32,6 +44,8 @@ class SyncPendingItems {
   final SyncQueueRepository _queue;
   final SyncRemote _remote;
   final PayloadAnonymizer _anonymize;
+  final PayloadSealer? _seal;
+  final bool Function()? _sealReady;
   final int batchSize;
   bool _running = false;
 
@@ -52,6 +66,9 @@ class SyncPendingItems {
       return const SyncReport(skipped: SyncSkipReason.noConsent);
     }
     if (!isOnWifi) return const SyncReport(skipped: SyncSkipReason.noWifi);
+    if (_seal != null && !(_sealReady?.call() ?? true)) {
+      return const SyncReport(skipped: SyncSkipReason.vaultLocked);
+    }
 
     _running = true;
     try {
@@ -69,7 +86,7 @@ class SyncPendingItems {
         await _queue.markSending(ids);
         try {
           await _remote.sendBatch(userId, [
-            for (final item in batch) _prepare(item),
+            for (final item in batch) await _prepare(item),
           ]);
           await _queue.markSent(ids);
           sent += batch.length;
@@ -88,8 +105,14 @@ class SyncPendingItems {
     }
   }
 
-  SyncItem _prepare(SyncItem item) {
+  Future<SyncItem> _prepare(SyncItem item) async {
     if (item.operation == SyncOperation.delete) return item;
-    return item.copyWith(payload: _anonymize(item.entityType, item.payload));
+    final seal = _seal;
+    return item.copyWith(
+      payload: {
+        ..._anonymize(item.entityType, item.payload),
+        if (seal != null) ...await seal(item.payload),
+      },
+    );
   }
 }

@@ -106,6 +106,10 @@ class SyncStatusScreen extends ConsumerWidget {
         Icons.wifi_off,
         'Conecte-se a uma rede Wi-Fi para sincronizar.',
       ),
+      SyncSkipReason.vaultLocked => const _Message(
+        Icons.key_outlined,
+        'Entre de novo na sua conta para liberar a cópia criptografada. Seus dados continuam neste aparelho.',
+      ),
       SyncSkipReason.alreadyRunning => null,
       null => _resultMessage(report),
     };

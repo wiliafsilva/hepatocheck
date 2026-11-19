@@ -31,6 +31,7 @@ void main() {
       overrides: [
         syncQueueRepositoryProvider.overrideWithValue(queue),
         syncRemoteProvider.overrideWithValue(remote),
+        cloudVaultProvider.overrideWithValue(FakeCloudVault()),
         currentUserIdProvider.overrideWithValue(() => 'usuario-1'),
         syncConsentProvider.overrideWithValue(true),
         drinkRepositoryProvider.overrideWithValue(MemoryDrinkRepository()),

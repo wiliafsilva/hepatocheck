@@ -3,9 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/network/wifi_monitor.dart';
 import '../../data/datasources/local/hive_database.dart';
+import '../../data/sync/firestore_cloud_vault.dart';
 import '../../data/sync/firestore_sync_remote.dart';
 import '../../data/sync/hive_sync_queue_repository.dart';
 import '../../domain/entities/sync_item.dart';
+import '../../domain/repositories/cloud_vault.dart';
 import '../../domain/repositories/sync_queue_repository.dart';
 import '../../domain/repositories/sync_remote.dart';
 import '../../domain/usecases/anonymize_sync_payload.dart';
@@ -40,13 +42,20 @@ final payloadAnonymizerProvider = Provider<PayloadAnonymizer>(
   (ref) => const AnonymizeSyncPayload().call,
 );
 
-final syncPendingItemsProvider = Provider(
-  (ref) => SyncPendingItems(
+final cloudVaultProvider = Provider<CloudVault>(
+  (ref) => FirestoreCloudVault(FirebaseFirestore.instance),
+);
+
+final syncPendingItemsProvider = Provider((ref) {
+  final vault = ref.watch(cloudVaultProvider);
+  return SyncPendingItems(
     queue: ref.watch(syncQueueRepositoryProvider),
     remote: ref.watch(syncRemoteProvider),
     anonymize: ref.watch(payloadAnonymizerProvider),
-  ),
-);
+    seal: (payload) async => (await vault.seal(payload)).toFields(),
+    sealReady: () => vault.isUnlocked,
+  );
+});
 
 class SyncStatusState {
   const SyncStatusState({
