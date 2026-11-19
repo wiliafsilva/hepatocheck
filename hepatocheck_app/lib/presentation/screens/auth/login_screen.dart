@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../providers/auth_providers.dart';
+import '../../providers/account_session.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
 import '../../widgets/content_width.dart';
@@ -46,12 +46,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     });
     final email = _email.text.trim();
     final password = _password.text;
+    SignInResult? result;
     final error = await runAuth(() async {
       final custom = widget.onSubmit;
       if (custom != null) return custom(email, password);
-      await ref
-          .read(authRepositoryProvider)
-          .signIn(email: email, password: password);
+      result = await ref.read(accountSessionProvider).signIn(email, password);
     });
     if (!mounted) return;
     if (error != null) {
@@ -61,7 +60,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       });
       return;
     }
+    final message = result?.message;
+    final messenger = ScaffoldMessenger.of(context);
     finishAuthFlow(context, ref);
+    if (message != null) {
+      messenger.showSnackBar(SnackBar(content: Text(message)));
+    }
   }
 
   @override

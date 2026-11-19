@@ -27,11 +27,39 @@ service cloud.firestore {
         && value <= request.time + duration.value(1, 'd');
     }
 
+    function hasValidSeal(data) {
+      return data.sealed is string
+        && data.sealed.size() > 0
+        && data.sealed.size() <= 20000
+        && data.sealedNonce is string
+        && data.sealedNonce.size() == 16
+        && intInRange(data.keyVersion, 1, 1000);
+    }
+
+    function isValidVaultKey(data) {
+      return hasExactly(data, [
+          'keyVersion', 'kdf', 'iterations', 'salt', 'wrappedKey',
+          'wrapNonce', 'updatedAt'
+        ])
+        && intInRange(data.keyVersion, 1, 1000)
+        && data.kdf == 'pbkdf2-sha256'
+        && intInRange(data.iterations, 1000, 10000000)
+        && data.salt is string
+        && data.salt.size() == 24
+        && data.wrappedKey is string
+        && data.wrappedKey.size() == 64
+        && data.wrapNonce is string
+        && data.wrapNonce.size() == 16
+        && data.updatedAt is timestamp;
+    }
+
     function isValidDrink(data) {
       return hasExactly(data, [
           'type', 'volumeMl', 'alcoholPercent', 'quantity',
-          'consumedAt', 'createdAt', 'updatedAt'
+          'consumedAt', 'createdAt', 'updatedAt',
+          'sealed', 'sealedNonce', 'keyVersion'
         ])
+        && hasValidSeal(data)
         && data.type in ['beer', 'wine', 'spirit', 'cocktail', 'other']
         && inRange(data.volumeMl, 1, 3000)
         && inRange(data.alcoholPercent, 0.5, 96)
@@ -43,8 +71,10 @@ service cloud.firestore {
     function isValidExam(data) {
       return hasExactly(data, [
           'examDate', 'ageRange', 'ast', 'alt', 'platelets',
-          'createdAt', 'updatedAt'
+          'createdAt', 'updatedAt',
+          'sealed', 'sealedNonce', 'keyVersion'
         ])
+        && hasValidSeal(data)
         && notInFuture(data.examDate)
         && data.ageRange is string
         && data.ageRange.matches('^[0-9]{2,3}-[0-9]{2,3}$')
@@ -57,8 +87,10 @@ service cloud.firestore {
     function isValidGoal(data) {
       return hasExactly(data, [
           'type', 'target', 'startDate', 'endDate', 'active',
-          'createdAt', 'updatedAt'
+          'createdAt', 'updatedAt',
+          'sealed', 'sealedNonce', 'keyVersion'
         ])
+        && hasValidSeal(data)
         && (
           (data.type == 'maxDrinksPerWeek' && intInRange(data.target, 0, 100))
           || (data.type == 'alcoholFreeDaysPerWeek'
@@ -68,6 +100,12 @@ service cloud.firestore {
         && (data.endDate == null || data.endDate is timestamp)
         && data.active is bool
         && hasValidDates(data);
+    }
+
+    match /users/{uid} {
+      allow read, delete: if isOwner(uid);
+      allow create, update: if isOwner(uid)
+        && isValidVaultKey(request.resource.data);
     }
 
     match /users/{uid}/drinks/{drinkId} {

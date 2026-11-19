@@ -1,4 +1,5 @@
 import 'package:hepatocheck_app/domain/entities/sync_item.dart';
+import 'package:hepatocheck_app/domain/repositories/cloud_restore.dart';
 import 'package:hepatocheck_app/domain/repositories/cloud_vault.dart';
 import 'package:hepatocheck_app/domain/repositories/sync_queue_repository.dart';
 import 'package:hepatocheck_app/domain/repositories/sync_remote.dart';
@@ -87,6 +88,8 @@ class FakeCloudVault implements CloudVault {
   FakeCloudVault({this.unlocked = true});
 
   bool unlocked;
+  bool keyMismatch = false;
+  int resets = 0;
   final sealedPayloads = <Map<String, dynamic>>[];
 
   @override
@@ -99,13 +102,20 @@ class FakeCloudVault implements CloudVault {
   Future<void> create(String uid, String password) async => unlocked = true;
 
   @override
-  Future<void> unlock(String uid, String password) async => unlocked = true;
+  Future<void> unlock(String uid, String password) async {
+    if (keyMismatch) throw const VaultKeyMismatchException();
+    unlocked = true;
+  }
 
   @override
   Future<bool> resume(String uid) async => unlocked;
 
   @override
-  Future<void> reset(String uid, String password) async => unlocked = true;
+  Future<void> reset(String uid, String password) async {
+    resets++;
+    keyMismatch = false;
+    unlocked = true;
+  }
 
   @override
   Future<void> rewrap(String uid, String newPassword) async {}
@@ -133,4 +143,21 @@ class FakeCloudVault implements CloudVault {
     final index = int.parse(data.sealed.split('-').last) - 1;
     return sealedPayloads[index];
   }
+}
+
+class FakeCloudRestore implements CloudRestore {
+  FakeCloudRestore({this.report = const RestoreReport()});
+
+  RestoreReport report;
+  final restoredUids = <String>[];
+  final deletedUids = <String>[];
+
+  @override
+  Future<RestoreReport> restore(String uid) async {
+    restoredUids.add(uid);
+    return report;
+  }
+
+  @override
+  Future<void> deleteRemote(String uid) async => deletedUids.add(uid);
 }

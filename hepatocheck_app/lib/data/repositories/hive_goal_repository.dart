@@ -4,11 +4,13 @@ import 'package:hive_ce/hive.dart';
 
 import '../../domain/entities/reduction_goal.dart';
 import '../../domain/entities/sync_item.dart';
+import '../../domain/repositories/cloud_restore.dart';
 import '../../domain/repositories/goal_repository.dart';
 import '../../domain/repositories/sync_queue_repository.dart';
 import '../models/firestore_mappers.dart';
 
-class HiveGoalRepository implements GoalRepository {
+class HiveGoalRepository
+    implements GoalRepository, RestorableRepository<ReductionGoal> {
   HiveGoalRepository(this.box, this._syncQueue);
   final Box<String> box;
   final SyncQueueRepository _syncQueue;
@@ -37,6 +39,10 @@ class HiveGoalRepository implements GoalRepository {
       payload: FirestoreMappers.goalToFirestore(goal),
     );
   }
+
+  @override
+  Future<void> restore(ReductionGoal goal) =>
+      box.put(goal.id, jsonEncode(goal.toJson()));
 
   @override
   Future<void> delete(String id) async {
