@@ -50,6 +50,12 @@ class ValidateExamInput {
       'As plaquetas precisam estar entre 1 e 1000 ×10³/mm³.';
   static const dateMissingMessage = 'Informe a data do exame.';
   static const dateFutureMessage = 'A data do exame não pode estar no futuro.';
+  static const maxExamAgeYears = 50;
+  static const dateTooOldMessage =
+      'A data do exame não pode ser de mais de $maxExamAgeYears anos atrás.';
+
+  static DateTime earliestExamDate(DateTime today) =>
+      DateTime(today.year - maxExamAgeYears, today.month, today.day);
 
   static final _numberPattern = RegExp(r'^-?\d+(\.\d+)?$');
 
@@ -105,6 +111,8 @@ class ValidateExamInput {
       final day = DateTime(examDate.year, examDate.month, examDate.day);
       if (day.isAfter(today)) {
         errors[ExamField.examDate] = dateFutureMessage;
+      } else if (day.isBefore(earliestExamDate(today))) {
+        errors[ExamField.examDate] = dateTooOldMessage;
       } else {
         parsedDate = day;
       }

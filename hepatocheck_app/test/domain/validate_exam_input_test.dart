@@ -169,5 +169,13 @@ void main() {
       );
       expect(run(examDate: DateTime(2026, 11, 7, 23, 59)).isValid, isTrue);
     });
+
+    test('recusa data do exame de mais de 50 anos atrás', () {
+      expect(
+        run(examDate: DateTime(1976, 11, 6)).errors[ExamField.examDate],
+        ValidateExamInput.dateTooOldMessage,
+      );
+      expect(run(examDate: DateTime(1976, 11, 7)).isValid, isTrue);
+    });
   });
 }

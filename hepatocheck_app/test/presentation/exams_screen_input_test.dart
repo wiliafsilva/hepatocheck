@@ -20,6 +20,30 @@ class _EmptyExamRepository implements ExamRepository {
   Future<void> delete(String id) async {}
 }
 
+class _FlakyExamRepository implements ExamRepository {
+  final Map<String, LabExam> stored = {};
+  var failNextSave = true;
+
+  @override
+  List<LabExam> getAll() =>
+      stored.values.toList()..sort((a, b) => b.examDate.compareTo(a.examDate));
+
+  @override
+  LabExam? getById(String id) => stored[id];
+
+  @override
+  Future<void> save(LabExam exam) async {
+    stored[exam.id] = exam;
+    if (failNextSave) {
+      failNextSave = false;
+      throw StateError('fila indisponível');
+    }
+  }
+
+  @override
+  Future<void> delete(String id) async => stored.remove(id);
+}
+
 void main() {
   testWidgets('os campos do exame aceitam apenas números', (tester) async {
     await tester.pumpWidget(
@@ -47,5 +71,36 @@ void main() {
     expect(textOf(1), '35,5');
     expect(textOf(2), '36');
     expect(textOf(3), '181');
+  });
+
+  testWidgets('tentar de novo após falha ao salvar não duplica o exame', (
+    tester,
+  ) async {
+    final repository = _FlakyExamRepository();
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [examRepositoryProvider.overrideWithValue(repository)],
+        child: const MaterialApp(home: Scaffold(body: ExamsScreen())),
+      ),
+    );
+
+    final fields = find.byType(TextField);
+    await tester.enterText(fields.at(0), '45');
+    await tester.enterText(fields.at(1), '35');
+    await tester.enterText(fields.at(2), '36');
+    await tester.enterText(fields.at(3), '181');
+    await tester.tap(find.text('Calcular e salvar'));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text('Não foi possível salvar o exame. Tente novamente.'),
+      findsOneWidget,
+    );
+
+    await tester.tap(find.text('Calcular e salvar'));
+    await tester.pumpAndSettle();
+
+    expect(repository.stored, hasLength(1));
+    expect(find.text('Exame salvo.'), findsOneWidget);
   });
 }

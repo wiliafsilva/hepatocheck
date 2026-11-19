@@ -9,6 +9,8 @@ class ExamNumberInputFormatter extends TextInputFormatter {
 
   static const separator = ',';
 
+  static final _thousandsGroups = RegExp(r'^\d{1,3}(\.\d{3})+(,\d*)?$');
+
   final int maxIntegerDigits;
   final bool decimal;
   final int maxDecimalDigits;
@@ -18,7 +20,10 @@ class ExamNumberInputFormatter extends TextInputFormatter {
     TextEditingValue oldValue,
     TextEditingValue newValue,
   ) {
-    final text = newValue.text;
+    final raw = newValue.text.trim();
+    final text = decimal && _thousandsGroups.hasMatch(raw)
+        ? raw.replaceAll('.', '')
+        : newValue.text;
     final kept = <(String, int)>[];
     var hasSeparator = false;
     var decimalDigits = 0;

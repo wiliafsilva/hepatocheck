@@ -50,7 +50,15 @@ void main() {
 
     test('mantém só o primeiro separador', () {
       expect(_type(enzyme, '35,5,1').text, '35,51');
-      expect(_type(enzyme, '1.234,5').text, '1,23');
+      expect(_type(enzyme, '35,5.1').text, '35,51');
+    });
+
+    test('ponto de milhar colado vira número inteiro, não decimal', () {
+      expect(_type(enzyme, '1.200').text, '1200');
+      expect(_type(enzyme, '1.234,5').text, '1234,5');
+      expect(_type(platelets, '150.000').text, '150000');
+      expect(_type(enzyme, '1.2').text, '1,2');
+      expect(_type(enzyme, '12.34').text, '12,34');
     });
 
     test('limita a 2 casas decimais', () {

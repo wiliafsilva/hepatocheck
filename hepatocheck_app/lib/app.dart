@@ -6,6 +6,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'core/platform/app_switcher_privacy.dart';
 import 'presentation/camouflage/camouflage_controller.dart';
 import 'presentation/camouflage/camouflage_preferences_store.dart';
+import 'presentation/camouflage/privacy_lock_pause.dart';
 import 'presentation/screens/camouflage_calculator_screen.dart';
 import 'presentation/screens/drinks_screen.dart';
 import 'presentation/screens/exams_screen.dart';
@@ -14,6 +15,7 @@ import 'presentation/screens/report_screen.dart';
 import 'presentation/screens/goals_screen.dart';
 import 'presentation/screens/follow_up_screen.dart';
 import 'presentation/providers/goal_providers.dart';
+import 'presentation/providers/report_providers.dart';
 import 'presentation/screens/sync_status_screen.dart';
 import 'presentation/theme/app_colors.dart';
 import 'presentation/theme/app_theme.dart';
@@ -41,18 +43,19 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class AppNavigationShell extends StatefulWidget {
+class AppNavigationShell extends ConsumerStatefulWidget {
   const AppNavigationShell({super.key});
 
   @override
-  State<AppNavigationShell> createState() => _AppNavigationShellState();
+  ConsumerState<AppNavigationShell> createState() => _AppNavigationShellState();
 }
 
-class _AppNavigationShellState extends State<AppNavigationShell>
+class _AppNavigationShellState extends ConsumerState<AppNavigationShell>
     with WidgetsBindingObserver {
   late final CamouflageController _camouflageController;
   int _selectedIndex = 0;
   bool _isReady = false;
+  bool _lockDeferred = false;
 
   static const _tabs = <_AppTab>[
     _AppTab(
@@ -105,9 +108,27 @@ class _AppNavigationShellState extends State<AppNavigationShell>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _lockDeferred = false;
+      ref.read(todayProvider.notifier).refresh();
+      return;
+    }
     if (state == AppLifecycleState.inactive ||
         state == AppLifecycleState.paused ||
         state == AppLifecycleState.hidden) {
+      if (ref.read(privacyLockPauseProvider.notifier).isPaused) {
+        _lockDeferred = true;
+        return;
+      }
+      _lockForPrivacy();
+    }
+  }
+
+  void _onPrivacyPauseChanged(int? previous, int next) {
+    if (next > 0 || !_lockDeferred) return;
+    _lockDeferred = false;
+    final lifecycle = WidgetsBinding.instance.lifecycleState;
+    if (lifecycle != null && lifecycle != AppLifecycleState.resumed) {
       _lockForPrivacy();
     }
   }
@@ -162,6 +183,7 @@ class _AppNavigationShellState extends State<AppNavigationShell>
 
   @override
   Widget build(BuildContext context) {
+    ref.listen(privacyLockPauseProvider, _onPrivacyPauseChanged);
     if (!_isReady) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
@@ -190,18 +212,23 @@ class _AppNavigationShellState extends State<AppNavigationShell>
                   ),
               ],
             ),
-      body: switch (_selectedIndex) {
-        0 => const HomeScreen(),
-        1 => const ReportScreen(),
-        2 => const DrinksScreen(),
-        3 => const ExamsScreen(),
-        4 => _ProfileScreen(
-          camouflageEnabled: _camouflageController.isEnabled,
-          onEnableCamouflage: _enableCamouflage,
-          onDisableCamouflage: _disableCamouflage,
-        ),
-        _ => _TabPlaceholder(label: tab.label),
-      },
+      body: IndexedStack(
+        index: _selectedIndex,
+        children: [
+          for (final (index, child) in <Widget>[
+            const HomeScreen(),
+            const ReportScreen(),
+            const DrinksScreen(),
+            const ExamsScreen(),
+            _ProfileScreen(
+              camouflageEnabled: _camouflageController.isEnabled,
+              onEnableCamouflage: _enableCamouflage,
+              onDisableCamouflage: _disableCamouflage,
+            ),
+          ].indexed)
+            HeroMode(enabled: index == _selectedIndex, child: child),
+        ],
+      ),
       bottomNavigationBar: _PillNavigationBar(
         child: NavigationBar(
           selectedIndex: _selectedIndex,
@@ -267,18 +294,6 @@ class _AppTab {
   final String label;
   final IconData icon;
   final IconData selectedIcon;
-}
-
-class _TabPlaceholder extends StatelessWidget {
-  const _TabPlaceholder({required this.label});
-
-  final String label;
-
-  @override
-  Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.all(24),
-    child: Text(label, style: Theme.of(context).textTheme.headlineMedium),
-  );
 }
 
 class _ProfileScreen extends StatelessWidget {

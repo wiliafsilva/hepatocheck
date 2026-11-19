@@ -6,6 +6,7 @@ import '../../domain/entities/drink_type.dart';
 import '../../domain/entities/report_period.dart';
 import '../../domain/usecases/assess_current_risk.dart';
 import '../formatters.dart';
+import 'consultation_screen.dart';
 import 'goals_screen.dart';
 import '../providers/exam_providers.dart';
 import '../providers/report_providers.dart';
@@ -33,7 +34,7 @@ class ReportScreen extends ConsumerWidget {
     final evolution = ref.watch(examEvolutionProvider);
     final history = ref.watch(summarizeExamHistoryProvider)(
       ref.watch(examsProvider),
-      today: ref.watch(clockProvider)(),
+      today: ref.watch(todayProvider),
     );
 
     return ListView(
@@ -86,6 +87,15 @@ class ReportScreen extends ConsumerWidget {
         const SizedBox(height: 8),
         _ByTypeCard(report: report),
         const SizedBox(height: 24),
+        SizedBox(
+          height: 52,
+          child: OutlinedButton.icon(
+            onPressed: () => ConsultationScreen.open(context),
+            icon: const Icon(Icons.medical_information_outlined),
+            label: const Text('Modo consulta'),
+          ),
+        ),
+        const SizedBox(height: 12),
         const ExportSummaryCard(),
         const SizedBox(height: 16),
         const Text(
@@ -235,7 +245,7 @@ class _SummaryGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final difference = _roundedDifference(report);
+    final difference = roundedDifference(report);
     final previousLabel = type == ReportPeriodType.week
         ? 'semana anterior'
         : 'mês anterior';
@@ -259,10 +269,10 @@ class _SummaryGrid extends StatelessWidget {
       _SummaryCard(
         icon: Icons.compare_arrows,
         title: 'Vs. $previousLabel',
-        value: _differenceText(difference),
+        value: formatDifference(difference),
         footer: difference == 0
             ? null
-            : DeltaLabel(delta: difference, text: _percentText(report)),
+            : DeltaLabel(delta: difference, text: formatChangePercent(report)),
       ),
     ];
 
@@ -282,7 +292,7 @@ class _SummaryGrid extends StatelessWidget {
             ),
           ),
         ],
-        if (report.inProgress)
+        if (report.hasComparisonNote)
           Padding(
             padding: const EdgeInsets.only(top: 12),
             child: Row(
@@ -314,21 +324,6 @@ class _SummaryGrid extends StatelessWidget {
           ),
       ],
     );
-  }
-
-  static double _roundedDifference(ConsumptionReport report) =>
-      double.parse(report.difference.toStringAsFixed(1));
-
-  static String _differenceText(double difference) {
-    if (difference == 0) return 'Igual';
-    final sign = difference > 0 ? '+' : '−';
-    return '$sign${formatDrinks(difference.abs())}';
-  }
-
-  static String _percentText(ConsumptionReport report) {
-    final percent = report.changePercent;
-    if (percent == null) return 'sem consumo antes';
-    return '${percent.abs().round()}%';
   }
 }
 

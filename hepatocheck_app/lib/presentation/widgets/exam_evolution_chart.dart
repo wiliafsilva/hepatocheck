@@ -90,8 +90,11 @@ class _ExamEvolutionDashboardState extends State<ExamEvolutionDashboard> {
                   ),
                 ),
                 const SizedBox(height: 8),
-                _Legend(metric: _metric),
-                if (points.length == 1) ...[
+                _Legend(
+                  metric: _metric,
+                  lowCutoff: CalculateFib4.lowCutoffFor(points.last.exam.age),
+                ),
+                if (_singleDate(points)) ...[
                   const SizedBox(height: 8),
                   const Text(
                     'Registre outro exame para ver a evolução.',
@@ -109,6 +112,10 @@ class _ExamEvolutionDashboardState extends State<ExamEvolutionDashboard> {
       ],
     );
   }
+
+  static bool _singleDate(List<ExamPoint> points) => points.every(
+    (point) => DateUtils.isSameDay(point.date, points.first.date),
+  );
 
   static String _semanticSummary(List<ExamPoint> points, ExamMetric metric) {
     final values = [
@@ -168,6 +175,7 @@ class _MetricChart extends StatelessWidget {
     final highest = series
         .expand((serie) => serie.values)
         .reduce((a, b) => a > b ? a : b);
+    final low = CalculateFib4.lowCutoffFor(points.last.exam.age);
     final maxY = metric == ExamMetric.fib4
         ? (highest * 1.15).clamp(3.5, double.infinity).toDouble()
         : highest * 1.2;
@@ -184,11 +192,11 @@ class _MetricChart extends StatelessWidget {
               ? [
                   HorizontalRangeAnnotation(
                     y1: 0,
-                    y2: CalculateFib4.lowCutoff,
+                    y2: low,
                     color: AppColors.riskGreen.withValues(alpha: 0.10),
                   ),
                   HorizontalRangeAnnotation(
-                    y1: CalculateFib4.lowCutoff,
+                    y1: low,
                     y2: CalculateFib4.highCutoff,
                     color: AppColors.riskYellow.withValues(alpha: 0.10),
                   ),
@@ -302,17 +310,20 @@ class _Series {
 }
 
 class _Legend extends StatelessWidget {
-  const _Legend({required this.metric});
+  const _Legend({required this.metric, required this.lowCutoff});
 
   final ExamMetric metric;
+  final double lowCutoff;
 
   @override
   Widget build(BuildContext context) {
+    final low = formatScore(lowCutoff);
+    final high = formatScore(CalculateFib4.highCutoff);
     final items = switch (metric) {
       ExamMetric.fib4 => [
-        (AppColors.riskGreen, 'Verde < 1,30'),
-        (AppColors.riskYellow, 'Amarelo 1,30 a 2,67'),
-        (AppColors.riskRed, 'Vermelho > 2,67'),
+        (AppColors.riskGreen, 'Verde < $low'),
+        (AppColors.riskYellow, 'Amarelo $low a $high'),
+        (AppColors.riskRed, 'Vermelho > $high'),
       ],
       ExamMetric.enzymes => [
         (_MetricChart._astColor, 'AST / TGO (U/L)'),

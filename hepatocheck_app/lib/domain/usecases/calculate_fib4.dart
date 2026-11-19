@@ -41,10 +41,15 @@ class CalculateFib4 {
     return (age * ast) / (platelets * math.sqrt(alt));
   }
 
+  static double lowCutoffFor(int age) =>
+      age >= elderlyAge ? lowCutoffElderly : lowCutoff;
+
+  static double displayed(double score) => (score * 100).round() / 100;
+
   static RiskLevel riskFor({required double score, required int age}) {
-    final low = age >= elderlyAge ? lowCutoffElderly : lowCutoff;
-    if (score < low) return RiskLevel.low;
-    if (score <= highCutoff) return RiskLevel.intermediate;
+    final shown = displayed(score);
+    if (shown < lowCutoffFor(age)) return RiskLevel.low;
+    if (shown <= highCutoff) return RiskLevel.intermediate;
     return RiskLevel.high;
   }
 

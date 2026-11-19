@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../camouflage/privacy_lock_pause.dart';
 import '../pdf/health_summary_pdf.dart';
 import '../providers/pdf_providers.dart';
 import '../theme/app_colors.dart';
@@ -26,15 +27,17 @@ class _ExportSummaryCardState extends ConsumerState<ExportSummaryCard> {
     setState(() => _running = action);
     final messenger = ScaffoldMessenger.of(context);
     try {
-      final summary = ref.read(healthSummaryProvider);
+      final summary = ref.read(currentHealthSummaryProvider)();
       final bytes = await ref.read(healthSummaryPdfProvider)(summary);
       final output = ref.read(pdfOutputProvider);
       final name = HealthSummaryPdf.fileName(summary.generatedAt);
-      if (action == _PdfAction.preview) {
-        await output.preview(bytes, name);
-      } else {
-        await output.share(bytes, name);
-      }
+      await ref
+          .read(privacyLockPauseProvider.notifier)
+          .during(
+            () => action == _PdfAction.preview
+                ? output.preview(bytes, name)
+                : output.share(bytes, name),
+          );
     } catch (_) {
       messenger.showSnackBar(
         const SnackBar(content: Text('Não foi possível gerar o PDF.')),

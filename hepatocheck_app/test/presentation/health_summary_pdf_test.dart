@@ -89,4 +89,43 @@ void main() {
       'resumo-saude-2026-03-07.pdf',
     );
   });
+
+  test('gera o gráfico com muitos exames e datas repetidas', () async {
+    final bytes = await pdf.build(
+      build(
+        exams: [
+          for (var i = 0; i < 15; i++)
+            testExam(
+              id: 'e$i',
+              examDate: DateTime(2024, 1 + i, i.isEven ? 1 : 2),
+              ast: 30 + i.toDouble(),
+            ),
+          testExam(id: 'dup', examDate: DateTime(2025, 3, 2), ast: 50),
+        ],
+        drinks: const [],
+        goals: const [],
+        period: ReportPeriod.containing(now, ReportPeriodType.month),
+        now: now,
+      ),
+    );
+
+    expect(isPdf(bytes), isTrue);
+  });
+
+  test('gera o gráfico com dois exames no mesmo dia', () async {
+    final bytes = await pdf.build(
+      build(
+        exams: [
+          testExam(id: 'a', examDate: DateTime(2026, 9, 12)),
+          testExam(id: 'b', examDate: DateTime(2026, 9, 12), ast: 50),
+        ],
+        drinks: [testDrink(2, DateTime(2026, 11, 2))],
+        goals: const [],
+        period: ReportPeriod.containing(now, ReportPeriodType.month),
+        now: now,
+      ),
+    );
+
+    expect(isPdf(bytes), isTrue);
+  });
 }

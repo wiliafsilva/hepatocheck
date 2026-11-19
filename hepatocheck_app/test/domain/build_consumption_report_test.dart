@@ -173,7 +173,8 @@ void main() {
       final report = build(
         [
           _drink(DateTime(2026, 10, 1)),
-          _drink(DateTime(2026, 10, 11, 23)),
+          _drink(DateTime(2026, 10, 11, 17)),
+          _drink(DateTime(2026, 10, 11, 19)),
           _drink(DateTime(2026, 10, 12)),
           _drink(DateTime(2026, 10, 31, 23)),
           _drink(DateTime(2026, 11, 1)),
@@ -189,7 +190,7 @@ void main() {
       expect(report.elapsedDays, 11);
     });
 
-    test('na terça compara com segunda e terça da semana anterior', () {
+    test('na terça compara com a semana anterior até o mesmo horário', () {
       final tuesday = DateTime(2026, 11, 10, 9);
       final report = build(
         [
@@ -205,8 +206,8 @@ void main() {
 
       expect(report.inProgress, isTrue);
       expect(report.comparedDays, 2);
-      expect(report.previousTotal, closeTo(2 * _beerCan, 0.0001));
-      expect(report.difference, closeTo(0, 0.0001));
+      expect(report.previousTotal, closeTo(_beerCan, 0.0001));
+      expect(report.difference, closeTo(_beerCan, 0.0001));
     });
 
     test('no dia 31 o mês anterior de 30 dias entra inteiro', () {
@@ -223,6 +224,62 @@ void main() {
 
       expect(report.comparedDays, 30);
       expect(report.previousTotal, closeTo(2 * _beerCan, 0.0001));
+    });
+
+    test('no dia 30 de março compara os 28 primeiros dias dos dois meses', () {
+      final march30 = DateTime(2027, 3, 30, 12);
+      final report = build(
+        [
+          _drink(DateTime(2027, 2, 10)),
+          _drink(DateTime(2027, 3, 5)),
+          _drink(DateTime(2027, 3, 29, 1)),
+          _drink(DateTime(2027, 3, 30, 1)),
+        ],
+        ReportPeriod.containing(march30, ReportPeriodType.month),
+        today: march30,
+      );
+
+      expect(report.comparedDays, 28);
+      expect(report.totalStandardDrinks, closeTo(3 * _beerCan, 0.0001));
+      expect(report.comparedTotal, closeTo(_beerCan, 0.0001));
+      expect(report.previousTotal, closeTo(_beerCan, 0.0001));
+      expect(report.difference, closeTo(0, 0.0001));
+      expect(report.comparesFewerDays, isTrue);
+    });
+
+    test('mês encerrado mais longo compara só os dias do mês anterior', () {
+      final report = build(
+        [
+          _drink(DateTime(2027, 2, 28, 20)),
+          _drink(DateTime(2027, 3, 1)),
+          _drink(DateTime(2027, 3, 31, 20)),
+        ],
+        ReportPeriod.containing(DateTime(2027, 3, 1), ReportPeriodType.month),
+        today: DateTime(2027, 4, 10),
+      );
+
+      expect(report.inProgress, isFalse);
+      expect(report.comparedDays, 28);
+      expect(report.comparedTotal, closeTo(_beerCan, 0.0001));
+      expect(report.previousTotal, closeTo(_beerCan, 0.0001));
+      expect(report.hasComparisonNote, isTrue);
+    });
+
+    test('mês encerrado mais curto compara com o começo do mês anterior', () {
+      final report = build(
+        [
+          _drink(DateTime(2027, 1, 28, 20)),
+          _drink(DateTime(2027, 1, 29)),
+          _drink(DateTime(2027, 2, 3)),
+        ],
+        ReportPeriod.containing(DateTime(2027, 2, 1), ReportPeriodType.month),
+        today: DateTime(2027, 4, 10),
+      );
+
+      expect(report.comparedDays, 28);
+      expect(report.previousTotal, closeTo(_beerCan, 0.0001));
+      expect(report.comparesFewerDays, isFalse);
+      expect(report.comparesPartOfPrevious, isTrue);
     });
 
     test('período encerrado compara com o período anterior inteiro', () {
@@ -248,7 +305,7 @@ void main() {
         [
           _drink(DateTime(2026, 11, 10, 12)),
           _drink(DateTime(2026, 11, 10, 22), quantity: 2),
-          _drink(DateTime(2026, 11, 13)),
+          _drink(DateTime(2026, 11, 11, 10)),
         ],
         week,
         today: today,
@@ -258,7 +315,7 @@ void main() {
       expect(report.daily.first.day, DateTime(2026, 11, 9));
       expect(report.daily.first.standardDrinks, 0);
       expect(report.daily[1].standardDrinks, closeTo(3 * _beerCan, 0.0001));
-      expect(report.daily[4].standardDrinks, closeTo(_beerCan, 0.0001));
+      expect(report.daily[2].standardDrinks, closeTo(_beerCan, 0.0001));
     });
 
     test('o mês tem um item por dia do mês', () {
@@ -270,5 +327,17 @@ void main() {
 
       expect(report.daily, hasLength(28));
     });
+  });
+
+  test('drinques com data futura ficam fora do total', () {
+    final report = build(
+      [_drink(DateTime(2026, 11, 10, 20)), _drink(DateTime(2026, 11, 13, 20))],
+      week,
+      today: today,
+    );
+
+    expect(report.entryCount, 1);
+    expect(report.totalStandardDrinks, closeTo(_beerCan, 0.0001));
+    expect(report.daily.last.standardDrinks, 0);
   });
 }
