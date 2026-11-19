@@ -87,7 +87,7 @@ class DailyConsumptionChart extends StatelessWidget {
                               return SideTitleWidget(
                                 meta: meta,
                                 child: Text(
-                                  formatDrinks(value),
+                                  formatNumber(value),
                                   style: AppTextStyles.caption,
                                 ),
                               );

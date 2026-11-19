@@ -186,7 +186,7 @@ class _MetricChart extends StatelessWidget {
         maxX: single ? maxX + 1 : maxX,
         minY: 0,
         maxY: maxY,
-        clipData: const FlClipData.all(),
+        clipData: const FlClipData.vertical(),
         rangeAnnotations: RangeAnnotations(
           horizontalRangeAnnotations: metric == ExamMetric.fib4
               ? [
@@ -245,6 +245,7 @@ class _MetricChart extends StatelessWidget {
                 if (index < 0) return const SizedBox.shrink();
                 return SideTitleWidget(
                   meta: meta,
+                  fitInside: SideTitleFitInsideData.fromTitleMeta(meta),
                   child: Text(
                     formatDayMonthYear(points[index].date),
                     style: AppTextStyles.caption,

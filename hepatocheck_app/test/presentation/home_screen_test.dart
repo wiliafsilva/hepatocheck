@@ -2,9 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hepatocheck_app/domain/entities/lab_exam.dart';
+import 'package:hepatocheck_app/domain/entities/reduction_goal.dart';
 import 'package:hepatocheck_app/presentation/providers/liver_health_provider.dart';
+import 'package:hepatocheck_app/presentation/providers/report_providers.dart'
+    as report;
 import 'package:hepatocheck_app/presentation/providers/drink_providers.dart';
 import 'package:hepatocheck_app/presentation/providers/exam_providers.dart';
+import 'package:hepatocheck_app/presentation/providers/goal_providers.dart';
 import 'package:hepatocheck_app/presentation/screens/auth/login_screen.dart';
 import 'package:hepatocheck_app/presentation/screens/home_screen.dart';
 import 'package:hepatocheck_app/presentation/theme/app_theme.dart';
@@ -18,7 +22,10 @@ void main() {
     final container = ProviderContainer(
       overrides: [
         clockProvider.overrideWithValue(() => now),
+        report.clockProvider.overrideWithValue(() => now),
         examRepositoryProvider.overrideWithValue(MemoryExamRepository()),
+        goalRepositoryProvider.overrideWithValue(InMemoryGoalRepository()),
+        report.todayProvider.overrideWith(() => FixedTodayNotifier(now)),
         drinkRepositoryProvider.overrideWithValue(MemoryDrinkRepository()),
       ],
     );
@@ -32,6 +39,37 @@ void main() {
     await tester.pump();
     return container;
   }
+
+  testWidgets('selo sobe de nível quando o consumo passa da meta, como no '
+      'Relatório', (tester) async {
+    final container = await pump(tester);
+    await container.read(examsProvider.notifier).save(testExam());
+    await tester.pumpAndSettle();
+    expect(find.text('Risco verde'), findsOneWidget);
+
+    final monday = DateTime(2026, 11, 9);
+    await container
+        .read(goalsProvider.notifier)
+        .save(
+          ReductionGoal(
+            id: 'meta',
+            type: GoalType.maxDrinksPerWeek,
+            target: 1,
+            startDate: monday,
+            active: true,
+            createdAt: monday,
+            updatedAt: monday,
+          ),
+        );
+    await container
+        .read(drinksProvider.notifier)
+        .save(testDrink(2, DateTime(2026, 11, 10, 20)));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Risco amarelo'), findsOneWidget);
+    expect(find.textContaining('Nível elevado para Amarelo'), findsOneWidget);
+    expect(find.textContaining('passou da sua meta de 1'), findsOneWidget);
+  });
 
   testWidgets('sem exame mostra o convite para registrar', (tester) async {
     await pump(tester);

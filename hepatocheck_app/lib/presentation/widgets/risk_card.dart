@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../../domain/usecases/assess_current_risk.dart';
 import '../../domain/usecases/calculate_liver_health.dart';
+import '../formatters.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 import '../theme/risk_colors.dart';
@@ -10,16 +12,18 @@ import 'liver_gauge.dart';
 /// Cartão de risco da tela Início: idade, FIB-4, selo de risco e medidor,
 /// calculados a partir do exame mais recente e do consumo.
 class RiskCard extends StatelessWidget {
-  const RiskCard({super.key, required this.health});
+  const RiskCard({super.key, required this.health, this.current});
 
   final LiverHealth health;
+  final CurrentRisk? current;
 
   @override
   Widget build(BuildContext context) {
     final exam = health.exam;
-    final risk = health.risk;
+    final risk = current?.level ?? health.risk;
     final fib4 = health.fib4;
-    final color = risk?.color ?? AppColors.outline;
+    final color = health.risk?.color ?? AppColors.outline;
+    final raised = current != null && current!.raisedByConsumption;
 
     return Card(
       child: Padding(
@@ -48,13 +52,34 @@ class RiskCard extends StatelessWidget {
                     ),
                     _RiskBadge(
                       label: 'Risco ${risk.label.toLowerCase()}',
-                      color: color,
+                      color: risk.color,
                       onTap: () =>
                           showMedicalGuidance(context, currentRisk: risk),
                     ),
                   ],
                 ),
               ),
+              if (raised) ...[
+                const SizedBox(height: 12),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Icon(Icons.trending_up, size: 18, color: risk.color),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'Nível elevado para ${risk.label}: o consumo desta '
+                        'semana (${formatDrinks(current!.weeklyStandardDrinks)} '
+                        'drinques padrão) passou da sua meta de '
+                        '${current!.weeklyLimit}.',
+                        style: AppTextStyles.caption.copyWith(
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
               const SizedBox(height: 20),
             ],
             LiverGauge(value: health.percent ?? 0, color: color),

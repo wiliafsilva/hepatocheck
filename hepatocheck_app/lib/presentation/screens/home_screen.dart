@@ -5,6 +5,7 @@ import '../../domain/entities/risk_level.dart';
 import '../../domain/usecases/calculate_liver_health.dart';
 import '../providers/liver_health_provider.dart';
 import '../providers/risk_evolution_provider.dart';
+import '../providers/risk_providers.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 import '../widgets/content_width.dart';
@@ -23,7 +24,8 @@ class HomeScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final health = ref.watch(liverHealthProvider);
-    final jaundice = health.risk == RiskLevel.high;
+    final current = ref.watch(currentRiskProvider);
+    final jaundice = (current?.level ?? health.risk) == RiskLevel.high;
 
     final content = SafeArea(
       child: ContentWidth(
@@ -49,7 +51,7 @@ class HomeScreen extends ConsumerWidget {
               const JaundiceNotice(),
               const SizedBox(height: 16),
             ],
-            RiskCard(health: health),
+            RiskCard(health: health, current: current),
             const SizedBox(height: 16),
             _ConsumptionCard(health: health),
             const SizedBox(height: 16),
@@ -137,7 +139,7 @@ class JaundiceNotice extends StatelessWidget {
                     Text(
                       'O tom amarelo lembra a icterícia, quando a pele e os '
                       'olhos ficam amarelados por um problema no fígado. Ele '
-                      'aparece porque o seu último exame indica risco alto. '
+                      'aparece porque o seu risco atual é alto. '
                       'Toque para ver quando procurar o médico.',
                       style: AppTextStyles.body.copyWith(
                         color: AppColors.textSecondary,

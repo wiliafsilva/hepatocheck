@@ -9,6 +9,8 @@ import 'package:hepatocheck_app/presentation/screens/drinks_screen.dart';
 import 'package:hepatocheck_app/presentation/screens/home_screen.dart';
 import 'package:hepatocheck_app/presentation/theme/app_theme.dart';
 import 'package:hepatocheck_app/presentation/providers/exam_providers.dart';
+import 'package:hepatocheck_app/presentation/providers/goal_providers.dart';
+import 'package:hepatocheck_app/presentation/providers/report_providers.dart';
 
 import '../../support/test_data.dart';
 
@@ -45,6 +47,8 @@ void main() {
           drinkRepositoryProvider.overrideWithValue(repository),
           // O Início também lê os exames para calcular o medidor.
           examRepositoryProvider.overrideWithValue(MemoryExamRepository()),
+          goalRepositoryProvider.overrideWithValue(InMemoryGoalRepository()),
+          todayProvider.overrideWith(() => FixedTodayNotifier(DateTime.now())),
         ],
         child: MaterialApp(
           theme: AppTheme.dark,
