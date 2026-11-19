@@ -108,7 +108,7 @@
 - Aviso da senha - Ao criar a conta e antes de recuperar a senha, com "Entendi" obrigatório
 - Documentação - Registro do uso de IA com a justificativa das bibliotecas, fluxo de navegação real em diagramas, versão final do diagrama de classes e restauração na modelagem do Firestore
 - Readme - Como rodar, testar e gerar o APK do app
-- Testes - Teste completo no Android 8.0, testes do cofre, da parte selada e da restauração entre dois aparelhos, 386 testes automatizados passando
+- Testes - Teste completo no Android 8.0 e no Android 12 (restauração entre dois aparelhos, troca de senha, consentimento revogado e envio sem Wi-Fi), testes do cofre, da parte selada e da restauração, 387 testes automatizados passando
 
 ### Alterado
 - Tema - Barra de navegação em pílula e cartões, campos e botões no estilo do protótipo de alta fidelidade
