@@ -7,6 +7,7 @@ import 'core/platform/app_switcher_privacy.dart';
 import 'presentation/camouflage/camouflage_controller.dart';
 import 'presentation/camouflage/camouflage_preferences_store.dart';
 import 'presentation/camouflage/privacy_lock_pause.dart';
+import 'presentation/screens/auth/privacy_policy_screen.dart';
 import 'presentation/screens/camouflage_calculator_screen.dart';
 import 'presentation/screens/drinks_screen.dart';
 import 'presentation/screens/exams_screen.dart';
@@ -412,6 +413,20 @@ class _ProfileScreen extends StatelessWidget {
               await onDisableCamouflage();
             }
           },
+        ),
+        ListTile(
+          contentPadding: EdgeInsets.zero,
+          leading: const Icon(Icons.policy_outlined),
+          title: const Text('Política de privacidade'),
+          subtitle: const Text(
+            'O que fica no aparelho e o que vai para a nuvem',
+          ),
+          trailing: const Icon(Icons.chevron_right),
+          onTap: () => Navigator.of(context).push(
+            MaterialPageRoute<void>(
+              builder: (_) => const PrivacyPolicyScreen(),
+            ),
+          ),
         ),
         const Divider(height: 32),
         ListTile(

@@ -4,6 +4,7 @@ import 'package:uuid/uuid.dart';
 
 import '../../domain/entities/fib4_result.dart';
 import '../../domain/entities/lab_exam.dart';
+import '../../domain/usecases/check_exam_age_consistency.dart';
 import '../../domain/usecases/validate_exam_input.dart';
 import '../formatters.dart';
 import '../input/exam_number_input_formatter.dart';
@@ -105,8 +106,17 @@ class _ExamsScreenState extends ConsumerState<ExamsScreen> {
     });
     if (!validation.isValid) return;
 
-    final now = DateTime.now();
     final editing = _editing;
+    final conflict = ref.read(checkExamAgeConsistencyProvider)(
+      examDate: validation.examDate!,
+      age: validation.age!,
+      exams: ref.read(examsProvider),
+      ignoreId: editing?.id ?? _draftId,
+    );
+    if (conflict != null && !await _confirmAgeConflict(conflict)) return;
+    if (!mounted) return;
+
+    final now = DateTime.now();
     final exam = editing == null
         ? LabExam(
             id: _draftId,
@@ -144,6 +154,42 @@ class _ExamsScreenState extends ConsumerState<ExamsScreen> {
       _resetForm(keepAge: true);
     });
     _showMessage(editing == null ? 'Exame salvo.' : 'Exame atualizado.');
+  }
+
+  Future<bool> _confirmAgeConflict(ExamAgeConflict conflict) async {
+    final expected = conflict.minAge == conflict.maxAge
+        ? '${conflict.minAge} anos'
+        : '${conflict.minAge} ou ${conflict.maxAge} anos';
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Confira a idade'),
+        content: Text(
+          'No exame de ${formatDate(conflict.exam.examDate)} a idade era '
+          '${conflict.exam.age} anos. Na data deste exame, a idade esperada '
+          'é $expected.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Salvar assim mesmo'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Corrigir'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) {
+      setState(
+        () => _errors = {
+          ..._errors,
+          ExamField.age: 'Idade esperada nesta data: $expected.',
+        },
+      );
+    }
+    return confirmed == true;
   }
 
   void _resetForm({bool keepAge = false}) {
@@ -319,22 +365,15 @@ class _ExamsScreenState extends ConsumerState<ExamsScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: _NumberField(
-                    label: 'Idade',
-                    controller: _ageController,
-                    suffix: 'anos',
-                    error: _errors[ExamField.age],
-                    decimal: false,
-                    maxIntegerDigits: 3,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(child: _buildDateField()),
-              ],
+            _buildDateField(),
+            const SizedBox(height: 14),
+            _NumberField(
+              label: 'Idade',
+              controller: _ageController,
+              suffix: 'anos',
+              error: _errors[ExamField.age],
+              decimal: false,
+              maxIntegerDigits: 3,
             ),
             const SizedBox(height: 6),
             Row(
