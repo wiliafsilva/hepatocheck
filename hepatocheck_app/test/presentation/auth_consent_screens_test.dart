@@ -186,6 +186,15 @@ void main() {
   ) async {
     await pump(tester, const SyncConsentScreen());
     expect(container.read(syncConsentProvider), isFalse);
+    expect(
+      find.textContaining('criptografada com a sua senha'),
+      findsOneWidget,
+    );
+    await tester.scrollUntilVisible(
+      find.textContaining('nunca é enviado'),
+      200,
+      scrollable: find.byType(Scrollable).first,
+    );
     expect(find.textContaining('nunca é enviado'), findsOneWidget);
 
     await tester.scrollUntilVisible(

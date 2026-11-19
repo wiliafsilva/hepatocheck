@@ -95,6 +95,8 @@ class SyncStatusNotifier extends Notifier<SyncStatusState> {
     lastReport: state.lastReport,
   );
 
+  void clearMessage() => state = _snapshot(isSyncing: state.isSyncing);
+
   Future<SyncReport> syncNow() async {
     if (state.isSyncing) {
       return const SyncReport(skipped: SyncSkipReason.alreadyRunning);

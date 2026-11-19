@@ -14,12 +14,13 @@ class SyncConsentScreen extends ConsumerWidget {
   const SyncConsentScreen({super.key});
 
   static const sent = [
-    'Registros do diário, sem o horário (só a data)',
-    'Exames, com a idade trocada por uma faixa etária (ex.: 40-49)',
-    'Metas de redução',
+    'Registros do diário, exames e metas',
+    'Uma parte legível só com a data (sem o horário) e a faixa etária '
+        '(ex.: 40-49)',
+    'Os valores exatos, criptografados com a sua senha',
   ];
   static const neverSent = [
-    'Seu nome e seu e-mail',
+    'Seu nome, seu e-mail e sua senha',
     'Observações livres',
     'Código secreto da camuflagem',
     'Registro de alterações do diário',
@@ -46,8 +47,10 @@ class SyncConsentScreen extends ConsumerWidget {
               const SizedBox(height: 8),
               const Text(
                 'Seus dados continuam guardados neste aparelho. Com a sua '
-                'autorização, uma cópia anonimizada é enviada quando houver '
-                'Wi-Fi. Sem autorização, nada é enviado.',
+                'autorização, uma cópia criptografada com a sua senha é '
+                'enviada quando houver Wi-Fi. Ao entrar na sua conta em outro '
+                'aparelho, seus dados voltam sozinhos. Sem autorização, nada '
+                'é enviado.',
                 style: AppTextStyles.body,
               ),
               const SizedBox(height: 20),
