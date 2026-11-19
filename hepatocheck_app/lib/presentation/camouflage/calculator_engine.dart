@@ -90,6 +90,11 @@ class CalculatorEngine {
       _update();
     } else if (key == '=') {
       if (_done || _input.isEmpty) return;
+      while (_input.isNotEmpty &&
+          (_ops.contains(_input[_input.length - 1]) || _input.endsWith('('))) {
+        _input = _input.substring(0, _input.length - 1);
+      }
+      if (_input.isEmpty || _input == '-') _input = '0';
       try {
         _input +=
             ')' *

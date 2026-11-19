@@ -203,7 +203,7 @@ abstract final class AppTheme {
       floatingActionButtonTheme: const FloatingActionButtonThemeData(
         backgroundColor: AppColors.olive,
         foregroundColor: AppColors.onOlive,
-        shape: CircleBorder(),
+        shape: StadiumBorder(),
       ),
     );
   }

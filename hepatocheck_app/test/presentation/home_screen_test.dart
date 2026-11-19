@@ -102,6 +102,52 @@ void main() {
     expect(find.text('Risco vermelho'), findsOneWidget);
   });
 
+  testWidgets('risco alto mostra o filtro de icterícia e a explicação', (
+    tester,
+  ) async {
+    final container = await pump(tester);
+    expect(find.byType(JaundiceFilter), findsNothing);
+    expect(find.byType(JaundiceNotice), findsNothing);
+
+    await container
+        .read(examsProvider.notifier)
+        .save(testExam(age: 60, ast: 80, alt: 40, platelets: 120));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(JaundiceFilter), findsOneWidget);
+    expect(find.text('Por que a tela está amarelada?'), findsOneWidget);
+
+    await tester.tap(find.text('Por que a tela está amarelada?'));
+    await tester.pumpAndSettle();
+    expect(find.text('Quando procurar o médico'), findsOneWidget);
+  });
+
+  testWidgets('risco verde ou amarelo não mostra o filtro', (tester) async {
+    final container = await pump(tester);
+
+    await container.read(examsProvider.notifier).save(testExam());
+    await tester.pumpAndSettle();
+    expect(find.byType(JaundiceFilter), findsNothing);
+
+    await container
+        .read(examsProvider.notifier)
+        .save(testExam(id: 'e2', ast: 35, platelets: 181));
+    await tester.pumpAndSettle();
+    expect(find.byType(JaundiceFilter), findsNothing);
+  });
+
+  testWidgets('o filtro não bloqueia o toque nos botões', (tester) async {
+    final container = await pump(tester);
+    await container
+        .read(examsProvider.notifier)
+        .save(testExam(age: 60, ast: 80, alt: 40, platelets: 120));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byTooltip('Registrar drinque'));
+    await tester.pumpAndSettle();
+    expect(find.byType(BottomSheet), findsOneWidget);
+  });
+
   testWidgets('login valida os campos e leva ao cadastro', (tester) async {
     await tester.pumpWidget(
       ProviderScope(
