@@ -11,6 +11,8 @@ import '../entities/sync_item.dart';
 class AnonymizeSyncPayload {
   const AnonymizeSyncPayload();
 
+  static final _invalidDate = Object();
+
   static const _allowedFields = <SyncEntityType, Set<String>>{
     SyncEntityType.drink: {
       'type',
@@ -57,9 +59,12 @@ class AnonymizeSyncPayload {
     final result = <String, dynamic>{};
     for (final entry in payload.entries) {
       if (!allowed.contains(entry.key)) continue;
-      result[entry.key] = _dateFields.contains(entry.key)
-          ? _dateOnly(entry.value)
-          : entry.value;
+      if (_dateFields.contains(entry.key)) {
+        final date = _dateOnly(entry.value);
+        if (!identical(date, _invalidDate)) result[entry.key] = date;
+        continue;
+      }
+      result[entry.key] = entry.value;
     }
     if (entityType == SyncEntityType.exam) {
       final range = ageRange(payload['age']);
@@ -70,18 +75,19 @@ class AnonymizeSyncPayload {
 
   /// Faixa etária de dez em dez anos: 43 vira "40-49".
   static String? ageRange(Object? age) {
-    if (age is! num || age < 0) return null;
+    if (age is! num || !age.isFinite || age < 0) return null;
     final lower = (age ~/ 10) * 10;
     return '$lower-${lower + 9}';
   }
 
   static Object? _dateOnly(Object? value) {
+    if (value == null) return null;
     final date = switch (value) {
       DateTime() => value,
       String() => DateTime.tryParse(value),
       _ => null,
     };
-    if (date == null) return value;
+    if (date == null) return _invalidDate;
     final local = date.toLocal();
     return DateTime.utc(local.year, local.month, local.day);
   }

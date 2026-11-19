@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -39,9 +41,9 @@ void main() {
             builder: (context) => Scaffold(
               body: Center(
                 child: TextButton(
-                  onPressed: () => Navigator.of(context).push(
-                    MaterialPageRoute<void>(builder: (_) => home),
-                  ),
+                  onPressed: () =>
+                      Navigator.of(context)
+                          .push(MaterialPageRoute<void>(builder: (_) => home)),
                   child: const Text('abrir'),
                 ),
               ),
@@ -59,8 +61,14 @@ void main() {
   ) async {
     await pump(tester, const LoginScreen());
 
-    await tester.enterText(find.widgetWithText(TextFormField, 'E-mail'), 'a@b.com');
-    await tester.enterText(find.widgetWithText(TextFormField, 'Senha'), '123456');
+    await tester.enterText(
+      find.widgetWithText(TextFormField, 'E-mail'),
+      'a@b.com',
+    );
+    await tester.enterText(
+      find.widgetWithText(TextFormField, 'Senha'),
+      '123456',
+    );
     await tester.tap(find.widgetWithText(FilledButton, 'Entrar'));
     await tester.pumpAndSettle();
 
@@ -75,14 +83,53 @@ void main() {
     await pump(tester, const LoginScreen());
     auth.failure = AuthFailureCode.wrongCredentials;
 
-    await tester.enterText(find.widgetWithText(TextFormField, 'E-mail'), 'a@b.com');
-    await tester.enterText(find.widgetWithText(TextFormField, 'Senha'), '123456');
+    await tester.enterText(
+      find.widgetWithText(TextFormField, 'E-mail'),
+      'a@b.com',
+    );
+    await tester.enterText(
+      find.widgetWithText(TextFormField, 'Senha'),
+      '123456',
+    );
     await tester.tap(find.widgetWithText(FilledButton, 'Entrar'));
     await tester.pumpAndSettle();
 
     expect(find.text('E-mail ou senha incorretos.'), findsOneWidget);
     expect(find.byType(LoginScreen), findsOneWidget);
     expect(auth.currentUser, isNull);
+  });
+
+  testWidgets('login ignora uma segunda submissão enquanto está entrando', (
+    tester,
+  ) async {
+    final gate = Completer<void>();
+    var calls = 0;
+    await pump(
+      tester,
+      LoginScreen(
+        onSubmit: (_, _) {
+          calls++;
+          return gate.future;
+        },
+      ),
+    );
+
+    await tester.enterText(
+      find.widgetWithText(TextFormField, 'E-mail'),
+      'a@b.com',
+    );
+    await tester.enterText(
+      find.widgetWithText(TextFormField, 'Senha'),
+      '123456',
+    );
+    final submit = find.widgetWithText(FilledButton, 'Entrar');
+    await tester.tap(submit);
+    await tester.tap(submit);
+    await tester.pump();
+
+    expect(calls, 1);
+    gate.complete();
+    await tester.pumpAndSettle();
   });
 
   testWidgets('modo convidado: sair do login não exige conta', (tester) async {

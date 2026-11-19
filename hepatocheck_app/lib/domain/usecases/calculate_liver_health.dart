@@ -74,9 +74,11 @@ class CalculateLiverHealth {
     final average = _weeklyAverage(drinks, now);
     if (exams.isEmpty) return LiverHealth.empty(weeklyAverage: average);
 
-    final latest = exams.reduce(
-      (a, b) => b.examDate.isAfter(a.examDate) ? b : a,
-    );
+    final latest = exams.reduce((a, b) {
+      final byDate = b.examDate.compareTo(a.examDate);
+      if (byDate != 0) return byDate > 0 ? b : a;
+      return b.createdAt.isAfter(a.createdAt) ? b : a;
+    });
     final fib4 = CalculateFib4.score(
       age: latest.age,
       ast: latest.ast,

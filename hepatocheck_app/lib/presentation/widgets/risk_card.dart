@@ -4,6 +4,7 @@ import '../../domain/usecases/calculate_liver_health.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 import '../theme/risk_colors.dart';
+import '../screens/medical_guidance_sheet.dart';
 import 'liver_gauge.dart';
 
 /// Cartão de risco da tela Início: idade, FIB-4, selo de risco e medidor,
@@ -48,6 +49,8 @@ class RiskCard extends StatelessWidget {
                     _RiskBadge(
                       label: 'Risco ${risk.label.toLowerCase()}',
                       color: color,
+                      onTap: () =>
+                          showMedicalGuidance(context, currentRisk: risk),
                     ),
                   ],
                 ),
@@ -76,24 +79,40 @@ class RiskCard extends StatelessWidget {
 }
 
 class _RiskBadge extends StatelessWidget {
-  const _RiskBadge({required this.label, required this.color});
+  const _RiskBadge({
+    required this.label,
+    required this.color,
+    required this.onTap,
+  });
 
   final String label;
   final Color color;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-      decoration: BoxDecoration(
+    final radius = BorderRadius.circular(999);
+    return Semantics(
+      button: true,
+      label: '$label. Abrir orientação sobre quando procurar o médico.',
+      child: Material(
         color: color.withValues(alpha: 0.18),
-        borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: color),
-      ),
-      child: Text(
-        label,
-        textAlign: TextAlign.center,
-        style: AppTextStyles.label.copyWith(color: color),
+        shape: RoundedRectangleBorder(
+          borderRadius: radius,
+          side: BorderSide(color: color),
+        ),
+        child: InkWell(
+          borderRadius: radius,
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+            child: Text(
+              label,
+              textAlign: TextAlign.center,
+              style: AppTextStyles.label.copyWith(color: color),
+            ),
+          ),
+        ),
       ),
     );
   }

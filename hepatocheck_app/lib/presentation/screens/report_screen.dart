@@ -21,6 +21,7 @@ import '../widgets/exam_evolution_chart.dart';
 import '../widgets/export_summary_card.dart';
 import '../widgets/risk_badge.dart';
 import '../widgets/section_label.dart';
+import 'medical_guidance_sheet.dart';
 
 class ReportScreen extends ConsumerWidget {
   const ReportScreen({super.key});
@@ -199,7 +200,11 @@ class _CurrentRiskCard extends StatelessWidget {
                     ],
                   ),
                 ),
-                RiskBadge(riskLevel: current.level),
+                RiskBadge(
+                  riskLevel: current.level,
+                  onTap: () =>
+                      showMedicalGuidance(context, currentRisk: current.level),
+                ),
               ],
             ),
             const SizedBox(height: 10),
