@@ -95,22 +95,33 @@
 - Modo Camuflagem - Ajustes no layout da calculadora
 - Metas - Limite da meta de drinques por semana de 0 a 100
 - Repositório - Pasta tmp ignorada pelo Git
+
 ## (23/11/2026)
 
 ### Adicionado
 - Semana 4 - Estabilização e entrega
-- Modo consulta - Tela para o profissional de saúde
-- Orientação médica - Quando procurar o médico
-- Risco alto - Filtro amarelado de icterícia
-- Documentação - Uso de IA com a justificativa das bibliotecas, justificativas, arquitetura do sistema, requisitos e versão final do diagrama de classes
-- Fluxo de navegação - Fluxo real com capturas de tela
-- Apresentação - Slides da Unidade II e vídeo de demonstração
-- APK de release
-- Readme atualizado
+- Modo consulta - Resumo para o profissional de saúde, aberto pelo Relatório
+- Orientação médica - Quando procurar o médico, aberta pelo selo de risco no Início e no Relatório
+- Risco alto - Filtro amarelado de icterícia na tela Início, com explicação e acesso à orientação médica
+- Documentação - Registro do uso de IA com a justificativa das bibliotecas, fluxo de navegação real em diagramas e versão final do diagrama de classes
+- Readme - Como rodar, testar e gerar o APK do app
+- Testes - Teste completo no Android 8.0 e 361 testes automatizados passando
 
 ### Alterado
-- Telas - Ajustes para ficar fiel ao protótipo de alta fidelidade
-- Acessibilidade - Revisão de rótulos para leitor de tela e tamanho de fonte
+- Tema - Barra de navegação em pílula e cartões, campos e botões no estilo do protótipo de alta fidelidade
+- Classificação de risco - Início e Relatório mostram o mesmo nível, elevado quando o consumo da semana passa da meta
+- Relatório e PDF - Drinques padrão sempre com uma casa decimal e títulos do PDF junto das tabelas
+- Drinks - Data e hora em linha própria
+- Nome do app - HepatoCheck no ícone, na lista de apps e nas notificações
+- Documentação - Requisitos, arquitetura e justificativas da Unidade I atualizados para a Unidade II
 
 ### Corrigido
-- Correções de Exames, Relatório, PDF, Drinks, banco local, camuflagem, metas, notificações, Início, login e anonimização
+- Exames - Exame duplicado evitado, classificação pelo FIB-4 exibido e corte de 65 anos no dashboard
+- Relatório - Comparação de períodos com janelas iguais e data atualizada na virada do dia
+- PDF - Gráfico por data e camuflagem que não trava durante a exportação
+- Gráficos - Datas e pontos da borda sem corte na evolução dos exames e do risco
+- Modo Camuflagem - Calculadora aceita conta terminando em operador
+- Metas - Botão Criar meta aparece inteiro
+- Login - Envio duplicado do formulário evitado
+- Anonimização - Datas inválidas descartadas antes do envio
+- Notificações - Teste automatizado que dependia da data
