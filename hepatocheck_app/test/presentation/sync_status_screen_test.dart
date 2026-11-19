@@ -171,6 +171,38 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('ao abrir de novo, mostra o que entrou na fila enquanto isso', (
+    tester,
+  ) async {
+    await pump(tester, onWifi: false);
+    expect(
+      find.descendant(
+        of: counter('Aguardando envio'),
+        matching: find.text('0'),
+      ),
+      findsOneWidget,
+    );
+
+    final navigator = Navigator.of(tester.element(find.byType(Scaffold)));
+    navigator.pushReplacement(
+      MaterialPageRoute<void>(builder: (_) => const SizedBox()),
+    );
+    await tester.pumpAndSettle();
+    await enqueue('exame-offline');
+    navigator.pushReplacement(
+      MaterialPageRoute<void>(builder: (_) => const SyncStatusScreen()),
+    );
+    await tester.pumpAndSettle();
+
+    expect(
+      find.descendant(
+        of: counter('Aguardando envio'),
+        matching: find.text('1'),
+      ),
+      findsOneWidget,
+    );
+  });
+
   testWidgets('sem pendentes, o botão de sincronizar fica desativado', (
     tester,
   ) async {

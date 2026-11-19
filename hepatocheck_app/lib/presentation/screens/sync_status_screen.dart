@@ -9,11 +9,24 @@ import '../theme/app_text_styles.dart';
 import '../widgets/content_width.dart';
 import '../widgets/section_label.dart';
 
-class SyncStatusScreen extends ConsumerWidget {
+class SyncStatusScreen extends ConsumerStatefulWidget {
   const SyncStatusScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<SyncStatusScreen> createState() => _SyncStatusScreenState();
+}
+
+class _SyncStatusScreenState extends ConsumerState<SyncStatusScreen> {
+  @override
+  void initState() {
+    super.initState();
+    Future.microtask(() {
+      if (mounted) ref.read(syncStatusProvider.notifier).refresh();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final status = ref.watch(syncStatusProvider);
     final notifier = ref.read(syncStatusProvider.notifier);
     final message = _reportMessage(status.lastReport);
