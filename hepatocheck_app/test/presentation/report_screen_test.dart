@@ -65,16 +65,17 @@ DrinkEntry _beer(DateTime consumedAt, {int quantity = 1}) => DrinkEntry(
   updatedAt: consumedAt,
 );
 
-LabExam _exam(String id, DateTime date, {double ast = 35}) => LabExam(
-  id: id,
-  examDate: date,
-  age: 45,
-  ast: ast,
-  alt: 36,
-  platelets: 181,
-  createdAt: date,
-  updatedAt: date,
-);
+LabExam _exam(String id, DateTime date, {double ast = 35, int age = 45}) =>
+    LabExam(
+      id: id,
+      examDate: date,
+      age: age,
+      ast: ast,
+      alt: 36,
+      platelets: 181,
+      createdAt: date,
+      updatedAt: date,
+    );
 
 ReductionGoal _drinkLimit(int target) => ReductionGoal(
   id: 'meta-1',
@@ -98,7 +99,7 @@ Future<void> _pump(
     ProviderScope(
       overrides: [
         goalRepositoryProvider.overrideWithValue(_FakeGoalRepository(goals)),
-        clockProvider.overrideWithValue(() => DateTime(2026, 11, 10)),
+        clockProvider.overrideWithValue(() => DateTime(2026, 11, 10, 22)),
         examRepositoryProvider.overrideWithValue(_FakeExamRepository(exams)),
         drinkRepositoryProvider.overrideWithValue(_FakeDrinkRepository(drinks)),
         healthSummaryPdfProvider.overrideWithValue(
@@ -116,8 +117,15 @@ Future<void> _pump(
   );
 }
 
-Future<void> _scrollTo(WidgetTester tester, Finder finder) => tester
-    .scrollUntilVisible(finder, 200, scrollable: find.byType(Scrollable).first);
+Future<void> _scrollTo(WidgetTester tester, Finder finder) async {
+  await tester.scrollUntilVisible(
+    finder,
+    200,
+    scrollable: find.byType(Scrollable).first,
+  );
+  await tester.ensureVisible(finder);
+  await tester.pumpAndSettle();
+}
 
 void main() {
   setUpAll(() async {
@@ -223,7 +231,7 @@ void main() {
   ) async {
     const note =
         'Período em andamento: comparado com os 2 primeiros dias da '
-        'semana anterior.';
+        'semana anterior, até o mesmo horário.';
     await _pump(tester, const [], drinks: [_beer(DateTime(2026, 11, 9))]);
     await _scrollTo(tester, find.text(note));
 
@@ -333,6 +341,45 @@ void main() {
     await tester.tap(find.text('Plaquetas'));
     await tester.pump();
     expect(find.text('Plaquetas (×10³/mm³)'), findsOneWidget);
+  });
+
+  testWidgets('dashboard usa o corte de 2,0 a partir de 65 anos', (
+    tester,
+  ) async {
+    await _pump(tester, [
+      _exam('a', DateTime(2026, 3, 1), age: 64),
+      _exam('b', DateTime(2026, 9, 12), age: 66),
+    ]);
+
+    expect(find.text('Verde < 2,00'), findsOneWidget);
+    expect(find.text('Amarelo 2,00 a 2,67'), findsOneWidget);
+  });
+
+  testWidgets('dois exames no mesmo dia pedem outro para comparar', (
+    tester,
+  ) async {
+    await _pump(tester, [
+      _exam('a', DateTime(2026, 9, 12)),
+      _exam('b', DateTime(2026, 9, 12), ast: 40),
+    ]);
+
+    expect(
+      find.text('Registre outro exame para ver a evolução.'),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('o botão Modo consulta abre o resumo para o profissional', (
+    tester,
+  ) async {
+    await _pump(tester, [_exam('a', DateTime(2026, 9, 12))]);
+    await _scrollTo(tester, find.text('Modo consulta'));
+
+    await tester.tap(find.text('Modo consulta'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Sair do modo consulta'), findsOneWidget);
+    expect(find.text('FIB-4 atual'), findsOneWidget);
   });
 
   testWidgets('compartilhar pede confirmação antes de enviar o PDF', (
