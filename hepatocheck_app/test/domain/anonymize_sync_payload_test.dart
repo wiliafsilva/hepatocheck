@@ -17,10 +17,7 @@ void main() {
   }
 
   test('exame: idade vira faixa etária e a hora é removida', () {
-    final exam = testExam(
-      age: 43,
-      examDate: DateTime(2026, 11, 5, 14, 37, 12),
-    );
+    final exam = testExam(age: 43, examDate: DateTime(2026, 11, 5, 14, 37, 12));
     final result = anonymize(
       SyncEntityType.exam,
       FirestoreMappers.examToFirestore(exam),
@@ -79,6 +76,21 @@ void main() {
     expect(AnonymizeSyncPayload.ageRange(120), '120-129');
     expect(AnonymizeSyncPayload.ageRange(null), isNull);
     expect(AnonymizeSyncPayload.ageRange(-1), isNull);
+    expect(AnonymizeSyncPayload.ageRange(double.nan), isNull);
+    expect(AnonymizeSyncPayload.ageRange(double.infinity), isNull);
+  });
+
+  test('data inválida não passa para o documento anonimizado', () {
+    final result = anonymize(SyncEntityType.drink, {
+      'type': 'beer',
+      'consumedAt': 'data com informação livre',
+      'createdAt': Object(),
+      'updatedAt': DateTime(2026, 11, 14, 18, 30),
+    });
+
+    expect(result.containsKey('consumedAt'), isFalse);
+    expect(result.containsKey('createdAt'), isFalse);
+    expect(result['updatedAt'], DateTime.utc(2026, 11, 14));
   });
 
   test('o documento anonimizado não tem nome nem e-mail em nenhum valor', () {

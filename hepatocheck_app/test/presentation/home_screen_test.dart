@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:hepatocheck_app/domain/entities/lab_exam.dart';
 import 'package:hepatocheck_app/presentation/providers/liver_health_provider.dart';
 import 'package:hepatocheck_app/presentation/providers/drink_providers.dart';
 import 'package:hepatocheck_app/presentation/providers/exam_providers.dart';
@@ -53,6 +54,52 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('65%'), findsOneWidget); // 72,3 - 7,5 = 64,8
     expect(find.textContaining('Acima do limite'), findsOneWidget);
+  });
+
+  testWidgets('na mesma data usa o exame cadastrado por último', (
+    tester,
+  ) async {
+    final container = await pump(tester);
+    final date = DateTime(2026, 11, 1);
+    await container.read(examsProvider.notifier).save(testExam(examDate: date));
+    await container
+        .read(examsProvider.notifier)
+        .save(
+          LabExam(
+            id: 'e2',
+            examDate: date,
+            age: 45,
+            ast: 60,
+            alt: 36,
+            platelets: 250,
+            createdAt: date.add(const Duration(hours: 1)),
+            updatedAt: date.add(const Duration(hours: 1)),
+          ),
+        );
+    await tester.pumpAndSettle();
+
+    expect(find.text('FIB-4: 1,80'), findsOneWidget);
+    expect(find.text('Risco amarelo'), findsOneWidget);
+  });
+
+  testWidgets('selo de risco abre a orientação médica', (tester) async {
+    final container = await pump(tester);
+    await container.read(examsProvider.notifier).save(testExam());
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Risco verde'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Quando procurar o médico'), findsOneWidget);
+    expect(find.text('Seu resultado'), findsOneWidget);
+    expect(find.text('Risco amarelo'), findsOneWidget);
+    expect(find.textContaining('não substitui uma avaliação'), findsOneWidget);
+    await tester.scrollUntilVisible(
+      find.text('Risco vermelho'),
+      200,
+      scrollable: find.byType(Scrollable).last,
+    );
+    expect(find.text('Risco vermelho'), findsOneWidget);
   });
 
   testWidgets('login valida os campos e leva ao cadastro', (tester) async {

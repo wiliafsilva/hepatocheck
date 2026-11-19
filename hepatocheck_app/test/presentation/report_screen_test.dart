@@ -177,6 +177,18 @@ void main() {
     expect(find.text('Exame de 12/09/2026'), findsOneWidget);
   });
 
+  testWidgets('selo do relatório abre a orientação médica', (tester) async {
+    await _pump(tester, [_exam('a', DateTime(2026, 9, 12))]);
+
+    await tester.tap(find.text('AMARELO'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Quando procurar o médico'), findsOneWidget);
+    expect(find.text('Seu resultado'), findsOneWidget);
+    expect(find.text('Risco verde'), findsOneWidget);
+    expect(find.text('Risco vermelho'), findsOneWidget);
+  });
+
   testWidgets('cabe em uma tela de 360 px de largura', (tester) async {
     tester.view.physicalSize = const Size(360, 740);
     tester.view.devicePixelRatio = 1;
