@@ -1,15 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../domain/entities/risk_level.dart';
 import '../../domain/usecases/calculate_liver_health.dart';
 import '../providers/liver_health_provider.dart';
 import '../providers/risk_evolution_provider.dart';
+import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 import '../widgets/content_width.dart';
 import '../widgets/quick_drink_sheet.dart';
 import '../widgets/risk_card.dart';
 import '../widgets/risk_evolution_chart.dart';
 import 'auth/account_screen.dart';
+import 'medical_guidance_sheet.dart';
 
 /// Tela Início: cartão de risco com o medidor e o botão + de registro rápido.
 ///
@@ -20,44 +23,132 @@ class HomeScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final health = ref.watch(liverHealthProvider);
+    final jaundice = health.risk == RiskLevel.high;
 
-    return Scaffold(
-      body: SafeArea(
-        child: ContentWidth(
-          child: ListView(
-            padding: const EdgeInsets.fromLTRB(20, 16, 20, 96),
-            children: [
-              Align(
-                alignment: Alignment.centerRight,
-                child: IconButton(
-                  tooltip: 'Entrar ou criar conta',
-                  icon: const Icon(Icons.account_circle_outlined),
-                  onPressed: () => openAccount(context, ref),
-                ),
+    final content = SafeArea(
+      child: ContentWidth(
+        child: ListView(
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 96),
+          children: [
+            Align(
+              alignment: Alignment.centerRight,
+              child: IconButton(
+                tooltip: 'Entrar ou criar conta',
+                icon: const Icon(Icons.account_circle_outlined),
+                onPressed: () => openAccount(context, ref),
               ),
-              const Text(
-                'Seu fígado, sob controle.',
-                style: AppTextStyles.title,
-              ),
-              const SizedBox(height: 4),
-              const Text(
-                'Resumo do seu risco hepático',
-                style: AppTextStyles.body,
-              ),
-              const SizedBox(height: 20),
-              RiskCard(health: health),
+            ),
+            const Text('Seu fígado, sob controle.', style: AppTextStyles.title),
+            const SizedBox(height: 4),
+            const Text(
+              'Resumo do seu risco hepático',
+              style: AppTextStyles.body,
+            ),
+            const SizedBox(height: 20),
+            if (jaundice) ...[
+              const JaundiceNotice(),
               const SizedBox(height: 16),
-              _ConsumptionCard(health: health),
-              const SizedBox(height: 16),
-              RiskEvolutionChart(points: ref.watch(riskEvolutionProvider)),
             ],
-          ),
+            RiskCard(health: health),
+            const SizedBox(height: 16),
+            _ConsumptionCard(health: health),
+            const SizedBox(height: 16),
+            RiskEvolutionChart(points: ref.watch(riskEvolutionProvider)),
+          ],
         ),
       ),
+    );
+
+    return Scaffold(
+      body: jaundice
+          ? Stack(
+              children: [
+                content,
+                const Positioned.fill(child: JaundiceFilter()),
+              ],
+            )
+          : content,
       floatingActionButton: FloatingActionButton(
         tooltip: 'Registrar drinque',
         onPressed: () => showQuickDrinkSheet(context),
         child: const Icon(Icons.add),
+      ),
+    );
+  }
+}
+
+class JaundiceFilter extends StatelessWidget {
+  const JaundiceFilter({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return IgnorePointer(
+      child: ExcludeSemantics(
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            gradient: RadialGradient(
+              center: Alignment.topCenter,
+              radius: 1.4,
+              colors: [
+                AppColors.riskYellow.withValues(alpha: 0.16),
+                AppColors.riskYellow.withValues(alpha: 0.06),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class JaundiceNotice extends StatelessWidget {
+  const JaundiceNotice({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      color: AppColors.riskYellow.withValues(alpha: 0.12),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(14),
+        side: BorderSide(color: AppColors.riskYellow.withValues(alpha: 0.6)),
+      ),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(14),
+        onTap: () => showMedicalGuidance(context, currentRisk: RiskLevel.high),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Icon(
+                Icons.visibility_outlined,
+                color: AppColors.riskYellow,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Por que a tela está amarelada?',
+                      style: AppTextStyles.subtitle,
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'O tom amarelo lembra a icterícia, quando a pele e os '
+                      'olhos ficam amarelados por um problema no fígado. Ele '
+                      'aparece porque o seu último exame indica risco alto. '
+                      'Toque para ver quando procurar o médico.',
+                      style: AppTextStyles.body.copyWith(
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

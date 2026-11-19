@@ -20,7 +20,8 @@ void main() {
   late Box<String> box;
   late List<MethodCall> calls;
   var allowed = true;
-  final now = DateTime(2026, 11, 14, 12);
+  final today = DateTime.now();
+  final now = DateTime(today.year, today.month, today.day, 12);
 
   setUp(() async {
     debugDefaultTargetPlatformOverride = TargetPlatform.android;
@@ -77,7 +78,11 @@ void main() {
                   .firstWhere((c) => (c.arguments as Map)['id'] == 3301)
                   .arguments
               as Map;
-      expect(registration['scheduledDateTime'], startsWith('2026-11-17'));
+      final due = DateTime(now.year, now.month, now.day + 3);
+      final dueText =
+          '${due.year}-${due.month.toString().padLeft(2, '0')}-'
+          '${due.day.toString().padLeft(2, '0')}';
+      expect(registration['scheduledDateTime'], startsWith(dueText));
       expect(registration['matchDateTimeComponents'], isNull);
     },
   );

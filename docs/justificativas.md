@@ -9,7 +9,7 @@ Este documento foi escrito na Unidade I e atualizado na Unidade II para acompanh
 - O Início mostra um medidor de saúde do fígado.
 - O Relatório ganhou o dashboard de exames, o modo consulta e o PDF.
 
-Os detalhes técnicos estão em [`arquitetura_atualizada.md`](arquitetura_atualizada.md) e os requisitos novos em [`requisitos_atualizado.md`](requisitos_atualizado.md).
+Os detalhes técnicos estão em [`arquitetura_hepatocheck.md`](arquitetura_hepatocheck.md) e os requisitos novos em [`requisitos.md`](requisitos.md).
 
 ## Contexto das decisões
 

@@ -86,6 +86,13 @@ void main() {
         '1e-9',
       ),
       'ignora tecla vazia': (['2', '', '+', '3', '='], '5'),
+      'ignora operador sobrando no fim': (['5', '+', '='], '5'),
+      'ignora parêntese aberto no fim': (['5', '×', '()', '='], '5'),
+      'fecha grupo incompleto ignorando operador': (
+        ['2', '×', '()', '3', '+', '='],
+        '6',
+      ),
+      'operador sozinho resulta em zero': (['+', '='], '0'),
     };
     for (final entry in cases.entries) {
       test(entry.key, () {
