@@ -10,6 +10,8 @@ import 'package:hepatocheck_app/presentation/providers/auth_providers.dart';
 import 'package:hepatocheck_app/presentation/providers/consent_providers.dart';
 import 'package:hepatocheck_app/presentation/providers/sync_providers.dart';
 import 'package:hepatocheck_app/presentation/screens/auth/account_screen.dart';
+import 'package:hepatocheck_app/presentation/screens/auth/auth_widgets.dart';
+import 'package:hepatocheck_app/presentation/screens/auth/change_password_screen.dart';
 import 'package:hepatocheck_app/presentation/screens/auth/forgot_password_screen.dart';
 import 'package:hepatocheck_app/presentation/screens/auth/login_screen.dart';
 import 'package:hepatocheck_app/presentation/screens/auth/register_screen.dart';
@@ -19,6 +21,9 @@ import 'package:hepatocheck_app/presentation/theme/app_theme.dart';
 import '../support/fake_auth_repository.dart';
 import '../support/sync_fakes.dart';
 
+Future<void> reveal(WidgetTester tester, Finder finder) => tester
+    .scrollUntilVisible(finder, 200, scrollable: find.byType(Scrollable).first);
+
 void main() {
   late FakeAuthRepository auth;
   late MemorySyncConsentRepository consent;
@@ -27,6 +32,9 @@ void main() {
   late FakeCloudRestore restore;
 
   Future<void> pump(WidgetTester tester, Widget home) async {
+    tester.view.physicalSize = const Size(1080, 2400);
+    tester.view.devicePixelRatio = 2.6;
+    addTearDown(tester.view.reset);
     auth = FakeAuthRepository();
     consent = MemorySyncConsentRepository();
     vault = FakeCloudVault(unlocked: false);
@@ -73,11 +81,11 @@ void main() {
     await pump(tester, const LoginScreen());
 
     await tester.enterText(
-      find.widgetWithText(TextFormField, 'E-mail'),
+      find.widgetWithText(AuthTextField, 'E-mail'),
       'a@b.com',
     );
     await tester.enterText(
-      find.widgetWithText(TextFormField, 'Senha'),
+      find.widgetWithText(AuthTextField, 'Senha'),
       '123456',
     );
     await tester.tap(find.widgetWithText(FilledButton, 'Entrar'));
@@ -95,11 +103,11 @@ void main() {
     auth.failure = AuthFailureCode.wrongCredentials;
 
     await tester.enterText(
-      find.widgetWithText(TextFormField, 'E-mail'),
+      find.widgetWithText(AuthTextField, 'E-mail'),
       'a@b.com',
     );
     await tester.enterText(
-      find.widgetWithText(TextFormField, 'Senha'),
+      find.widgetWithText(AuthTextField, 'Senha'),
       '123456',
     );
     await tester.tap(find.widgetWithText(FilledButton, 'Entrar'));
@@ -126,11 +134,11 @@ void main() {
     );
 
     await tester.enterText(
-      find.widgetWithText(TextFormField, 'E-mail'),
+      find.widgetWithText(AuthTextField, 'E-mail'),
       'a@b.com',
     );
     await tester.enterText(
-      find.widgetWithText(TextFormField, 'Senha'),
+      find.widgetWithText(AuthTextField, 'Senha'),
       '123456',
     );
     final submit = find.widgetWithText(FilledButton, 'Entrar');
@@ -146,7 +154,7 @@ void main() {
   testWidgets('modo convidado: sair do login não exige conta', (tester) async {
     await pump(tester, const LoginScreen());
 
-    await tester.ensureVisible(find.text('Continuar como convidado'));
+    await reveal(tester, find.text('Continuar como convidado'));
     await tester.tap(find.text('Continuar como convidado'));
     await tester.pumpAndSettle();
 
@@ -159,12 +167,16 @@ void main() {
   ) async {
     await pump(tester, const ForgotPasswordScreen());
 
-    await tester.tap(find.widgetWithText(FilledButton, 'Enviar link'));
+    await tester.tap(
+      find.widgetWithText(FilledButton, 'Enviar link de recuperação'),
+    );
     await tester.pump();
     expect(find.text('Informe o e-mail.'), findsOneWidget);
 
     await tester.enterText(find.byType(TextFormField), 'a@b.com');
-    await tester.tap(find.widgetWithText(FilledButton, 'Enviar link'));
+    await tester.tap(
+      find.widgetWithText(FilledButton, 'Enviar link de recuperação'),
+    );
     await tester.pumpAndSettle();
     expect(
       find.text('Seus dados ficam trancados com a sua senha'),
@@ -172,6 +184,8 @@ void main() {
     );
     final proceed = find.widgetWithText(FilledButton, 'Continuar');
     expect(tester.widget<FilledButton>(proceed).onPressed, isNull);
+    await tester.ensureVisible(find.text('Entendi'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Entendi'));
     await tester.pump();
     await tester.tap(proceed);
@@ -247,11 +261,11 @@ void main() {
 
   Future<void> signInThroughScreen(WidgetTester tester) async {
     await tester.enterText(
-      find.widgetWithText(TextFormField, 'E-mail'),
+      find.widgetWithText(AuthTextField, 'E-mail'),
       'a@b.com',
     );
     await tester.enterText(
-      find.widgetWithText(TextFormField, 'Senha'),
+      find.widgetWithText(AuthTextField, 'Senha'),
       '123456',
     );
     await tester.tap(find.widgetWithText(FilledButton, 'Entrar'));
@@ -291,20 +305,28 @@ void main() {
   ) async {
     await pump(tester, const RegisterScreen());
     await tester.enterText(
-      find.widgetWithText(TextFormField, 'E-mail'),
+      find.widgetWithText(AuthTextField, 'E-mail'),
       'a@b.com',
     );
     await tester.enterText(
-      find.widgetWithText(TextFormField, 'Senha'),
+      find.widgetWithText(AuthTextField, 'Senha'),
       'senha-forte-1',
     );
     await tester.enterText(
-      find.widgetWithText(TextFormField, 'Confirmar senha'),
+      find.widgetWithText(AuthTextField, 'Confirmar senha'),
       'senha-forte-1',
     );
     final create = find.widgetWithText(FilledButton, 'Criar conta');
 
-    await tester.ensureVisible(create);
+    await reveal(
+      tester,
+      find.text('Aceite a política de privacidade para continuar'),
+    );
+    expect(tester.widget<FilledButton>(create).onPressed, isNull);
+    await tester.tap(find.byType(Checkbox));
+    await tester.pump();
+    expect(tester.widget<FilledButton>(create).onPressed, isNotNull);
+
     await tester.tap(create);
     await tester.pumpAndSettle();
     expect(
@@ -317,6 +339,8 @@ void main() {
 
     await tester.tap(create);
     await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('Entendi'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Entendi'));
     await tester.pump();
     await tester.tap(find.widgetWithText(FilledButton, 'Continuar'));
@@ -325,4 +349,107 @@ void main() {
     expect(auth.currentUser?.email, 'a@b.com');
     expect(vault.isUnlocked, isTrue);
   });
+
+  Future<void> openChangePassword(WidgetTester tester) async {
+    await pump(tester, const ChangePasswordScreen());
+    await auth.signIn(email: 'a@b.com', password: '123456');
+    vault.unlocked = true;
+    await tester.pumpAndSettle();
+  }
+
+  Future<void> fillChangePassword(
+    WidgetTester tester, {
+    String current = '123456',
+  }) async {
+    await tester.enterText(
+      find.widgetWithText(AuthTextField, 'Senha atual'),
+      current,
+    );
+    await tester.enterText(
+      find.widgetWithText(AuthTextField, 'Nova senha'),
+      'senha-nova-1',
+    );
+    await tester.enterText(
+      find.widgetWithText(AuthTextField, 'Confirmar senha'),
+      'senha-nova-1',
+    );
+    final save = find.widgetWithText(FilledButton, 'Salvar nova senha');
+    await reveal(tester, save);
+    await tester.tap(save);
+    await tester.pumpAndSettle();
+  }
+
+  testWidgets('alterar senha troca a senha e retranca a chave da nuvem', (
+    tester,
+  ) async {
+    await openChangePassword(tester);
+
+    await fillChangePassword(tester);
+
+    expect(auth.passwordChanges, ['senha-nova-1']);
+    expect(vault.rewraps, ['senha-nova-1']);
+    expect(find.text('Senha alterada.'), findsOneWidget);
+    expect(find.byType(ChangePasswordScreen), findsNothing);
+  });
+
+  testWidgets('alterar senha com a senha atual errada não muda nada', (
+    tester,
+  ) async {
+    await openChangePassword(tester);
+
+    await fillChangePassword(tester, current: 'errada-1');
+
+    expect(find.text('A senha atual está incorreta.'), findsOneWidget);
+    expect(auth.passwordChanges, isEmpty);
+    expect(vault.rewraps, isEmpty);
+  });
+
+  testWidgets(
+    'se o Firebase recusar a senha nova, a chave volta para a atual',
+    (tester) async {
+      await openChangePassword(tester);
+      auth.failUpdate = true;
+
+      await fillChangePassword(tester);
+
+      expect(auth.passwordChanges, isEmpty);
+      expect(vault.rewraps, ['senha-nova-1', '123456']);
+      expect(find.byType(ChangePasswordScreen), findsOneWidget);
+      expect(find.textContaining('Sem conexão'), findsOneWidget);
+    },
+  );
+
+  testWidgets('a conta leva para Alterar senha', (tester) async {
+    await pump(tester, const AccountScreen());
+    await auth.signIn(email: 'a@b.com', password: '123456');
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Alterar senha'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(ChangePasswordScreen), findsOneWidget);
+    expect(find.text('A NOVA SENHA PRECISA TER'), findsOneWidget);
+  });
+
+  for (final (name, screen) in [
+    ('login', const LoginScreen()),
+    ('criar conta', const RegisterScreen()),
+    ('esqueceu a senha', const ForgotPasswordScreen()),
+    ('alterar senha', const ChangePasswordScreen()),
+  ]) {
+    testWidgets('$name cabe em celular pequeno com fonte em dobro', (
+      tester,
+    ) async {
+      await pump(tester, screen);
+      tester.view.physicalSize = const Size(320, 568);
+      tester.view.devicePixelRatio = 1;
+      tester.platformDispatcher.textScaleFactorTestValue = 2;
+      addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+      await tester.pumpAndSettle();
+      await tester.drag(find.byType(Scrollable).first, const Offset(0, -3000));
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+    });
+  }
 }

@@ -97,6 +97,42 @@ class AccountSession {
     await _ref.read(cloudVaultProvider).create(user.uid, password);
   }
 
+  Future<void> changePassword(
+    String currentPassword,
+    String newPassword,
+  ) async {
+    final auth = _ref.read(authRepositoryProvider);
+    final user = await auth.reauthenticate(currentPassword);
+    final vault = _ref.read(cloudVaultProvider);
+    final rewrapped = await _rewrap(
+      vault,
+      user.uid,
+      currentPassword,
+      newPassword,
+    );
+    try {
+      await auth.updatePassword(newPassword);
+    } catch (_) {
+      if (rewrapped) await vault.rewrap(user.uid, currentPassword);
+      rethrow;
+    }
+  }
+
+  static Future<bool> _rewrap(
+    CloudVault vault,
+    String uid,
+    String currentPassword,
+    String newPassword,
+  ) async {
+    try {
+      if (!vault.isUnlocked) await vault.unlock(uid, currentPassword);
+    } on VaultKeyMismatchException {
+      return false;
+    }
+    await vault.rewrap(uid, newPassword);
+    return true;
+  }
+
   void _refresh() {
     _ref
       ..invalidate(drinksProvider)

@@ -187,6 +187,9 @@ void main() {
   });
 
   testWidgets('login valida os campos e leva ao cadastro', (tester) async {
+    tester.view.physicalSize = const Size(1080, 2400);
+    tester.view.devicePixelRatio = 2.6;
+    addTearDown(tester.view.reset);
     await tester.pumpWidget(
       ProviderScope(
         child: MaterialApp(theme: AppTheme.dark, home: const LoginScreen()),
@@ -198,7 +201,13 @@ void main() {
     expect(find.text('Informe o e-mail.'), findsOneWidget);
     expect(find.text('Informe a senha.'), findsOneWidget);
 
+    await tester.scrollUntilVisible(
+      find.text('Criar conta'),
+      200,
+      scrollable: find.byType(Scrollable).first,
+    );
     await tester.ensureVisible(find.text('Criar conta'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Criar conta'));
     await tester.pumpAndSettle();
     expect(find.text('Confirmar senha'), findsOneWidget);

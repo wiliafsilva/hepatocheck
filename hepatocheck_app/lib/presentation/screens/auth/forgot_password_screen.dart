@@ -8,13 +8,21 @@ import '../../widgets/cloud_key_warning.dart';
 import '../../widgets/content_width.dart';
 import 'auth_flow.dart';
 import 'auth_validators.dart';
+import 'auth_widgets.dart';
 
 /// Recuperação de senha: o Firebase envia por e-mail o link para criar uma
 /// nova senha. A resposta é a mesma exista ou não conta com o e-mail.
 class ForgotPasswordScreen extends ConsumerStatefulWidget {
-  const ForgotPasswordScreen({super.key, this.initialEmail = ''});
+  const ForgotPasswordScreen({
+    super.key,
+    this.initialEmail = '',
+    this.backPrompt = 'Lembrou a senha? ',
+    this.backAction = 'Voltar ao login',
+  });
 
   final String initialEmail;
+  final String backPrompt;
+  final String backAction;
 
   @override
   ConsumerState<ForgotPasswordScreen> createState() =>
@@ -65,23 +73,26 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
           child: ListView(
             padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
             children: [
-              const Text('Recuperar senha', style: AppTextStyles.title),
+              const Text('Esqueceu sua senha?', style: AppTextStyles.title),
               const SizedBox(height: 4),
-              const Text(
-                'Informe o e-mail da conta. Enviaremos um link para criar uma '
-                'nova senha.',
-                style: AppTextStyles.body,
+              Text(
+                'Informe o e-mail da sua conta. Enviaremos um link para você '
+                'criar uma nova senha.',
+                style: AppTextStyles.body.copyWith(
+                  color: AppColors.textSecondary,
+                ),
               ),
               const SizedBox(height: 24),
               Form(
                 key: _formKey,
-                child: TextFormField(
+                child: AuthTextField(
+                  label: 'E-mail',
+                  hint: 'seuemail@exemplo.com',
                   controller: _email,
                   keyboardType: TextInputType.emailAddress,
                   autofillHints: const [AutofillHints.email],
                   textInputAction: TextInputAction.done,
                   onFieldSubmitted: (_) => _submit(),
-                  decoration: const InputDecoration(labelText: 'E-mail'),
                   validator: AuthValidators.email,
                 ),
               ),
@@ -93,27 +104,18 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                   style: AppTextStyles.body.copyWith(color: AppColors.olive),
                 ),
               ],
-              if (_error != null) ...[
-                const SizedBox(height: 12),
-                Text(
-                  _error!,
-                  style: AppTextStyles.body.copyWith(color: AppColors.riskRed),
-                ),
-              ],
+              if (_error != null) AuthErrorText(_error!),
               const SizedBox(height: 24),
-              FilledButton(
-                onPressed: _busy ? null : _submit,
-                child: _busy
-                    ? const SizedBox.square(
-                        dimension: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : Text(_sent ? 'Enviar de novo' : 'Enviar link'),
+              AuthSubmitButton(
+                label: _sent ? 'Enviar de novo' : 'Enviar link de recuperação',
+                busy: _busy,
+                onPressed: _submit,
               ),
-              const SizedBox(height: 12),
-              TextButton(
+              const SizedBox(height: 24),
+              AuthPromptLink(
+                prompt: widget.backPrompt,
+                action: widget.backAction,
                 onPressed: () => Navigator.of(context).maybePop(),
-                child: const Text('Voltar ao login'),
               ),
             ],
           ),

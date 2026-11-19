@@ -118,7 +118,12 @@ class FakeCloudVault implements CloudVault {
   }
 
   @override
-  Future<void> rewrap(String uid, String newPassword) async {}
+  Future<void> rewrap(String uid, String newPassword) async {
+    if (!unlocked) throw const VaultLockedException();
+    rewraps.add(newPassword);
+  }
+
+  final rewraps = <String>[];
 
   @override
   Future<void> lock() async => unlocked = false;

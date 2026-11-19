@@ -6,6 +6,7 @@ import '../../providers/consent_providers.dart';
 import '../../theme/app_text_styles.dart';
 import '../../widgets/content_width.dart';
 import '../sync_consent_screen.dart';
+import 'change_password_screen.dart';
 import 'login_screen.dart';
 
 /// Abre o login (modo convidado) ou a tela da conta (autenticado).
@@ -36,7 +37,10 @@ class AccountScreen extends ConsumerWidget {
             children: [
               const Text('Você está conectado', style: AppTextStyles.title),
               const SizedBox(height: 4),
-              Text(user?.email ?? 'Conta sem e-mail', style: AppTextStyles.body),
+              Text(
+                user?.email ?? 'Conta sem e-mail',
+                style: AppTextStyles.body,
+              ),
               const SizedBox(height: 20),
               ListTile(
                 contentPadding: EdgeInsets.zero,
@@ -51,6 +55,17 @@ class AccountScreen extends ConsumerWidget {
                 onTap: () => Navigator.of(context).push(
                   MaterialPageRoute<void>(
                     builder: (_) => const SyncConsentScreen(),
+                  ),
+                ),
+              ),
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: const Icon(Icons.lock_reset_outlined),
+                title: const Text('Alterar senha'),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => const ChangePasswordScreen(),
                   ),
                 ),
               ),
