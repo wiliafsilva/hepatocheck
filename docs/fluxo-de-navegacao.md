@@ -38,7 +38,7 @@ A barra inferior troca o conteúdo da tela principal. Seus índices são: **0 �
 
 ## 2. Conta, autenticação e consentimento
 
-O ícone de conta do Início e o item de conta do Perfil abrem **Entrar**, no modo convidado, ou **Conta**, quando já existe sessão. Após login ou cadastro bem-sucedido, o app fecha as rotas até a navegação principal e solicita consentimento se ele ainda não foi concedido.
+O ícone de conta do Início e o item de conta do Perfil abrem **Entrar**, no modo convidado, ou **Conta**, quando já existe sessão. Antes de criar a conta e antes de enviar o e-mail de recuperação de senha, aparece o aviso **"Seus dados ficam trancados com a sua senha"**, que só deixa continuar depois de marcar "Entendi". Após o login, o app restaura automaticamente os dados da conta e mostra quanto foi restaurado. Após login ou cadastro bem-sucedido, o app fecha as rotas até a navegação principal e solicita consentimento se ele ainda não foi concedido.
 
 ```mermaid
 flowchart TD
@@ -52,11 +52,17 @@ flowchart TD
     Login -->|Continuar como convidado| Origem["Retornar à tela anterior"]
     Cadastro -->|Política de privacidade| Politica["Política de privacidade"]
     Cadastro -->|Voltar| Login
-    Recuperar -->|Enviar instruções| Mensagem["Mensagem na própria tela"]
+    Cadastro -->|Criar conta| AvisoCadastro["Aviso da senha"]
+    AvisoCadastro -->|Cancelar| Cadastro
+    AvisoCadastro -->|Entendi e Continuar| CriarConta["Conta e cofre criados"]
+    Recuperar -->|Enviar link| AvisoRecuperar["Aviso da senha"]
+    AvisoRecuperar -->|Cancelar| Recuperar
+    AvisoRecuperar -->|Entendi e Continuar| Mensagem["Mensagem na própria tela"]
     Recuperar -->|Voltar| Login
 
-    Login -->|Autenticação bem-sucedida| Raiz["Navegação principal"]
-    Cadastro -->|Cadastro bem-sucedido| Raiz
+    Login -->|Autenticação bem-sucedida| Restaurar["Restauração automática e aviso do que voltou"]
+    Restaurar --> Raiz["Navegação principal"]
+    CriarConta --> Raiz
     Raiz --> Autorizado{"Consentimento já concedido?"}
     Autorizado -->|Não| Consentimento["Consentimento de sincronização"]
     Autorizado -->|Sim| App["Continuar no aplicativo"]
@@ -64,7 +70,7 @@ flowchart TD
     Consentimento -->|Ler política| Politica
     Conta -->|Sincronização na nuvem| Consentimento
     Perfil -->|Consentimento, quando autenticado| Consentimento
-    Conta -->|Sair da conta| Sair["Revogar consentimento e voltar à navegação principal"]
+    Conta -->|Sair da conta| Sair["Revogar consentimento, esquecer a chave e voltar à navegação principal"]
 ```
 
 Recusar o consentimento mantém o uso local. Autorizar o envio não troca de aba: fecha a tela de consentimento. Ao sair da conta, o app revoga o consentimento e preserva os dados locais. A política de privacidade é uma rota de leitura que retorna à sua origem pelo botão Voltar.

@@ -20,14 +20,28 @@ class PrivacyPolicyScreen extends StatelessWidget {
     ),
     (
       'O que é enviado',
-      'Os registros do diário, os exames e as metas, já anonimizados: sem '
-          'nome, sem e-mail, sem horário exato (só a data), com a idade '
-          'trocada por uma faixa etária e sem observações livres.',
+      'Os registros do diário, os exames e as metas, em duas partes. A parte '
+          'legível é anonimizada: sem nome, sem e-mail, sem horário exato (só '
+          'a data), com a idade trocada por uma faixa etária e sem '
+          'observações livres. Os valores exatos vão criptografados com a '
+          'sua senha: nem a equipe do HepatoCheck consegue lê-los.',
+    ),
+    (
+      'Seus dados em outro aparelho',
+      'Ao entrar na sua conta em outro aparelho ou depois de reinstalar o '
+          'aplicativo, seus dados voltam sozinhos, abertos com a sua senha.',
+    ),
+    (
+      'Se você esquecer a senha',
+      'Você pode criar uma nova, mas a cópia antiga da nuvem não poderá ser '
+          'aberta. Os dados que estiverem no aparelho continuam e são '
+          'enviados de novo. Se você perder a senha e o aparelho, o histórico '
+          'não poderá ser recuperado.',
     ),
     (
       'O que nunca é enviado',
-      'Seu nome, seu e-mail, o código secreto da camuflagem e o registro de '
-          'alterações do diário.',
+      'Seu nome, seu e-mail, sua senha, o código secreto da camuflagem e o '
+          'registro de alterações do diário.',
     ),
     (
       'Seus direitos',

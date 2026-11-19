@@ -43,7 +43,7 @@ flutter run
 - `flutter devices` mostra os aparelhos e emuladores conectados.
 - `flutter run` instala e abre o app no aparelho. Se houver mais de um, escolha com `flutter run -d <id do aparelho>`.
 
-O app abre no **modo convidado**, sem conta. Criar uma conta só é necessário para testar a sincronização com a nuvem, que também exige autorizar o envio no Perfil e estar conectado a uma rede Wi-Fi.
+O app abre no **modo convidado**, sem conta. Criar uma conta só é necessário para testar a sincronização com a nuvem, que também exige autorizar o envio no Perfil e estar conectado a uma rede Wi-Fi, e para testar a restauração: ao entrar na mesma conta em outro aparelho, ou depois de reinstalar o app, os dados voltam sozinhos.
 
 ### Testes e análise do código
 
@@ -74,6 +74,8 @@ As regras ficam em `hepatocheck_app/firestore.rules`. Só quem tem acesso de edi
 ```bash
 firebase deploy --only firestore:rules --project hepatocheck-unit
 ```
+
+As regras exigem a parte criptografada de cada documento e o documento da chave em `users/{uid}`. Por isso, sempre que o arquivo `firestore.rules` mudar, publique as regras junto com a versão do app que as usa: uma versão do app com regras de outra versão tem os envios recusados pelo Firebase.
 
 ### Observação para quem desenvolve no Windows
 
@@ -167,5 +169,5 @@ git restore hepatocheck_app/linux hepatocheck_app/macos hepatocheck_app/windows
 | Gabriel de Oliveira Alves | Correções, Uso de IA, Justificativas, Modo consulta | Correção dos erros de Exames, Relatório e PDF (exame duplicado, comparação de períodos, data na virada do dia, gráfico do PDF por data e camuflagem durante a exportação), registro do uso de IA com a justificativa das bibliotecas, atualização das justificativas, modo consulta para o profissional de saúde |
 | Lizandra Bispo Nascimento | Correções, Fluxo de navegação, Icterícia | Correção dos erros de camuflagem, metas e notificações, fluxo de navegação real em diagramas, filtro amarelado de icterícia em risco alto |
 | Victor Castelo Branco | Correções, Orientação médica | Correção dos erros de Início, login e anonimização, orientação "Quando procurar o médico" aberta pelo selo de risco |
-| Wilia Francisco da Silva | Validação, Protótipos, Changelog e Readme, Acessibilidade | Revisão dos pull requests, análise do código e testes automatizados sem erros, teste completo no Android 8.0, APK de release, tema no estilo do protótipo de alta fidelidade, ajustes finos encontrados nos testes, instruções de como rodar o app, revisão final do Changelog e do Readme, revisão de acessibilidade |
+| Wilia Francisco da Silva | Validação, Protótipos, Changelog e Readme, Acessibilidade | Revisão dos pull requests, análise do código e testes automatizados sem erros, teste completo no Android 8.0, APK de release, tema no estilo do protótipo de alta fidelidade, ajustes finos encontrados nos testes, restauração dos dados em outro aparelho com a cópia na nuvem criptografada pela senha, instruções de como rodar o app, revisão final do Changelog e do Readme, revisão de acessibilidade |
 | Leon Mendonça | Correções, Arquitetura do sistema, Diagrama de classes | Correção dos erros de Drinks e do banco local, versão final do diagrama de classes, atualização da arquitetura do sistema, atualização dos requisitos com os novos requisitos |

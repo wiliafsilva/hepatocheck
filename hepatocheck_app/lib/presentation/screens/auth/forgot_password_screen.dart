@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/auth_providers.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
+import '../../widgets/cloud_key_warning.dart';
 import '../../widgets/content_width.dart';
 import 'auth_flow.dart';
 import 'auth_validators.dart';
@@ -34,7 +35,10 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
   }
 
   Future<void> _submit() async {
+    if (_busy) return;
     if (!_formKey.currentState!.validate()) return;
+    if (!await showCloudKeyWarning(context)) return;
+    if (!mounted) return;
     setState(() {
       _busy = true;
       _error = null;

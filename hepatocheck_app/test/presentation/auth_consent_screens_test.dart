@@ -4,12 +4,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hepatocheck_app/domain/repositories/auth_repository.dart';
+import 'package:hepatocheck_app/domain/repositories/cloud_restore.dart';
+import 'package:hepatocheck_app/presentation/providers/account_session.dart';
 import 'package:hepatocheck_app/presentation/providers/auth_providers.dart';
 import 'package:hepatocheck_app/presentation/providers/consent_providers.dart';
 import 'package:hepatocheck_app/presentation/providers/sync_providers.dart';
 import 'package:hepatocheck_app/presentation/screens/auth/account_screen.dart';
 import 'package:hepatocheck_app/presentation/screens/auth/forgot_password_screen.dart';
 import 'package:hepatocheck_app/presentation/screens/auth/login_screen.dart';
+import 'package:hepatocheck_app/presentation/screens/auth/register_screen.dart';
 import 'package:hepatocheck_app/presentation/screens/sync_consent_screen.dart';
 import 'package:hepatocheck_app/presentation/theme/app_theme.dart';
 
@@ -20,13 +23,21 @@ void main() {
   late FakeAuthRepository auth;
   late MemorySyncConsentRepository consent;
   late ProviderContainer container;
+  late FakeCloudVault vault;
+  late FakeCloudRestore restore;
 
   Future<void> pump(WidgetTester tester, Widget home) async {
     auth = FakeAuthRepository();
     consent = MemorySyncConsentRepository();
+    vault = FakeCloudVault(unlocked: false);
+    restore = FakeCloudRestore(
+      report: const RestoreReport(drinks: 8, exams: 2, goals: 1),
+    );
     container = ProviderContainer(
       overrides: [
         authRepositoryProvider.overrideWithValue(auth),
+        cloudVaultProvider.overrideWithValue(vault),
+        cloudRestoreProvider.overrideWithValue(restore),
         syncConsentRepositoryProvider.overrideWithValue(consent),
         syncQueueRepositoryProvider.overrideWithValue(MemorySyncQueue()),
       ],
@@ -155,6 +166,16 @@ void main() {
     await tester.enterText(find.byType(TextFormField), 'a@b.com');
     await tester.tap(find.widgetWithText(FilledButton, 'Enviar link'));
     await tester.pumpAndSettle();
+    expect(
+      find.text('Seus dados ficam trancados com a sua senha'),
+      findsOneWidget,
+    );
+    final proceed = find.widgetWithText(FilledButton, 'Continuar');
+    expect(tester.widget<FilledButton>(proceed).onPressed, isNull);
+    await tester.tap(find.text('Entendi'));
+    await tester.pump();
+    await tester.tap(proceed);
+    await tester.pumpAndSettle();
 
     expect(auth.resetEmails, ['a@b.com']);
     expect(find.textContaining('Se houver uma conta'), findsOneWidget);
@@ -165,6 +186,15 @@ void main() {
   ) async {
     await pump(tester, const SyncConsentScreen());
     expect(container.read(syncConsentProvider), isFalse);
+    expect(
+      find.textContaining('criptografada com a sua senha'),
+      findsOneWidget,
+    );
+    await tester.scrollUntilVisible(
+      find.textContaining('nunca é enviado'),
+      200,
+      scrollable: find.byType(Scrollable).first,
+    );
     expect(find.textContaining('nunca é enviado'), findsOneWidget);
 
     await tester.scrollUntilVisible(
@@ -212,5 +242,87 @@ void main() {
     expect(auth.currentUser, isNull);
     expect(consent.isGranted, isFalse);
     expect(container.read(syncConsentProvider), isFalse);
+    expect(vault.isUnlocked, isFalse);
+  });
+
+  Future<void> signInThroughScreen(WidgetTester tester) async {
+    await tester.enterText(
+      find.widgetWithText(TextFormField, 'E-mail'),
+      'a@b.com',
+    );
+    await tester.enterText(
+      find.widgetWithText(TextFormField, 'Senha'),
+      '123456',
+    );
+    await tester.tap(find.widgetWithText(FilledButton, 'Entrar'));
+    await tester.pumpAndSettle();
+  }
+
+  testWidgets('login abre o cofre, restaura os dados e avisa', (tester) async {
+    await pump(tester, const LoginScreen());
+
+    await signInThroughScreen(tester);
+
+    expect(vault.isUnlocked, isTrue);
+    expect(restore.restoredUids, ['uid-1']);
+    expect(
+      find.text('Seus dados foram restaurados: 8 drinques, 2 exames e 1 meta.'),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets(
+    'senha recuperada gera chave nova, apaga a cópia antiga e avisa',
+    (tester) async {
+      await pump(tester, const LoginScreen());
+      vault.keyMismatch = true;
+
+      await signInThroughScreen(tester);
+
+      expect(vault.resets, 1);
+      expect(restore.deletedUids, ['uid-1']);
+      expect(restore.restoredUids, ['uid-1']);
+      expect(find.textContaining('a cópia antiga da nuvem'), findsOneWidget);
+    },
+  );
+
+  testWidgets('cadastro só cria a conta depois de aceitar o aviso', (
+    tester,
+  ) async {
+    await pump(tester, const RegisterScreen());
+    await tester.enterText(
+      find.widgetWithText(TextFormField, 'E-mail'),
+      'a@b.com',
+    );
+    await tester.enterText(
+      find.widgetWithText(TextFormField, 'Senha'),
+      'senha-forte-1',
+    );
+    await tester.enterText(
+      find.widgetWithText(TextFormField, 'Confirmar senha'),
+      'senha-forte-1',
+    );
+    final create = find.widgetWithText(FilledButton, 'Criar conta');
+
+    await tester.ensureVisible(create);
+    await tester.tap(create);
+    await tester.pumpAndSettle();
+    expect(
+      find.text('Seus dados ficam trancados com a sua senha'),
+      findsOneWidget,
+    );
+    await tester.tap(find.text('Cancelar'));
+    await tester.pumpAndSettle();
+    expect(auth.currentUser, isNull);
+
+    await tester.tap(create);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Entendi'));
+    await tester.pump();
+    await tester.tap(find.widgetWithText(FilledButton, 'Continuar'));
+    await tester.pumpAndSettle();
+
+    expect(auth.currentUser?.email, 'a@b.com');
+    expect(vault.isUnlocked, isTrue);
   });
 }

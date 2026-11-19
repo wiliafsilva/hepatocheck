@@ -9,11 +9,24 @@ import '../theme/app_text_styles.dart';
 import '../widgets/content_width.dart';
 import '../widgets/section_label.dart';
 
-class SyncStatusScreen extends ConsumerWidget {
+class SyncStatusScreen extends ConsumerStatefulWidget {
   const SyncStatusScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<SyncStatusScreen> createState() => _SyncStatusScreenState();
+}
+
+class _SyncStatusScreenState extends ConsumerState<SyncStatusScreen> {
+  @override
+  void initState() {
+    super.initState();
+    Future.microtask(() {
+      if (mounted) ref.read(syncStatusProvider.notifier).refresh();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final status = ref.watch(syncStatusProvider);
     final notifier = ref.read(syncStatusProvider.notifier);
     final message = _reportMessage(status.lastReport);
@@ -105,6 +118,10 @@ class SyncStatusScreen extends ConsumerWidget {
       SyncSkipReason.noWifi => const _Message(
         Icons.wifi_off,
         'Conecte-se a uma rede Wi-Fi para sincronizar.',
+      ),
+      SyncSkipReason.vaultLocked => const _Message(
+        Icons.key_outlined,
+        'Entre de novo na sua conta para liberar a cópia criptografada. Seus dados continuam neste aparelho.',
       ),
       SyncSkipReason.alreadyRunning => null,
       null => _resultMessage(report),

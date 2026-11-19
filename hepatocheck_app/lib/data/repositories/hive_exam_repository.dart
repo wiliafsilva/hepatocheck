@@ -2,11 +2,13 @@ import 'package:hive_ce/hive.dart';
 
 import '../../domain/entities/lab_exam.dart';
 import '../../domain/entities/sync_item.dart';
+import '../../domain/repositories/cloud_restore.dart';
 import '../../domain/repositories/exam_repository.dart';
 import '../../domain/repositories/sync_queue_repository.dart';
 import '../models/firestore_mappers.dart';
 
-class HiveExamRepository implements ExamRepository {
+class HiveExamRepository
+    implements ExamRepository, RestorableRepository<LabExam> {
   HiveExamRepository(this._box, this._syncQueue);
 
   final Box<LabExam> _box;
@@ -37,6 +39,9 @@ class HiveExamRepository implements ExamRepository {
       payload: FirestoreMappers.examToFirestore(exam),
     );
   }
+
+  @override
+  Future<void> restore(LabExam exam) => _box.put(exam.id, exam);
 
   @override
   Future<void> delete(String id) async {

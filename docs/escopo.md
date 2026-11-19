@@ -47,6 +47,7 @@ Adultos de 30 a 60 anos. A persona prioritária é **Ricardo, 45 anos, "o Negado
 | Modo Camuflagem: o diário se disfarça de calculadora, com troca instantânea | RF09 |
 | Modo convidado e login opcional com Firebase Authentication | RF08, RNF16 |
 | Sincronização em lote com o Cloud Firestore só por Wi-Fi e com autorização, com anonimização e tratamento de falhas parciais | RF11, RNF08, RNF14, RNF15 |
+| Restauração automática dos dados ao entrar na conta em outro aparelho ou depois de reinstalar, com os valores exatos criptografados pela senha | RF25, RNF20 |
 
 ### Acompanhamento
 
@@ -61,7 +62,7 @@ Adultos de 30 a 60 anos. A persona prioritária é **Ricardo, 45 anos, "o Negado
 ### Qualidade e documentação
 
 - Arquitetura em camadas Presentation, Domain e Data, com estado gerenciado pelo Riverpod.
-- No mínimo três testes automatizados (cálculo do FIB-4, validação das entradas e criptografia), além dos testes da sincronização.
+- No mínimo três testes automatizados (cálculo do FIB-4, validação das entradas e criptografia), além dos testes da sincronização, da anonimização e da restauração.
 - Diagramas de casos de uso e de classes, modelagem do Firestore, fluxo de navegação, EAP, planejamento em sprints e registro do uso de IA.
 
 ## O que está fora do escopo
@@ -82,7 +83,7 @@ Adultos de 30 a 60 anos. A persona prioritária é **Ricardo, 45 anos, "o Negado
 | Prazo: entrega em 27/11/2026, em 4 sprints semanais | Funcionalidades congeladas em 23/11. Se faltar tempo, os itens são cortados da prioridade mais baixa para a mais alta |
 | Android 8.0 ou superior (RNF06, RNF12) | Pacotes e APIs precisam funcionar a partir da API 26 |
 | 100% offline (RF10, RNF05) | Todos os dados ficam no aparelho. A nuvem é opcional |
-| Privacidade e LGPD (RNF03, RNF15) | Nada é enviado sem autorização. A sincronização só acontece por Wi-Fi e com dados anonimizados |
+| Privacidade e LGPD (RNF03, RNF15) | Nada é enviado sem autorização. A sincronização só acontece por Wi-Fi, com a parte legível anonimizada e os valores exatos criptografados pela senha da pessoa |
 | Até 3 interações nas funções principais (RNF11) | O registro de drinque cabe em 3 toques a partir da tela Início |
 | Escopo clínico (RNF17) | Todas as telas de resultado avisam que o app não substitui avaliação médica |
 | Equipe de 5 integrantes sem experiência prévia em Flutter | Divisão por semana, branches por tarefa e revisão por pull request |

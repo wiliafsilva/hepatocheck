@@ -3,8 +3,11 @@ import 'dart:async';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../providers/auth_providers.dart';
+import '../providers/consent_providers.dart';
 import '../providers/drink_providers.dart';
 import '../providers/exam_providers.dart';
+import '../providers/goal_providers.dart';
 import '../providers/sync_providers.dart';
 
 class AutoSync extends ConsumerStatefulWidget {
@@ -64,6 +67,17 @@ class _AutoSyncState extends ConsumerState<AutoSync>
     });
     ref.listen(drinksProvider, (_, _) => _schedule());
     ref.listen(examsProvider, (_, _) => _schedule());
+    ref.listen(goalsProvider, (_, _) => _schedule());
+    ref.listen(authStateProvider, (previous, next) {
+      if (next.value?.uid == previous?.value?.uid) return;
+      ref.read(syncStatusProvider.notifier).clearMessage();
+      if (next.value != null) _schedule();
+    });
+    ref.listen(syncConsentControllerProvider, (previous, next) {
+      if (next == previous) return;
+      ref.read(syncStatusProvider.notifier).clearMessage();
+      if (next) _schedule();
+    });
     return widget.child;
   }
 }

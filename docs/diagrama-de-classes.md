@@ -4,7 +4,7 @@ Versão final do diagrama de classes da camada Domain do HepatoCheck (`hepatoche
 
 As entidades são classes Dart imutáveis, sem dependência de Flutter, Hive ou Firebase. Alterações são feitas com `copyWith`, que devolve uma nova instância. Os casos de uso são classes com um único método `call`, e os repositórios do Domain são interfaces implementadas na camada Data.
 
-O diagrama está dividido em três partes para continuar legível: entidades, repositórios e casos de uso.
+O diagrama está dividido em quatro partes para continuar legível: entidades, repositórios, casos de uso, e cofre e restauração.
 
 ## 1. Entidades
 
@@ -389,6 +389,97 @@ classDiagram
     }
 ```
 
+## 4. Cofre e restauração
+
+Classes que guardam a cópia na nuvem criptografada pela senha e trazem os dados de volta ao entrar na conta em outro aparelho (RF25).
+
+```mermaid
+classDiagram
+    direction TB
+
+    class CloudVault {
+        <<interface>>
+        +isUnlocked bool
+        +keyVersion int?
+        +create(uid, password)
+        +unlock(uid, password)
+        +resume(uid) bool
+        +reset(uid, password)
+        +rewrap(uid, newPassword)
+        +lock()
+        +forget(uid)
+        +seal(data) SealedData
+        +open(SealedData) Map
+    }
+    class SealedData {
+        +String sealed
+        +String nonce
+        +int keyVersion
+        +toFields() Map
+        +fromFields(Map)$ SealedData?
+    }
+    class VaultLockedException
+    class VaultKeyMismatchException
+    class FirestoreCloudVault {
+        +int iterations
+    }
+
+    class CloudRestore {
+        <<interface>>
+        +restore(uid) RestoreReport
+        +deleteRemote(uid)
+    }
+    class RestoreReport {
+        +int drinks
+        +int exams
+        +int goals
+        +int unreadable
+        +total int
+    }
+    class RestorableRepository~T~ {
+        <<interface>>
+        +getAll() List~T~
+        +restore(T)
+    }
+    class FirestoreCloudRestore
+
+    class SyncPendingItems {
+        +call(userId, hasConsent, isOnWifi) SyncReport
+    }
+    class AccountSession {
+        +signIn(email, password) SignInResult
+        +register(email, password)
+    }
+    class SignInResult {
+        +RestoreReport? report
+        +bool keyReset
+        +message String?
+    }
+
+    CloudVault <|.. FirestoreCloudVault
+    CloudRestore <|.. FirestoreCloudRestore
+    RestorableRepository <|.. HiveDrinkRepository
+    RestorableRepository <|.. HiveExamRepository
+    RestorableRepository <|.. HiveGoalRepository
+    CloudVault ..> SealedData : sela e abre
+    CloudVault ..> VaultLockedException
+    CloudVault ..> VaultKeyMismatchException
+    FirestoreCloudRestore --> CloudVault : abre a parte selada
+    FirestoreCloudRestore --> RestorableRepository : grava no aparelho
+    FirestoreCloudRestore ..> RestoreReport
+    SyncPendingItems ..> CloudVault : sela antes do envio
+    AccountSession --> CloudVault
+    AccountSession --> CloudRestore
+    AccountSession ..> SignInResult
+```
+
+- **`CloudVault`** (Domain) e **`FirestoreCloudVault`** (Data): uma chave de dados aleatória de 32 bytes criptografa a parte selada com AES-GCM 256. A chave fica no documento `users/{uid}` trancada por uma chave derivada da senha (PBKDF2-HMAC-SHA256) e, no aparelho, no armazenamento seguro. `reset` cria uma chave nova depois da recuperação de senha; `rewrap` tranca a mesma chave com uma senha nova; `forget` apaga a chave do aparelho.
+- **`SealedData`**: os três campos da parte selada (`sealed`, `sealedNonce`, `keyVersion`).
+- **`CloudRestore`** (Domain) e **`FirestoreCloudRestore`** (Data): baixa as três coleções, abre a parte selada e junta com o aparelho pela versão mais recente, sem desfazer o que está na fila. `deleteRemote` apaga a cópia da nuvem.
+- **`RestorableRepository`**: os repositórios Hive ganham `restore`, que grava sem colocar na fila e sem registro de alterações.
+- **`SyncPendingItems`**: recebe `seal` e `sealReady`; com o cofre trancado, o envio espera (`SyncSkipReason.vaultLocked`).
+- **`AccountSession`** (Presentation): junta login, abertura do cofre e restauração automática, e o cadastro com a criação do cofre.
+
 ## Entidades
 
 | Entidade | Responsabilidade | Relacionamentos |
@@ -411,6 +502,7 @@ Os casos de uso também devolvem objetos de resultado que não são gravados: `C
 
 - **Entidades novas:** `DrinkServing`, `ReportPeriod`, `ConsumptionReport`, `DailyConsumption`, `FollowUpSettings` e `AuthUser`.
 - **Repositórios e casos de uso:** passaram a fazer parte do diagrama (seções 2 e 3).
+- **Cofre e restauração:** seção 4, com as classes da restauração dos dados em outro aparelho (RF25).
 - **`UserPreferences` saiu do diagrama:** no rascunho, uma única entidade guardava camuflagem, consentimento e lembretes. Na implementação, cada preferência ficou com o componente responsável: o Modo Camuflagem usa o armazenamento seguro (`CamouflagePreferencesStore`), o consentimento tem o seu repositório (`SyncConsentRepository`) e os lembretes usam `FollowUpSettings`. A classe ainda existe em `domain/entities/user_preferences.dart`, mas não é usada.
 
 ## Persistência local
@@ -419,4 +511,4 @@ Os casos de uso também devolvem objetos de resultado que não são gravados: `C
 
 O Hive criptografa os valores, mas não as chaves de cada registro. Por isso, os registros são gravados usando o `id` (UUID aleatório) como chave, sem nenhuma informação sensível.
 
-A conversão das entidades para os documentos do Firestore está em [`modelagem-firestore.md`](modelagem-firestore.md).
+A conversão das entidades para os documentos do Firestore, a parte selada e a restauração estão em [`modelagem-firestore.md`](modelagem-firestore.md).

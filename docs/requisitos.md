@@ -2,7 +2,7 @@
 
 Documento da Unidade I atualizado na Unidade II. O conteúdo da Unidade I foi mantido, e esta versão acrescenta o que a Unidade II passou a exigir:
 
-- **Requisitos funcionais novos:** RF17 a RF24.
+- **Requisitos funcionais novos:** RF17 a RF25.
 - **Requisitos não funcionais novos:** RNF18 a RNF22.
 - **Priorização:** nova seção "Priorização na Unidade II", porque itens antes classificados como secundários passaram a ser obrigatórios.
 - **CRUD:** a conta opcional e a fila de sincronização foram incluídas.
@@ -124,13 +124,15 @@ Defina as principais funcionalidades do aplicativo.
 
 **RF20 - Notificações educativas personalizadas:** Além dos lembretes do RF13, o sistema deve enviar mensagens educativas escolhidas a partir do consumo registrado, das metas e da faixa de risco do usuário, somente quando ele ativar essa opção.
 
-**RF21 - Autenticação opcional para sincronização em nuvem:** O sistema deve permitir cadastro, login e recuperação de senha por e-mail, usando o Firebase Authentication. A conta deve ser exigida apenas para sincronizar; sem ela, o aplicativo continua funcionando no modo convidado (RF08).
+**RF21 - Autenticação opcional para sincronização em nuvem:** O sistema deve permitir cadastro, login e recuperação de senha por e-mail, usando o Firebase Authentication. A conta deve ser exigida apenas para sincronizar e para recuperar os dados em outro aparelho (RF25); sem ela, o aplicativo continua funcionando no modo convidado (RF08).
 
 **RF22 - Sincronização transacional em lote com recuperação de falhas parciais:** O sistema deve enviar as alterações pendentes para o Cloud Firestore em lotes transacionais (cada lote é gravado por inteiro ou não é gravado). Quando um lote for recusado, os itens dele devem ficar marcados como falha, com o motivo, e os demais lotes devem continuar. O usuário deve ver quantos registros estão pendentes e quantos falharam, e poder tentar de novo. Envios interrompidos devem voltar para a fila.
 
-**RF23 - Anonimização dos dados antes do envio:** Antes de enviar os dados para a nuvem, o sistema deve remover nome, e-mail, observações livres e qualquer campo não previsto, trocar a idade exata por uma faixa etária (por exemplo, 40-49) e guardar as datas sem o horário. A identificação do usuário deve aparecer apenas no caminho do documento, usado pelas regras de segurança.
+**RF23 - Anonimização dos dados antes do envio:** Antes de enviar os dados para a nuvem, o sistema deve remover nome, e-mail, observações livres e qualquer campo não previsto, trocar a idade exata por uma faixa etária (por exemplo, 40-49) e guardar as datas sem o horário na parte legível do documento. Os valores exatos, necessários para a restauração (RF25), devem ir apenas numa parte selada, criptografada com uma chave que só a senha do usuário abre, de modo que nem quem administra o servidor consiga lê-los. A identificação do usuário deve aparecer apenas no caminho do documento, usado pelas regras de segurança.
 
 **RF24 - Registro de alterações do diário sem expor o conteúdo:** O sistema deve manter um registro das criações, edições e exclusões do diário de álcool encadeado por códigos de verificação (hash), de modo que uma alteração indevida no histórico possa ser detectada. Esse registro não deve guardar o tipo de bebida, a quantidade nem outro valor do diário, e não deve ser enviado para a nuvem.
+
+**RF25 - Restauração automática dos dados ao entrar na conta:** Ao fazer login, em outro aparelho, depois de reinstalar o aplicativo ou num segundo dispositivo, o sistema deve restaurar automaticamente, sem perguntar, os registros do diário, os exames e as metas que foram sincronizados, com os valores exatos (idade, data e hora). Quando o mesmo registro existir no aparelho e na nuvem, deve valer a versão mais recente, e alterações ainda não enviadas não podem ser desfeitas. O sistema deve avisar, ao criar a conta e antes de recuperar a senha, que a cópia na nuvem é criptografada com a senha: se a senha for recuperada, a cópia antiga não pode ser aberta, e os dados ainda presentes no aparelho são enviados de novo.
 
 ## Requisitos não funcionais
 
@@ -174,7 +176,7 @@ Defina as principais funcionalidades do aplicativo.
 
 **RNF19 - Gerenciamento de estado:** O estado do aplicativo deve ser gerenciado com o Riverpod, que também deve fornecer os repositórios e serviços às telas, permitindo substituí-los nos testes automatizados.
 
-**RNF20 - Criptografia:** Os registros guardados no aparelho devem ser criptografados com AES, com a chave mantida no armazenamento seguro do sistema. Com o Modo Camuflagem ativo, todo o banco local deve ficar criptografado e o acesso ao diário deve exigir o código secreto.
+**RNF20 - Criptografia:** Os registros guardados no aparelho devem ser criptografados com AES, com a chave mantida no armazenamento seguro do sistema. Com o Modo Camuflagem ativo, todo o banco local deve ficar criptografado e o acesso ao diário deve exigir o código secreto. Os valores exatos enviados para a nuvem devem ser criptografados com AES-GCM por uma chave de dados trancada pela senha do usuário (PBKDF2), que nunca é enviada aberta.
 
 **RNF21 - Troca instantânea entre diário e calculadora:** A troca entre o diário e a calculadora do Modo Camuflagem deve acontecer sem atraso perceptível. Ao ir para segundo plano com a camuflagem ativa, o aplicativo deve voltar para a calculadora e ocultar o conteúdo na tela de aplicativos recentes.
 
@@ -224,10 +226,11 @@ O CRUD do HepatoCheck foi definido a partir das necessidades identificadas na pe
 
 | Operação | Como será aplicada | Justificativa |
 | --- | --- | --- |
-| **Criar** | O usuário cria a conta com e-mail e senha, apenas se quiser sincronizar. Depois do cadastro, o aplicativo pergunta se ele autoriza o envio. | A conta é opcional (RF21); o modo convidado continua disponível. |
+| **Criar** | O usuário cria a conta com e-mail e senha, apenas se quiser sincronizar. Antes, o aplicativo mostra o aviso de que a cópia na nuvem fica trancada com a senha, com "Entendi" obrigatório. Depois do cadastro, o aplicativo pergunta se ele autoriza o envio. | A conta é opcional (RF21); o modo convidado continua disponível. O aviso deixa clara a consequência de perder a senha (RF25). |
 | **Consultar** | O usuário vê se está conectado, com qual e-mail, e se autorizou a sincronização. | Deixa claro quando os dados podem sair do aparelho. |
-| **Atualizar** | O usuário pode recuperar a senha por e-mail e conceder ou revogar a autorização de sincronização. | A autorização deve ser revogável a qualquer momento (LGPD). |
-| **Excluir** | O usuário pode sair da conta; ao sair, a autorização de sincronização é revogada. | A autorização vale para a conta que a deu, não para quem usar o aparelho depois. |
+| **Consultar (outro aparelho)** | Ao entrar na conta, os dados sincronizados voltam automaticamente para o aparelho. | Permite trocar de aparelho ou reinstalar o app sem perder o acompanhamento (RF25). |
+| **Atualizar** | O usuário pode recuperar a senha por e-mail, depois do mesmo aviso do cadastro, e conceder ou revogar a autorização de sincronização. | A autorização deve ser revogável a qualquer momento (LGPD). Com a senha recuperada, a cópia antiga não abre e o aparelho reenvia os dados. |
+| **Excluir** | O usuário pode sair da conta; ao sair, a autorização de sincronização é revogada e a chave da cópia na nuvem é esquecida no aparelho. Os dados continuam no aparelho. | A autorização vale para a conta que a deu, não para quem usar o aparelho depois. |
 
 ### Informações que não formam um CRUD próprio
 
@@ -323,6 +326,7 @@ Na Unidade II, a lista de exigências do projeto tornou obrigatórios alguns ite
 | Modo camuflagem | Secundária | Obrigatória, com criptografia do banco ao ativar | RF09, RNF20, RNF21 |
 | Exportação do resumo em PDF | Secundária | Obrigatória, com compartilhamento | RF16 |
 | Sincronização via Wi-Fi | Importante | Obrigatória, em lote, com anonimização e tratamento de falhas parciais | RF11, RF22, RF23 |
+| Restauração em outro aparelho | Não previsto | Obrigatória, pedida pela professora: automática ao entrar na conta, com os valores exatos criptografados pela senha | RF25 |
 | Login e cadastro | Telas de apoio | Obrigatória, mantendo o modo convidado | RF08, RF21 |
 | Relatórios semanais e mensais | Não previsto | Obrigatória | RF17 |
 | Evolução do risco e dashboard dos exames | Importante (gráfico de evolução) | Obrigatória | RF07, RF18, RF19 |

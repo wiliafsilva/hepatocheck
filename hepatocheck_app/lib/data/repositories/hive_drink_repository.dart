@@ -4,11 +4,13 @@ import '../../domain/entities/audit_entry.dart';
 import '../../domain/entities/drink_entry.dart';
 import '../../domain/entities/sync_item.dart';
 import '../../domain/repositories/audit_log_repository.dart';
+import '../../domain/repositories/cloud_restore.dart';
 import '../../domain/repositories/drink_repository.dart';
 import '../../domain/repositories/sync_queue_repository.dart';
 import '../models/firestore_mappers.dart';
 
-class HiveDrinkRepository implements DrinkRepository {
+class HiveDrinkRepository
+    implements DrinkRepository, RestorableRepository<DrinkEntry> {
   HiveDrinkRepository(this._box, this._auditLog, this._syncQueue);
 
   final Box<DrinkEntry> _box;
@@ -45,6 +47,9 @@ class HiveDrinkRepository implements DrinkRepository {
       payload: FirestoreMappers.drinkToFirestore(entry),
     );
   }
+
+  @override
+  Future<void> restore(DrinkEntry entry) => _box.put(entry.id, entry);
 
   @override
   Future<void> delete(String id) async {

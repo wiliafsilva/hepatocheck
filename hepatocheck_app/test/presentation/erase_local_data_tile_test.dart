@@ -2,12 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hepatocheck_app/domain/repositories/local_data_eraser.dart';
+import 'package:hepatocheck_app/presentation/providers/auth_providers.dart';
 import 'package:hepatocheck_app/presentation/providers/drink_providers.dart';
 import 'package:hepatocheck_app/presentation/providers/exam_providers.dart';
 import 'package:hepatocheck_app/presentation/providers/local_data_providers.dart';
+import 'package:hepatocheck_app/presentation/providers/sync_providers.dart';
 import 'package:hepatocheck_app/presentation/theme/app_theme.dart';
 import 'package:hepatocheck_app/presentation/widgets/erase_local_data_tile.dart';
 
+import '../support/fake_auth_repository.dart';
+import '../support/sync_fakes.dart';
 import '../support/test_data.dart';
 
 class _FakeEraser implements LocalDataEraser {
@@ -33,12 +37,17 @@ void main() {
   late MemoryDrinkRepository drinks;
   late MemoryExamRepository exams;
   late _FakeEraser eraser;
+  late FakeAuthRepository auth;
+  late FakeCloudVault vault;
   late ProviderContainer container;
 
   setUp(() async {
     drinks = MemoryDrinkRepository();
     exams = MemoryExamRepository();
     eraser = _FakeEraser(drinks, exams);
+    auth = FakeAuthRepository();
+    await auth.signIn(email: 'a@b.com', password: '123456');
+    vault = FakeCloudVault();
     await drinks.save(testDrink(2, DateTime(2026, 11, 14)));
     await exams.save(testExam());
     container = ProviderContainer(
@@ -46,6 +55,8 @@ void main() {
         drinkRepositoryProvider.overrideWithValue(drinks),
         examRepositoryProvider.overrideWithValue(exams),
         localDataEraserProvider.overrideWithValue(eraser),
+        authRepositoryProvider.overrideWithValue(auth),
+        cloudVaultProvider.overrideWithValue(vault),
       ],
     );
   });
@@ -89,6 +100,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(eraser.calls, 1);
+    expect(vault.isUnlocked, isFalse);
     expect(container.read(drinksProvider), isEmpty);
     expect(container.read(examsProvider), isEmpty);
     expect(
