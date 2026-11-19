@@ -6,6 +6,7 @@ Este documento foi escrito na Unidade I e atualizado na Unidade II para acompanh
 - O banco local passou a ser o Hive, com criptografia AES, no lugar do SQLite.
 - O Modo Camuflagem ganhou criptografia do banco e código secreto.
 - A sincronização passou a ser feita em lote, com anonimização.
+- Os dados voltam sozinhos ao entrar na conta em outro aparelho, com os valores exatos criptografados pela senha.
 - O Início mostra um medidor de saúde do fígado.
 - O Relatório ganhou o dashboard de exames, o modo consulta e o PDF.
 
@@ -57,7 +58,7 @@ Na tela Início, o medidor de saúde do fígado cumpre o papel do gráfico "vida
 
 O estudo de caso previa a orientação sobre quando procurar o médico como uma das quatro telas principais. No protótipo, ela passou a ser uma sobreposição aberta a partir do selo de risco do Início e do cartão de risco do Relatório, para aparecer exatamente quando o usuário vê o próprio resultado, sem precisar navegar. A orientação continua sendo uma função essencial e apenas mudou de formato. A vaga de tela principal passou para o Relatório, que reúne a visualização de indicadores e o modo consulta.
 
-Login, cadastro, recuperação e alteração de senha e política de privacidade são telas de apoio, acessadas apenas quando necessário. O Perfil reúne a conta, as metas, as notificações e lembretes, o Modo Camuflagem, a sincronização e a opção de apagar todos os dados locais.
+Login, cadastro, recuperação de senha, o aviso da senha e a política de privacidade são telas de apoio, acessadas apenas quando necessário. O Perfil reúne a conta, as metas, as notificações e lembretes, o Modo Camuflagem, a sincronização e a opção de apagar todos os dados locais.
 
 As metas de redução (RF15) entraram nesta versão, porque a Unidade II passou a exigi-las. A tela Metas permite criar, acompanhar, editar e excluir metas, como o limite de drinques por semana. O Relatório mostra o progresso de cada meta no período. Quando o consumo da semana passa do limite definido pelo usuário, a classificação de risco sobe um nível, para que a meta tenha efeito real no resultado.
 
@@ -132,7 +133,7 @@ O mesmo aplicativo precisa funcionar em situações muito diferentes, por isso c
 | No bar, em pé e com distrações          | Registro rápido em três toques, botões grandes e tema escuro, que chama menos atenção                     |
 | Pessoas próximas vendo o celular        | Modo Camuflagem, que troca o app na hora por uma calculadora funcional. O diário só volta com o código secreto, guardado apenas como hash. Ao sair do app, ele volta para a calculadora e fica oculto na tela de apps recentes. Ao ativar, todo o banco local passa a ser criptografado. As notificações ficam com texto neutro. O modo convidado continua funcionando sem cadastro |
 | Sem internet                            | Todos os dados são gravados no aparelho, criptografados com AES, e o app funciona 100% offline             |
-| Rede móvel ou pública                   | Sincronização apenas via Wi-Fi, com conta e autorização explícita, que pode ser revogada. Os dados são anonimizados antes do envio e enviados em lote |
+| Rede móvel ou pública                   | Sincronização apenas via Wi-Fi, com conta e autorização explícita, que pode ser revogada. Os dados são anonimizados antes do envio e enviados em lote, e os valores exatos vão criptografados com a senha da pessoa |
 | Em casa, com mais tempo                 | Relatório com gráficos e histórico para análise com calma                                                 |
 | Durante a consulta médica               | Modo consulta com os principais indicadores e exportação do resumo em PDF, com confirmação antes de compartilhar |
 | Preocupação ao ver o resultado          | Classificação objetiva em três cores e orientação clara sobre quando procurar o médico, sem tom alarmista |
@@ -157,7 +158,9 @@ flowchart TD
     DB["Banco local — Hive com AES"]
     QUEUE["Fila offline"]
     ANON["Anonimizador"]
+    VAULT["Cofre: chave trancada pela senha"]
     SYNC["Sincronizador em lote"]
+    RESTORE["Restauração no login"]
 
     subgraph CLOUD["Firebase — nuvem opcional"]
         AUTH["Firebase Authentication"]
@@ -170,9 +173,14 @@ flowchart TD
     DATA --> DB
     DATA -->|"criar, editar, excluir"| QUEUE
     QUEUE -->|"Wi-Fi, conta e autorização"| ANON
-    ANON --> SYNC
+    ANON -->|"parte legível"| SYNC
+    VAULT -->|"parte selada"| SYNC
     SYNC -->|"WriteBatch"| FIRESTORE
     UI -->|"Login e cadastro"| AUTH
+    AUTH -->|"senha abre o cofre"| VAULT
+    FIRESTORE --> RESTORE
+    VAULT --> RESTORE
+    RESTORE --> DB
 ```
 
 ### Componentes
@@ -185,8 +193,10 @@ flowchart TD
 | **Data — banco local Hive** | Guarda diário, exames, metas, preferências, fila de sincronização e log de alterações em caixas criptografadas com AES-256. A chave fica no armazenamento seguro do aparelho (`flutter_secure_storage`). Funciona sem internet, inclusive no modo convidado. |
 | **Log de alterações** | Registra cada criação, edição e exclusão do diário apenas com o momento, o ID e um hash SHA-256 encadeado, sem guardar o conteúdo (RF24). |
 | **Fila offline e sincronizador** | Cada alteração vira um item na fila. Com Wi-Fi, conta e autorização, os itens são anonimizados e enviados em lotes de até 20 com `WriteBatch`, que grava o lote inteiro ou nada. Se um lote falha, só os itens dele ficam marcados com o erro e os outros lotes seguem. A tela de sincronização mostra pendentes e falhas e tem o botão "Tentar de novo". |
-| **Firebase Authentication** | Gerencia login, cadastro e recuperação de senha. A conta é opcional e só é necessária para a sincronização. |
-| **Cloud Firestore** | Armazena a cópia anonimizada dos registros autorizados. As regras de segurança permitem que cada usuário leia e grave apenas os próprios documentos. |
+| **Firebase Authentication** | Gerencia login, cadastro e recuperação de senha. A conta é opcional e só é necessária para a sincronização e para recuperar os dados em outro aparelho. |
+| **Cofre da chave** | Uma chave aleatória criptografa os valores exatos (AES-GCM 256, bibliotecas `cryptography` e `cryptography_flutter`). Essa chave vai para a nuvem trancada pela senha (PBKDF2) e fica no armazenamento seguro do aparelho. |
+| **Restauração** | Ao entrar na conta, baixa os registros, abre a parte selada com a chave e grava no aparelho, juntando com o que já existe pela versão mais recente. |
+| **Cloud Firestore** | Armazena a cópia dos registros autorizados: uma parte legível anonimizada e uma parte selada com os valores exatos. As regras de segurança permitem que cada usuário leia e grave apenas os próprios documentos, e exigem a parte selada. |
 
 ### Fluxo de funcionamento
 
@@ -195,4 +205,16 @@ flowchart TD
 3. Os registros são lidos e gravados no Hive, sempre criptografados.
 4. Cada alteração entra na fila offline.
 5. Ao abrir o app ou ao conectar no Wi-Fi, o sincronizador verifica a conta e a autorização do usuário.
-6. Quando as condições são atendidas, os registros são anonimizados e enviados em lote ao Firestore. Em rede móvel, nada é enviado.
+6. Quando as condições são atendidas, os registros são anonimizados, selados com a chave e enviados em lote ao Firestore. Em rede móvel, nada é enviado.
+7. Ao entrar na conta em outro aparelho ou depois de reinstalar o app, a senha abre a chave e os registros voltam automaticamente para o aparelho.
+
+### Restauração com a chave trancada pela senha
+
+A professora pediu que os dados pudessem ser recuperados ao trocar de aparelho, ao reinstalar o app e ao entrar na conta em outros dispositivos. A cópia anonimizada sozinha não permite isso, porque não guarda a idade exata, que o FIB-4 precisa, nem o horário dos registros. O grupo avaliou duas saídas:
+
+| Opção | Como seria | Por que foi ou não escolhida |
+| --- | --- | --- |
+| Enviar os valores exatos abertos | A nuvem guardaria idade e horários exatos, só sem nome e e-mail | Mais simples, mas quem administra o Firebase poderia ler a idade exata e os horários de consumo de álcool |
+| **Valores exatos criptografados com a senha (escolhida)** | A parte legível continua anonimizada; os valores exatos vão numa parte selada que só a senha da pessoa abre | Mantém a anonimização para quem olhar a nuvem, inclusive a equipe, e permite a restauração completa |
+
+A consequência da escolha é que, se a pessoa esquecer a senha e usar a recuperação, a cópia antiga não pode ser aberta. Para isso não pegar ninguém de surpresa, o aplicativo mostra um aviso ao criar a conta e antes de recuperar a senha, com "Entendi" obrigatório. Os dados que ainda estão no aparelho são enviados de novo com a chave nova; o histórico só se perde se a pessoa perder a senha e o aparelho ao mesmo tempo.
