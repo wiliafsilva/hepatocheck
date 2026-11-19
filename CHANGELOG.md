@@ -103,9 +103,12 @@
 - Modo consulta - Resumo para o profissional de saúde, aberto pelo Relatório
 - Orientação médica - Quando procurar o médico, aberta pelo selo de risco no Início e no Relatório
 - Risco alto - Filtro amarelado de icterícia na tela Início, com explicação e acesso à orientação médica
-- Documentação - Registro do uso de IA com a justificativa das bibliotecas, fluxo de navegação real em diagramas e versão final do diagrama de classes
+- Restauração - Os dados voltam sozinhos ao entrar na conta em outro aparelho ou depois de reinstalar o app, com os valores exatos (RF25)
+- Criptografia na nuvem - Valores exatos numa parte selada, criptografada com AES-GCM por uma chave trancada pela senha (PBKDF2), que nem a equipe consegue ler
+- Aviso da senha - Ao criar a conta e antes de recuperar a senha, com "Entendi" obrigatório
+- Documentação - Registro do uso de IA com a justificativa das bibliotecas, fluxo de navegação real em diagramas, versão final do diagrama de classes e restauração na modelagem do Firestore
 - Readme - Como rodar, testar e gerar o APK do app
-- Testes - Teste completo no Android 8.0 e 361 testes automatizados passando
+- Testes - Teste completo no Android 8.0, testes do cofre, da parte selada e da restauração entre dois aparelhos, 386 testes automatizados passando
 
 ### Alterado
 - Tema - Barra de navegação em pílula e cartões, campos e botões no estilo do protótipo de alta fidelidade
@@ -113,7 +116,11 @@
 - Relatório e PDF - Drinques padrão sempre com uma casa decimal e títulos do PDF junto das tabelas
 - Drinks - Data e hora em linha própria
 - Nome do app - HepatoCheck no ícone, na lista de apps e nas notificações
-- Documentação - Requisitos, arquitetura e justificativas da Unidade I atualizados para a Unidade II
+- Sincronização - Envio automático também ao entrar na conta, ao autorizar e ao mudar uma meta
+- Regras do Firestore - Documento da chave em users/{uid} e parte selada obrigatória em drinques, exames e metas
+- Conta - Sair da conta e Apagar todos os dados esquecem a chave neste aparelho
+- Consentimento e política de privacidade - Explicam a criptografia pela senha e a restauração
+- Documentação - Requisitos (RF25), arquitetura, justificativas, escopo e modelagem do Firestore atualizados para a Unidade II
 
 ### Corrigido
 - Exames - Exame duplicado evitado, classificação pelo FIB-4 exibido e corte de 65 anos no dashboard
