@@ -36,7 +36,6 @@ class _ExamsScreenState extends ConsumerState<ExamsScreen> {
   String _draftId = const Uuid().v4();
   Map<ExamField, String> _errors = const {};
   double? _plateletSuggestion;
-  LabExam? _lastSaved;
   bool _saving = false;
 
   @override
@@ -150,10 +149,13 @@ class _ExamsScreenState extends ConsumerState<ExamsScreen> {
 
     setState(() {
       _saving = false;
-      _lastSaved = exam;
       _resetForm(keepAge: true);
     });
-    _showMessage(editing == null ? 'Exame salvo.' : 'Exame atualizado.');
+    final result = ref.read(calculateFib4Provider)(exam);
+    _showMessage(
+      '${editing == null ? 'Exame salvo' : 'Exame atualizado'}. '
+      'FIB-4: ${formatScore(result.score)} (${result.riskLevel.label}).',
+    );
   }
 
   Future<bool> _confirmAgeConflict(ExamAgeConflict conflict) async {
@@ -259,7 +261,6 @@ class _ExamsScreenState extends ConsumerState<ExamsScreen> {
     if (!mounted) return;
     setState(() {
       if (_editing?.id == exam.id) _resetForm(keepAge: true);
-      if (_lastSaved?.id == exam.id) _lastSaved = null;
     });
     _showMessage('Exame excluído.');
   }
@@ -275,10 +276,6 @@ class _ExamsScreenState extends ConsumerState<ExamsScreen> {
     final exams = ref.watch(examsProvider);
     final calculate = ref.watch(calculateFib4Provider);
     final latest = exams.isEmpty ? null : exams.first;
-    final shown = _lastSaved == null
-        ? latest
-        : exams.where((exam) => exam.id == _lastSaved!.id).firstOrNull ??
-              latest;
 
     return ListView(
       controller: _scrollController,
@@ -318,15 +315,11 @@ class _ExamsScreenState extends ConsumerState<ExamsScreen> {
             ),
           ),
         ),
-        if (shown != null) ...[
+        if (latest != null) ...[
           const SizedBox(height: 24),
           const SectionLabel('RESULTADO'),
           const SizedBox(height: 8),
-          _ResultCard(
-            exam: shown,
-            result: calculate(shown),
-            isLatest: shown.id == latest?.id,
-          ),
+          _ResultCard(exam: latest, result: calculate(latest)),
         ],
         const SizedBox(height: 24),
         SectionLabel(
@@ -540,15 +533,10 @@ class _NumberField extends StatelessWidget {
 }
 
 class _ResultCard extends StatelessWidget {
-  const _ResultCard({
-    required this.exam,
-    required this.result,
-    required this.isLatest,
-  });
+  const _ResultCard({required this.exam, required this.result});
 
   final LabExam exam;
   final Fib4Result result;
-  final bool isLatest;
 
   @override
   Widget build(BuildContext context) {
@@ -576,16 +564,6 @@ class _ResultCard extends StatelessWidget {
               'Exame de ${formatDate(exam.examDate)}',
               style: AppTextStyles.caption,
             ),
-            if (!isLatest) ...[
-              const SizedBox(height: 6),
-              Text(
-                'Este não é o exame mais recente. O risco atual usa o último '
-                'exame do histórico.',
-                style: AppTextStyles.caption.copyWith(
-                  color: AppColors.textPrimary,
-                ),
-              ),
-            ],
             const SizedBox(height: 8),
             Text(
               result.riskLevel.description,

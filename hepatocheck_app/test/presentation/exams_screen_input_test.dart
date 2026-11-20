@@ -122,7 +122,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(repository.stored, hasLength(1));
-    expect(find.text('Exame salvo.'), findsOneWidget);
+    expect(find.textContaining('Exame salvo. FIB-4:'), findsOneWidget);
   });
 
   testWidgets('avisa quando a idade não combina com um exame anterior', (
@@ -173,7 +173,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(repository.stored, hasLength(2));
-    expect(find.text('Exame salvo.'), findsOneWidget);
+    expect(find.textContaining('Exame salvo. FIB-4:'), findsOneWidget);
   });
 
   testWidgets('idade coerente salva sem aviso', (tester) async {
@@ -232,5 +232,56 @@ void main() {
 
     expect(tester.getSize(dateText).height, lessThan(lineHeight * 1.5));
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('salvar um exame antigo não troca o resultado do mais recente', (
+    tester,
+  ) async {
+    final today = DateUtils.dateOnly(DateTime.now());
+    final repository = _MemoryExamRepository([
+      LabExam(
+        id: 'recente',
+        examDate: today,
+        age: 56,
+        ast: 25,
+        alt: 30,
+        platelets: 250,
+        createdAt: today,
+        updatedAt: today,
+      ),
+    ]);
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [examRepositoryProvider.overrideWithValue(repository)],
+        child: const MaterialApp(home: Scaffold(body: ExamsScreen())),
+      ),
+    );
+    expect(find.text('1,02'), findsWidgets);
+
+    final antigo = LabExam(
+      id: 'antigo',
+      examDate: today.subtract(const Duration(days: 150)),
+      age: 55,
+      ast: 35,
+      alt: 36,
+      platelets: 181,
+      createdAt: today,
+      updatedAt: today,
+    );
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(ExamsScreen)),
+    );
+    await container.read(examsProvider.notifier).save(antigo);
+    await tester.pumpAndSettle();
+
+    final resultCard = find.ancestor(
+      of: find.text('Resultado FIB-4'),
+      matching: find.byType(Card),
+    );
+    expect(
+      find.descendant(of: resultCard, matching: find.text('1,02')),
+      findsOneWidget,
+    );
+    expect(find.textContaining('não é o exame mais recente'), findsNothing);
   });
 }
