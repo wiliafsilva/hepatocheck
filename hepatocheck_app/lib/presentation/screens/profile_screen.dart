@@ -113,7 +113,7 @@ class ProfileScreen extends ConsumerWidget {
               ),
               subtitle: Text(
                 user == null
-                    ? 'Entrar ou criar conta. Sem conta, seus dados ficam só neste aparelho.'
+                    ? 'Entre com sua conta'
                     : 'Conta conectada',
               ),
               trailing: user == null ? const Icon(Icons.chevron_right) : null,
