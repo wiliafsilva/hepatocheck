@@ -25,6 +25,7 @@ O código segue três camadas, **Presentation**, **Domain** e **Data**, e o esta
 | Nuvem | Cloud Firestore, região `southamerica-east1` (São Paulo) |
 | Notificações | `flutter_local_notifications`, `timezone` e `flutter_timezone` |
 | Gráficos | `fl_chart` |
+| Imagens vetoriais (corpo, fígado e bebidas) | `flutter_svg`, com os arquivos SVG em `assets/images` |
 | PDF e compartilhamento | `pdf` e `printing` |
 | Hash do registro de alterações | `crypto` (SHA-256) |
 | Criptografia da cópia na nuvem | `cryptography` e `cryptography_flutter` (AES-GCM 256 e PBKDF2-HMAC-SHA256, com a implementação nativa do Android) |
@@ -116,13 +117,14 @@ hepatocheck_app/lib/
 
 A navegação principal é uma barra inferior com 5 abas: **Início**, **Relatório**, **Drinks**, **Exames** e **Perfil**. O botão **+** do Início abre o registro rápido de bebida.
 
-Outras telas são abertas a partir dessas abas: metas de redução, notificações e lembretes, sincronização, consentimento, conta (login, cadastro, recuperação de senha e política de privacidade) e a calculadora do Modo Camuflagem.
+Outras telas são abertas a partir dessas abas: metas de redução, notificações e lembretes, sincronização, consentimento, conta (login, cadastro, recuperação de senha, alterar senha e política de privacidade), resumo em PDF e a calculadora do Modo Camuflagem. O Perfil (`ProfileScreen`) organiza esses acessos em cartões por assunto.
 
 ### 2. Drinks
 
 - Registro por tipo de bebida (cerveja, vinho, destilado, drinque e outra), com porções prontas, volume, teor alcoólico, quantidade e data e hora.
 - Conversão automática em **drinque padrão** (14 g de álcool puro), mostrada antes de confirmar (`ConvertToStandardDrinks`).
 - Registro rápido em até 3 toques pelo botão + do Início.
+- Consumo por tipo de bebida na semana, no mês ou no ano, em drinques padrão (`SummarizeDrinksByType`), com as mesmas semanas e meses do Relatório.
 - Histórico com edição e exclusão. Cada alteração recalcula os indicadores, entra na fila de sincronização e gera uma linha no registro de alterações.
 
 ### 3. Exames e FIB-4
@@ -130,18 +132,20 @@ Outras telas são abertas a partir dessas abas: metas de redução, notificaçõ
 - Cadastro de idade, AST/TGO, ALT/TGP, plaquetas e data do exame, com validação de valores vazios, zerados, negativos ou fora da faixa fisiológica (`ValidateExamInput`).
 - Cálculo do FIB-4 (`CalculateFib4`), com aviso quando a idade está fora de 35 a 65 anos.
 - O FIB-4 nunca é editado pelo usuário: ao corrigir um exame, ele é recalculado.
+- Aviso quando a idade não combina com a de outro exame do mesmo paciente (`CheckExamAgeConsistency`): a pessoa pode corrigir ou salvar assim mesmo.
 - Histórico dos exames e dashboard com a evolução do FIB-4, de AST/ALT e das plaquetas.
 
 ### 4. Risco e medidor do fígado
 
 - Classificação **Verde**, **Amarelo** ou **Vermelho** a partir do FIB-4 (`ClassifyRisk`). O nível sobe quando o consumo da semana passa da meta definida pelo usuário (`AssessCurrentRisk`).
 - Medidor de 0 a 100% no Início (`CalculateLiverHealth`): parte do FIB-4 e desconta o consumo das últimas 4 semanas acima do limite de baixo risco. É um indicador educativo, não um resultado clínico.
+- Ao fundo do cartão, a silhueta do corpo com o fígado pintado na cor do risco (`BodyRiskFigure`), com a animação de "scan" na primeira abertura.
 - Gráfico da evolução do risco ao longo dos exames (`BuildRiskEvolution`).
 
 ### 5. Relatórios e PDF
 
 - Relatórios semanais e mensais (`BuildConsumptionReport`): total de drinques padrão, média por dia, dias sem álcool, consumo por tipo e por dia e comparação com o período anterior.
-- Resumo em PDF (`BuildHealthSummary` e `HealthSummaryPdf`) com FIB-4, risco, evolução dos exames, consumo do período e metas, para visualizar, salvar ou compartilhar. O compartilhamento pede confirmação, e o PDF não leva nome, e-mail nem identificação da conta.
+- Resumo em PDF (`BuildHealthSummary` e `HealthSummaryPdf`) com FIB-4 e a escala das faixas, risco, evolução dos exames, consumo do período e metas, para visualizar, salvar ou compartilhar, pelo Relatório ou pelo atalho do Perfil. O compartilhamento pede confirmação, e o PDF não leva nome, e-mail nem identificação da conta; traz "Documento pessoal · confidencial" e a nota de que os valores foram registrados pelo próprio usuário.
 
 ### 6. Metas e notificações
 
@@ -153,7 +157,7 @@ Outras telas são abertas a partir dessas abas: metas de redução, notificaçõ
 
 - **Modo convidado:** o aplicativo funciona inteiro sem conta.
 - **Modo Camuflagem:** o diário fica atrás de uma calculadora funcional. O código secreto (4 a 8 dígitos) é guardado apenas como hash no armazenamento seguro. Ao ir para segundo plano, o aplicativo volta para a calculadora e oculta o conteúdo na tela de apps recentes.
-- **Apagar todos os dados:** limpa drinques, exames, metas, preferências, consentimento, fila de sincronização e registro de alterações do aparelho, e esquece a chave do cofre neste aparelho.
+- **Apagar todos os dados:** limpa drinques, exames, metas, preferências, consentimento, fila de sincronização e registro de alterações do aparelho, e esquece a chave do cofre neste aparelho. Com conta, apaga antes a cópia da nuvem; sem internet, nada é apagado.
 
 ### 8. Conta, consentimento e restauração
 
@@ -163,7 +167,9 @@ Outras telas são abertas a partir dessas abas: metas de redução, notificaçõ
 - **Entrar** (`AccountSession.signIn`): login, abertura do cofre com a senha e **restauração automática** (`FirestoreCloudRestore`), sem perguntar.
 - **Criar conta:** aviso "Seus dados ficam trancados com a sua senha" com "Entendi" obrigatório; depois, conta e cofre são criados.
 - **Esqueci minha senha:** o mesmo aviso antes de enviar o e-mail. No login seguinte, se a senha nova não abrir a chave antiga, o app cria uma chave nova, apaga a cópia antiga da nuvem e reenvia os dados do aparelho.
-- **Sair:** revoga a autorização e esquece a chave no aparelho; os dados continuam no aparelho.
+- **Alterar senha** (`AccountSession.changePassword`): confirma a senha atual no Firebase, tranca a mesma chave com a senha nova (`rewrap`) e só então troca a senha; se o Firebase recusar, a chave volta para a senha atual.
+- **Sair:** depois de confirmar, revoga a autorização e esquece a chave no aparelho; os dados continuam no aparelho.
+- **Apagar a conta** (`AccountSession.deleteAccount`): confirma a senha, apaga a cópia da nuvem com o documento da chave, esquece a chave, apaga os dados do aparelho e por fim a conta. Com a senha errada ou sem internet, nada é apagado.
 
 ### 9. Armazenamento local
 
@@ -272,5 +278,7 @@ Os testes automatizados ficam em `hepatocheck_app/test`, separados como o códig
 - fila de sincronização, envio em lotes com falha parcial e regras de recuperação;
 - anonimização no envio ao Firestore e parte selada com os valores exatos;
 - cofre da chave (senha certa, senha errada, outro aparelho, recuperação e troca de senha) e restauração entre dois aparelhos;
+- alterar senha, sair com confirmação, apagar os dados (com e sem conta, sem internet) e apagar a conta;
+- aviso de idade incoerente entre exames, consumo por tipo na tela Drinks e animação de abertura do Início;
 - login com restauração, aviso da senha no cadastro e na recuperação, e envio automático ao entrar, autorizar e mudar metas;
 - telas principais, inclusive com fonte ampliada e em celular pequeno.

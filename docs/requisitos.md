@@ -5,7 +5,7 @@ Documento da Unidade I atualizado na Unidade II. O conteúdo da Unidade I foi ma
 - **Requisitos funcionais novos:** RF17 a RF25.
 - **Requisitos não funcionais novos:** RNF18 a RNF22.
 - **Priorização:** nova seção "Priorização na Unidade II", porque itens antes classificados como secundários passaram a ser obrigatórios.
-- **CRUD:** a conta opcional e a fila de sincronização foram incluídas.
+- **CRUD:** a conta opcional e a fila de sincronização foram incluídas; a conta ganhou alterar senha e apagar a conta, e apagar os dados passou a incluir a cópia da nuvem.
 
 A numeração continua a lista anterior, sem renumerar o que já existia.
 
@@ -191,7 +191,7 @@ O CRUD do HepatoCheck foi definido a partir das necessidades identificadas na pe
 | Operação | Como será aplicada | Justificativa |
 | --- | --- | --- |
 | **Criar** | O usuário registra tipo de bebida, quantidade e data/hora. O aplicativo converte o item para drinques padrão antes da confirmação. | É o dado principal para que o usuário entenda seu consumo real. O fluxo deve caber em até três interações, pois o registro pode ocorrer em um bar ou em outro contexto de pouca atenção. |
-| **Consultar** | O usuário visualiza os registros do dia, da semana e do histórico, incluindo total de drinques padrão, dias sem consumo e tendência. | Permite identificar padrões sem exigir que a pessoa interprete cada bebida isoladamente. |
+| **Consultar** | O usuário visualiza os registros do dia, da semana e do histórico, incluindo total de drinques padrão, dias sem consumo e tendência. Na tela Drinks, vê também o consumo de cada tipo de bebida na semana, no mês ou no ano, em drinques padrão. | Permite identificar padrões sem exigir que a pessoa interprete cada bebida isoladamente. |
 | **Atualizar** | O usuário pode corrigir uma bebida, quantidade ou data inserida por engano. Após a edição, os totais, metas e classificação de risco devem ser recalculados. | Corrigir erros evita que uma entrada incorreta distorça o acompanhamento. |
 | **Excluir** | O usuário pode apagar um registro lançado indevidamente, mediante confirmação. Se houver sincronização autorizada, a exclusão também deverá ser refletida na próxima sincronização. | O dado é sensível e pertence ao usuário; ele deve manter controle sobre seu histórico. |
 
@@ -199,7 +199,7 @@ O CRUD do HepatoCheck foi definido a partir das necessidades identificadas na pe
 
 | Operação | Como será aplicada | Justificativa |
 | --- | --- | --- |
-| **Criar** | O usuário informa idade, AST/TGO, ALT/TGP, plaquetas e a data do exame. O sistema calcula automaticamente o FIB-4 e registra o resultado no histórico. | Viabiliza a triagem não invasiva e permite acompanhar a evolução dos resultados. |
+| **Criar** | O usuário informa idade, AST/TGO, ALT/TGP, plaquetas e a data do exame. O sistema calcula automaticamente o FIB-4 e registra o resultado no histórico. Se a idade não combinar com a de outro exame (por exemplo, menor que a de um exame anterior), o aplicativo pede para conferir antes de salvar. | Viabiliza a triagem não invasiva e permite acompanhar a evolução dos resultados. |
 | **Consultar** | O usuário consulta o resultado atual, a faixa de risco e a linha do tempo dos exames anteriores. Em consulta, o profissional pode acessar uma visão resumida desses indicadores. | Pacientes precisam de linguagem simples; profissionais precisam de uma leitura rápida e objetiva. |
 | **Atualizar** | O usuário pode corrigir os valores ou a data de um exame. O FIB-4 não é editado manualmente: ele é recalculado a partir dos dados corrigidos. | Preserva a confiabilidade do cálculo e reduz o risco de alteração indevida de um resultado derivado. |
 | **Excluir** | O usuário pode excluir um exame registrado incorretamente, com confirmação, removendo também o resultado FIB-4 associado. | Mantém o histórico fiel aos exames reais e evita interpretações baseadas em dados errados. |

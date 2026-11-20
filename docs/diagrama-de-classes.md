@@ -265,6 +265,9 @@ classDiagram
         +signIn(email, password) AuthUser
         +register(email, password) AuthUser
         +sendPasswordReset(email)
+        +reauthenticate(password) AuthUser
+        +updatePassword(newPassword)
+        +deleteAccount()
         +signOut()
     }
     class LocalDataEraser {
@@ -345,6 +348,14 @@ classDiagram
     class SummarizeExamHistory {
         +call(exams, today) ExamHistorySummary?
     }
+    class CheckExamAgeConsistency {
+        +call(examDate, age, exams, ignoreId) ExamAgeConflict?
+        +expectedAgeRange(knownDate, knownAge, targetDate)$ (int, int)
+    }
+    class SummarizeDrinksByType {
+        +call(drinks, period, today) List~DrinkTypeSummary~
+        +range(period, today)$ (DateTime, DateTime)
+    }
     class BuildConsumptionReport {
         +call(drinks, period, today) ConsumptionReport
     }
@@ -371,6 +382,7 @@ classDiagram
     BuildRiskEvolution --> CalculateLiverHealth
     BuildExamEvolution --> CalculateFib4
     BuildConsumptionReport --> ConvertToStandardDrinks
+    SummarizeDrinksByType --> ConvertToStandardDrinks
     EvaluateGoal --> ConvertToStandardDrinks
     BuildHealthSummary --> AssessCurrentRisk
     BuildHealthSummary --> BuildExamEvolution
@@ -427,7 +439,7 @@ classDiagram
     class CloudRestore {
         <<interface>>
         +restore(uid) RestoreReport
-        +deleteRemote(uid)
+        +deleteRemote(uid, includeKey)
     }
     class RestoreReport {
         +int drinks
@@ -449,6 +461,8 @@ classDiagram
     class AccountSession {
         +signIn(email, password) SignInResult
         +register(email, password)
+        +changePassword(currentPassword, newPassword)
+        +deleteAccount(password) DeleteAccountResult
     }
     class SignInResult {
         +RestoreReport? report
@@ -475,10 +489,10 @@ classDiagram
 
 - **`CloudVault`** (Domain) e **`FirestoreCloudVault`** (Data): uma chave de dados aleatória de 32 bytes criptografa a parte selada com AES-GCM 256. A chave fica no documento `users/{uid}` trancada por uma chave derivada da senha (PBKDF2-HMAC-SHA256) e, no aparelho, no armazenamento seguro. `reset` cria uma chave nova depois da recuperação de senha; `rewrap` tranca a mesma chave com uma senha nova; `forget` apaga a chave do aparelho.
 - **`SealedData`**: os três campos da parte selada (`sealed`, `sealedNonce`, `keyVersion`).
-- **`CloudRestore`** (Domain) e **`FirestoreCloudRestore`** (Data): baixa as três coleções, abre a parte selada e junta com o aparelho pela versão mais recente, sem desfazer o que está na fila. `deleteRemote` apaga a cópia da nuvem.
+- **`CloudRestore`** (Domain) e **`FirestoreCloudRestore`** (Data): baixa as três coleções, abre a parte selada e junta com o aparelho pela versão mais recente, sem desfazer o que está na fila. `deleteRemote` apaga a cópia da nuvem, lendo direto do servidor para falhar sem internet; com `includeKey`, apaga também o documento da chave `users/{uid}`.
 - **`RestorableRepository`**: os repositórios Hive ganham `restore`, que grava sem colocar na fila e sem registro de alterações.
 - **`SyncPendingItems`**: recebe `seal` e `sealReady`; com o cofre trancado, o envio espera (`SyncSkipReason.vaultLocked`).
-- **`AccountSession`** (Presentation): junta login, abertura do cofre e restauração automática, e o cadastro com a criação do cofre.
+- **`AccountSession`** (Presentation): junta login, abertura do cofre e restauração automática, e o cadastro com a criação do cofre. `changePassword` confirma a senha atual, tranca a chave com a senha nova (`rewrap`) e só então troca a senha; se o Firebase recusar, a chave volta para a senha atual. `deleteAccount` confirma a senha, apaga a nuvem com a chave, esquece a chave, apaga o aparelho e por fim a conta; com a senha errada ou sem internet, nada é apagado.
 
 ## Entidades
 
@@ -496,7 +510,7 @@ classDiagram
 | `SyncItem` | Item da fila offline de sincronização: o que mudou, a operação, o estado do envio e as tentativas | Referencia um `DrinkEntry`, `LabExam` ou `ReductionGoal` pelo `entityId` |
 | `AuditEntry` | Registro de alteração do diário. Guarda só o hash do conteúdo e o hash da entrada anterior, nunca os dados do drinque | Referencia um `DrinkEntry` pelo `entityId` |
 
-Os casos de uso também devolvem objetos de resultado que não são gravados: `CurrentRisk`, `LiverHealth`, `RiskEvolutionPoint`, `ExamPoint`, `ExamHistorySummary`, `GoalProgress` (com `GoalStatus`), `HealthSummary`, `FollowUpMessage` e `SyncReport`.
+Os casos de uso também devolvem objetos de resultado que não são gravados: `CurrentRisk`, `LiverHealth`, `RiskEvolutionPoint`, `ExamPoint`, `ExamHistorySummary`, `GoalProgress` (com `GoalStatus`), `HealthSummary`, `FollowUpMessage`, `SyncReport`, `ExamAgeConflict` (aviso de idade incoerente entre exames) e `DrinkTypeSummary` (consumo de um tipo de bebida em drinques padrão na semana, no mês ou no ano).
 
 ## Mudanças em relação à primeira versão
 
