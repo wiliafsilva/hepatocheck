@@ -37,6 +37,15 @@ class HealthSummaryPdf {
 
   static const disclaimer =
       'Triagem preventiva. Não substitui avaliação médica.';
+  static const confidential = 'Documento pessoal · confidencial';
+  static const importantNote =
+      'este resumo é informativo e não substitui consulta, diagnóstico ou '
+      'tratamento médico. Os valores foram registrados pelo próprio usuário '
+      'no aplicativo. Leve este documento ao seu profissional de saúde.';
+  static const scaleMax = 4.0;
+
+  static double scaleFraction(double value) =>
+      (value / scaleMax).clamp(0.0, 1.0);
 
   final HealthSummaryFonts fonts;
 
@@ -73,6 +82,7 @@ class HealthSummaryPdf {
           _consumptionSection(summary.report),
           _byTypeSection(summary.report),
           _goalsSection(summary.goals),
+          _importantNote(),
         ],
       ),
     );
@@ -120,9 +130,40 @@ class HealthSummaryPdf {
                 'Período: ${_periodLabel(summary.period)}',
                 style: const pw.TextStyle(fontSize: 10, color: _muted),
               ),
+              pw.Text(
+                confidential,
+                style: pw.TextStyle(
+                  fontSize: 10,
+                  fontWeight: pw.FontWeight.bold,
+                  color: _muted,
+                ),
+              ),
             ],
           ),
         ],
+      ),
+    );
+  }
+
+  pw.Widget _importantNote() {
+    return pw.Container(
+      margin: const pw.EdgeInsets.only(top: 4),
+      padding: const pw.EdgeInsets.all(10),
+      decoration: pw.BoxDecoration(
+        border: pw.Border.all(color: _muted),
+        borderRadius: pw.BorderRadius.circular(6),
+      ),
+      child: pw.RichText(
+        text: pw.TextSpan(
+          style: const pw.TextStyle(fontSize: 9),
+          children: [
+            pw.TextSpan(
+              text: 'Importante: ',
+              style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
+            ),
+            const pw.TextSpan(text: importantNote),
+          ],
+        ),
       ),
     );
   }
@@ -232,6 +273,8 @@ class HealthSummaryPdf {
                 ),
               ],
             ),
+            pw.SizedBox(height: 10),
+            _fib4Scale(risk.fib4.score, exam.age),
             pw.SizedBox(height: 8),
             pw.Text(
               'Faixa do FIB-4: ${risk.fib4.riskLevel.label} '
@@ -271,6 +314,78 @@ class HealthSummaryPdf {
         ),
       ),
     ]);
+  }
+
+  pw.Widget _fib4Scale(double score, int age) {
+    final low = CalculateFib4.lowCutoffFor(age);
+    const high = CalculateFib4.highCutoff;
+    final segments = [
+      (RiskLevel.low, 0.0, low, 'abaixo de ${formatScore(low)}'),
+      (
+        RiskLevel.intermediate,
+        low,
+        high,
+        '${formatScore(low)} a ${formatScore(high)}',
+      ),
+      (RiskLevel.high, high, scaleMax, 'acima de ${formatScore(high)}'),
+    ];
+    return pw.LayoutBuilder(
+      builder: (context, constraints) {
+        final width = constraints!.maxWidth;
+        final marker = width * scaleFraction(score);
+        return pw.Column(
+          crossAxisAlignment: pw.CrossAxisAlignment.start,
+          children: [
+            pw.SizedBox(
+              width: width,
+              height: 24,
+              child: pw.Stack(
+                children: [
+                  pw.Positioned(
+                    left: (marker - 20).clamp(0.0, width - 40),
+                    top: 0,
+                    child: pw.SizedBox(
+                      width: 40,
+                      child: pw.Text(
+                        '${formatScore(score)}\n▼',
+                        textAlign: pw.TextAlign.center,
+                        style: pw.TextStyle(
+                          fontSize: 9,
+                          fontWeight: pw.FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            pw.Row(
+              children: [
+                for (final (level, from, to, _) in segments)
+                  pw.Container(
+                    width: width * (scaleFraction(to) - scaleFraction(from)),
+                    height: 8,
+                    color: _riskColor(level),
+                  ),
+              ],
+            ),
+            pw.SizedBox(height: 3),
+            pw.Row(
+              children: [
+                for (final (level, from, to, range) in segments)
+                  pw.SizedBox(
+                    width: width * (scaleFraction(to) - scaleFraction(from)),
+                    child: pw.Text(
+                      '${level.label}\n$range',
+                      style: const pw.TextStyle(fontSize: 8, color: _muted),
+                    ),
+                  ),
+              ],
+            ),
+          ],
+        );
+      },
+    );
   }
 
   pw.Widget _examSection(HealthSummary summary) {
