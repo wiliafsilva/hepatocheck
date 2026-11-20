@@ -5,6 +5,7 @@ import '../../data/repositories/hive_exam_repository.dart';
 import '../../domain/entities/lab_exam.dart';
 import '../../domain/repositories/exam_repository.dart';
 import '../../domain/usecases/calculate_fib4.dart';
+import '../../domain/usecases/check_exam_age_consistency.dart';
 import '../../domain/usecases/classify_risk.dart';
 import '../../domain/usecases/summarize_exam_history.dart';
 import '../../domain/usecases/validate_exam_input.dart';
@@ -22,6 +23,10 @@ final calculateFib4Provider = Provider((ref) => const CalculateFib4());
 final classifyRiskProvider = Provider((ref) => const ClassifyRisk());
 
 final validateExamInputProvider = Provider((ref) => const ValidateExamInput());
+
+final checkExamAgeConsistencyProvider = Provider(
+  (ref) => const CheckExamAgeConsistency(),
+);
 
 final summarizeExamHistoryProvider = Provider(
   (ref) => SummarizeExamHistory(ref.watch(calculateFib4Provider)),

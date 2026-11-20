@@ -74,5 +74,44 @@ class FirebaseAuthRepository implements AuthRepository {
   }
 
   @override
+  Future<AuthUser> reauthenticate(String password) async {
+    final user = _auth.currentUser;
+    final email = user?.email;
+    if (user == null || email == null) {
+      throw const AuthFailure(AuthFailureCode.wrongCredentials);
+    }
+    try {
+      final credential = await user.reauthenticateWithCredential(
+        EmailAuthProvider.credential(email: email, password: password),
+      );
+      return _map(credential.user ?? user)!;
+    } on FirebaseAuthException catch (error) {
+      throw AuthFailure(codeFor(error.code));
+    }
+  }
+
+  @override
+  Future<void> updatePassword(String newPassword) async {
+    final user = _auth.currentUser;
+    if (user == null) throw const AuthFailure(AuthFailureCode.unknown);
+    try {
+      await user.updatePassword(newPassword);
+    } on FirebaseAuthException catch (error) {
+      throw AuthFailure(codeFor(error.code));
+    }
+  }
+
+  @override
+  Future<void> deleteAccount() async {
+    final user = _auth.currentUser;
+    if (user == null) throw const AuthFailure(AuthFailureCode.unknown);
+    try {
+      await user.delete();
+    } on FirebaseAuthException catch (error) {
+      throw AuthFailure(codeFor(error.code));
+    }
+  }
+
+  @override
   Future<void> signOut() => _auth.signOut();
 }

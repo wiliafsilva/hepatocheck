@@ -183,7 +183,22 @@ A recuperação de senha do Firebase troca a senha, mas a chave antiga continua 
 - no login seguinte, se a senha nova não abrir a chave, o app cria uma chave nova (`keyVersion` + 1), apaga a cópia antiga da nuvem e reenvia tudo o que está no aparelho;
 - o histórico só se perde se a pessoa perder a senha **e** o aparelho.
 
-## 6. Segurança
+### 5.2 Alterar senha
+
+Com a senha atual em mãos, a pessoa troca a senha pelo Perfil. O app confirma a senha atual no Firebase, tranca a **mesma** chave com a senha nova (atualiza `users/{uid}` sem mudar o `keyVersion`) e só então troca a senha da conta. Se o Firebase recusar a senha nova, a chave volta a ser trancada pela senha atual. Como a chave é a mesma, nada precisa ser reenviado e os outros aparelhos abrem a cópia com a senha nova.
+
+## 6. Exclusão dos dados da nuvem
+
+| Ação no Perfil | O que é apagado no Firestore | O que acontece no aparelho |
+| --- | --- | --- |
+| Apagar todos os dados (com conta) | Todos os documentos de `drinks`, `exams` e `goals`. O `users/{uid}` (a chave) e a conta continuam | Drinques, exames, metas, preferências, consentimento, fila e registro de alterações são apagados, e a chave é esquecida |
+| Apagar a conta | Os documentos de `drinks`, `exams` e `goals` e também o `users/{uid}`; depois, a conta do Firebase Authentication | Tudo é apagado, e o app volta a funcionar em modo convidado |
+
+- A exclusão usa `CloudRestore.deleteRemote`, que lê as coleções **direto do servidor** e apaga em lotes de 400. Sem internet, a leitura falha e **nada é apagado**, nem na nuvem nem no aparelho; o app avisa a pessoa.
+- Apagar a conta pede a senha antes, porque o Firebase só apaga uma conta logo depois de confirmar a senha. Com a senha errada, nada é apagado.
+- As regras da seção 7 já permitem que o dono apague a própria pasta; nenhuma regra nova foi necessária.
+
+## 7. Segurança
 
 As regras ficam em `hepatocheck_app/firestore.rules`:
 

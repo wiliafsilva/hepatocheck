@@ -5,7 +5,7 @@ Documento da Unidade I atualizado na Unidade II. O conteúdo da Unidade I foi ma
 - **Requisitos funcionais novos:** RF17 a RF25.
 - **Requisitos não funcionais novos:** RNF18 a RNF22.
 - **Priorização:** nova seção "Priorização na Unidade II", porque itens antes classificados como secundários passaram a ser obrigatórios.
-- **CRUD:** a conta opcional e a fila de sincronização foram incluídas.
+- **CRUD:** a conta opcional e a fila de sincronização foram incluídas; a conta ganhou alterar senha e apagar a conta, e apagar os dados passou a incluir a cópia da nuvem.
 
 A numeração continua a lista anterior, sem renumerar o que já existia.
 
@@ -191,7 +191,7 @@ O CRUD do HepatoCheck foi definido a partir das necessidades identificadas na pe
 | Operação | Como será aplicada | Justificativa |
 | --- | --- | --- |
 | **Criar** | O usuário registra tipo de bebida, quantidade e data/hora. O aplicativo converte o item para drinques padrão antes da confirmação. | É o dado principal para que o usuário entenda seu consumo real. O fluxo deve caber em até três interações, pois o registro pode ocorrer em um bar ou em outro contexto de pouca atenção. |
-| **Consultar** | O usuário visualiza os registros do dia, da semana e do histórico, incluindo total de drinques padrão, dias sem consumo e tendência. | Permite identificar padrões sem exigir que a pessoa interprete cada bebida isoladamente. |
+| **Consultar** | O usuário visualiza os registros do dia, da semana e do histórico, incluindo total de drinques padrão, dias sem consumo e tendência. Na tela Drinks, vê também o consumo de cada tipo de bebida na semana, no mês ou no ano, em drinques padrão. | Permite identificar padrões sem exigir que a pessoa interprete cada bebida isoladamente. |
 | **Atualizar** | O usuário pode corrigir uma bebida, quantidade ou data inserida por engano. Após a edição, os totais, metas e classificação de risco devem ser recalculados. | Corrigir erros evita que uma entrada incorreta distorça o acompanhamento. |
 | **Excluir** | O usuário pode apagar um registro lançado indevidamente, mediante confirmação. Se houver sincronização autorizada, a exclusão também deverá ser refletida na próxima sincronização. | O dado é sensível e pertence ao usuário; ele deve manter controle sobre seu histórico. |
 
@@ -199,7 +199,7 @@ O CRUD do HepatoCheck foi definido a partir das necessidades identificadas na pe
 
 | Operação | Como será aplicada | Justificativa |
 | --- | --- | --- |
-| **Criar** | O usuário informa idade, AST/TGO, ALT/TGP, plaquetas e a data do exame. O sistema calcula automaticamente o FIB-4 e registra o resultado no histórico. | Viabiliza a triagem não invasiva e permite acompanhar a evolução dos resultados. |
+| **Criar** | O usuário informa idade, AST/TGO, ALT/TGP, plaquetas e a data do exame. O sistema calcula automaticamente o FIB-4 e registra o resultado no histórico. Se a idade não combinar com a de outro exame (por exemplo, menor que a de um exame anterior), o aplicativo pede para conferir antes de salvar. | Viabiliza a triagem não invasiva e permite acompanhar a evolução dos resultados. |
 | **Consultar** | O usuário consulta o resultado atual, a faixa de risco e a linha do tempo dos exames anteriores. Em consulta, o profissional pode acessar uma visão resumida desses indicadores. | Pacientes precisam de linguagem simples; profissionais precisam de uma leitura rápida e objetiva. |
 | **Atualizar** | O usuário pode corrigir os valores ou a data de um exame. O FIB-4 não é editado manualmente: ele é recalculado a partir dos dados corrigidos. | Preserva a confiabilidade do cálculo e reduz o risco de alteração indevida de um resultado derivado. |
 | **Excluir** | O usuário pode excluir um exame registrado incorretamente, com confirmação, removendo também o resultado FIB-4 associado. | Mantém o histórico fiel aos exames reais e evita interpretações baseadas em dados errados. |
@@ -220,7 +220,7 @@ O CRUD do HepatoCheck foi definido a partir das necessidades identificadas na pe
 | **Criar** | Ao configurar o aplicativo, o usuário pode criar preferências locais, como lembretes, modo camuflagem e autorização de sincronização. | A pessoa deve escolher como e quando o aplicativo acessa ou apresenta seus dados. |
 | **Consultar** | O usuário visualiza as permissões, o estado da sincronização e os lembretes ativos. | Torna o tratamento de dados sensíveis transparente. |
 | **Atualizar** | O usuário pode alterar lembretes, ativar ou desativar o modo camuflagem e conceder ou retirar a autorização de sincronização. | A autorização deve ser revogável; ela não pode ser presumida nem permanente. |
-| **Excluir** | O usuário pode remover lembretes e apagar os dados locais do aplicativo. No modo convidado, não há conta obrigatória a ser excluída. | O modo convidado reduz a exposição de dados. A exclusão dos dados locais preserva o controle do usuário sobre informações de saúde e consumo de álcool. |
+| **Excluir** | O usuário pode remover lembretes e apagar todos os dados, depois de confirmar. Com conta, a cópia da nuvem é apagada junto (sem internet, nada é apagado); no modo convidado, só os dados do aparelho. | O modo convidado reduz a exposição de dados. A exclusão dos dados locais preserva o controle do usuário sobre informações de saúde e consumo de álcool. |
 
 ### Conta opcional (incluído na Unidade II)
 
@@ -229,8 +229,8 @@ O CRUD do HepatoCheck foi definido a partir das necessidades identificadas na pe
 | **Criar** | O usuário cria a conta com e-mail e senha, apenas se quiser sincronizar. Antes, o aplicativo mostra o aviso de que a cópia na nuvem fica trancada com a senha, com "Entendi" obrigatório. Depois do cadastro, o aplicativo pergunta se ele autoriza o envio. | A conta é opcional (RF21); o modo convidado continua disponível. O aviso deixa clara a consequência de perder a senha (RF25). |
 | **Consultar** | O usuário vê se está conectado, com qual e-mail, e se autorizou a sincronização. | Deixa claro quando os dados podem sair do aparelho. |
 | **Consultar (outro aparelho)** | Ao entrar na conta, os dados sincronizados voltam automaticamente para o aparelho. | Permite trocar de aparelho ou reinstalar o app sem perder o acompanhamento (RF25). |
-| **Atualizar** | O usuário pode recuperar a senha por e-mail, depois do mesmo aviso do cadastro, e conceder ou revogar a autorização de sincronização. | A autorização deve ser revogável a qualquer momento (LGPD). Com a senha recuperada, a cópia antiga não abre e o aparelho reenvia os dados. |
-| **Excluir** | O usuário pode sair da conta; ao sair, a autorização de sincronização é revogada e a chave da cópia na nuvem é esquecida no aparelho. Os dados continuam no aparelho. | A autorização vale para a conta que a deu, não para quem usar o aparelho depois. |
+| **Atualizar** | O usuário pode trocar a senha informando a atual (a chave da cópia na nuvem é trancada de novo com a senha nova), recuperar a senha por e-mail, depois do mesmo aviso do cadastro, e conceder ou revogar a autorização de sincronização. | A autorização deve ser revogável a qualquer momento (LGPD). Com a senha recuperada, a cópia antiga não abre e o aparelho reenvia os dados. |
+| **Excluir** | O usuário pode sair da conta, depois de confirmar; ao sair, a autorização de sincronização é revogada e a chave da cópia na nuvem é esquecida no aparelho, e os dados continuam no aparelho. Pode também apagar a conta, confirmando com a senha: isso apaga a conta, a cópia da nuvem (com a chave) e os dados do aparelho. Sem internet, nada é apagado. | A autorização vale para a conta que a deu, não para quem usar o aparelho depois. Apagar a conta atende ao direito de eliminação dos dados da LGPD. |
 
 ### Informações que não formam um CRUD próprio
 

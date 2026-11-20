@@ -192,4 +192,87 @@ void main() {
     expect(find.text('Use um volume entre 1 e 3000 ml.'), findsOneWidget);
     expect(repository.getAll(), isEmpty);
   });
+
+  testWidgets('consumo por tipo em drinques padrão, por semana, mês e ano', (
+    tester,
+  ) async {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day, 0, 1);
+    DrinkEntry entry(
+      String id,
+      DrinkType type,
+      DateTime at, {
+      required double volumeMl,
+      required double alcoholPercent,
+      int quantity = 1,
+    }) => DrinkEntry(
+      id: id,
+      type: type,
+      volumeMl: volumeMl,
+      alcoholPercent: alcoholPercent,
+      quantity: quantity,
+      consumedAt: at,
+      createdAt: at,
+      updatedAt: at,
+    );
+    await repository.save(
+      entry(
+        'cerveja',
+        DrinkType.beer,
+        today,
+        volumeMl: 350,
+        alcoholPercent: 5,
+        quantity: 2,
+      ),
+    );
+    await repository.save(
+      entry(
+        'drinque',
+        DrinkType.cocktail,
+        today,
+        volumeMl: 200,
+        alcoholPercent: 10,
+      ),
+    );
+    final earlyInYear = now.month > 1;
+    if (earlyInYear) {
+      await repository.save(
+        entry(
+          'destilado',
+          DrinkType.spirit,
+          DateTime(now.year, 1, 2, 22),
+          volumeMl: 50,
+          alcoholPercent: 40,
+          quantity: 2,
+        ),
+      );
+    }
+    final semantics = tester.ensureSemantics();
+    await pump(tester, const DrinksScreen());
+    await scrollTo(tester, find.text('Ano'));
+
+    expect(
+      find.bySemanticsLabel('Cervejas: 2,0 drinques padrão'),
+      findsOneWidget,
+    );
+    expect(
+      find.bySemanticsLabel('Drinques: 1,1 drinques padrão'),
+      findsOneWidget,
+    );
+    expect(
+      find.bySemanticsLabel('Destilados: 0,0 drinques padrão'),
+      findsOneWidget,
+    );
+    expect(find.bySemanticsLabel(RegExp('^Outras')), findsNothing);
+
+    if (earlyInYear) {
+      await tester.tap(find.text('Ano'));
+      await tester.pumpAndSettle();
+      expect(
+        find.bySemanticsLabel('Destilados: 2,3 drinques padrão'),
+        findsOneWidget,
+      );
+    }
+    semantics.dispose();
+  });
 }

@@ -7,11 +7,14 @@ import '../../domain/entities/drink_entry.dart';
 import '../../domain/entities/drink_serving.dart';
 import '../../domain/entities/drink_type.dart';
 import '../../domain/usecases/convert_to_standard_drinks.dart';
+import '../../domain/usecases/summarize_drinks_by_type.dart';
 import '../../domain/usecases/validate_drink_input.dart';
+import '../formatters.dart';
 import '../providers/drink_providers.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 import '../theme/drink_type_labels.dart';
+import '../widgets/drink_type_image.dart';
 
 final _dateTimeFormat = DateFormat('dd/MM/yyyy HH:mm');
 
@@ -28,6 +31,7 @@ class _DrinksScreenState extends ConsumerState<DrinksScreen> {
   final _alcoholController = TextEditingController();
 
   DrinkType _type = DrinkType.beer;
+  DrinkSummaryPeriod _summaryPeriod = DrinkSummaryPeriod.month;
   int _quantity = 1;
   DateTime _consumedAt = DateTime.now();
   DrinkEntry? _editing;
@@ -294,6 +298,31 @@ class _DrinksScreenState extends ConsumerState<DrinksScreen> {
           ),
         ),
         const SizedBox(height: 24),
+        SegmentedButton<DrinkSummaryPeriod>(
+          segments: const [
+            ButtonSegment(
+              value: DrinkSummaryPeriod.week,
+              label: Text('Semana'),
+            ),
+            ButtonSegment(value: DrinkSummaryPeriod.month, label: Text('Mês')),
+            ButtonSegment(value: DrinkSummaryPeriod.year, label: Text('Ano')),
+          ],
+          selected: {_summaryPeriod},
+          showSelectedIcon: false,
+          onSelectionChanged: (selection) =>
+              setState(() => _summaryPeriod = selection.first),
+        ),
+        const SizedBox(height: 12),
+        _TypeSummaryRow(
+          items: ref.watch(summarizeDrinksByTypeProvider)(
+            drinks,
+            period: _summaryPeriod,
+            today: today,
+          ),
+        ),
+        const SizedBox(height: 6),
+        const Text('Em drinques padrão.', style: AppTextStyles.caption),
+        const SizedBox(height: 24),
         _SectionLabel(
           drinks.isEmpty ? 'HISTÓRICO' : 'HISTÓRICO (${drinks.length})',
         ),
@@ -343,19 +372,7 @@ class _DrinksScreenState extends ConsumerState<DrinksScreen> {
           children: [
             const Text('Tipo de bebida', style: AppTextStyles.label),
             const SizedBox(height: 8),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                for (final type in DrinkType.values)
-                  _OptionChip(
-                    label: type.label,
-                    icon: type.icon,
-                    selected: type == _type,
-                    onTap: () => _selectType(type),
-                  ),
-              ],
-            ),
+            _TypeSelector(selected: _type, onSelected: _selectType),
             const SizedBox(height: 14),
             const Text('Porção', style: AppTextStyles.label),
             const SizedBox(height: 8),
@@ -544,30 +561,207 @@ class _NumberField extends StatelessWidget {
   }
 }
 
+class _TypeSelector extends StatelessWidget {
+  const _TypeSelector({required this.selected, required this.onSelected});
+
+  static const main = [DrinkType.beer, DrinkType.spirit, DrinkType.wine];
+  static const others = [DrinkType.cocktail, DrinkType.other];
+
+  final DrinkType selected;
+  final ValueChanged<DrinkType> onSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    Widget row(List<DrinkType> types, {required bool large}) => Row(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        for (final (index, type) in types.indexed) ...[
+          if (index > 0) const SizedBox(width: 8),
+          Expanded(
+            child: _TypeOption(
+              type: type,
+              large: large,
+              selected: type == selected,
+              onTap: () => onSelected(type),
+            ),
+          ),
+        ],
+      ],
+    );
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        IntrinsicHeight(child: row(main, large: true)),
+        const SizedBox(height: 8),
+        IntrinsicHeight(child: row(others, large: false)),
+      ],
+    );
+  }
+}
+
+class _TypeOption extends StatelessWidget {
+  const _TypeOption({
+    required this.type,
+    required this.large,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final DrinkType type;
+  final bool large;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final label = Text(
+      type.label,
+      textAlign: TextAlign.center,
+      style: AppTextStyles.label,
+    );
+    return Semantics(
+      button: true,
+      selected: selected,
+      label: type.label,
+      excludeSemantics: true,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(14),
+        child: Container(
+          constraints: BoxConstraints(minHeight: large ? 88 : 48),
+          padding: EdgeInsets.symmetric(
+            vertical: large ? 12 : 8,
+            horizontal: large ? 6 : 12,
+          ),
+          decoration: BoxDecoration(
+            color: selected
+                ? AppColors.olive.withValues(alpha: 0.15)
+                : AppColors.surfaceVariant,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(
+              color: selected ? AppColors.olive : AppColors.outline,
+              width: selected ? 2 : 1,
+            ),
+          ),
+          child: large
+              ? Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    DrinkTypeImage(type: type, selected: selected),
+                    const SizedBox(height: 6),
+                    label,
+                  ],
+                )
+              : Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    DrinkTypeImage(type: type, selected: selected, size: 24),
+                    const SizedBox(width: 8),
+                    Flexible(child: label),
+                  ],
+                ),
+        ),
+      ),
+    );
+  }
+}
+
+class _TypeSummaryRow extends StatelessWidget {
+  const _TypeSummaryRow({required this.items});
+
+  static const _labels = {
+    DrinkType.beer: 'Cervejas',
+    DrinkType.spirit: 'Destilados',
+    DrinkType.wine: 'Vinhos',
+    DrinkType.cocktail: 'Drinques',
+    DrinkType.other: 'Outras',
+  };
+
+  final List<DrinkTypeSummary> items;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        const gap = 8.0;
+        final visible = items.length > 3 ? 3.4 : 3.0;
+        final width = (constraints.maxWidth - gap * 2) / visible;
+        return SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: IntrinsicHeight(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                for (final (index, item) in items.indexed) ...[
+                  if (index > 0) const SizedBox(width: gap),
+                  SizedBox(
+                    width: width,
+                    child: _TypeSummaryCard(
+                      label: _labels[item.type]!,
+                      value: formatDrinks(item.standardDrinks),
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _TypeSummaryCard extends StatelessWidget {
+  const _TypeSummaryCard({required this.label, required this.value});
+
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      label: '$label: $value drinques padrão',
+      excludeSemantics: true,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 6),
+        decoration: BoxDecoration(
+          color: AppColors.surfaceVariant,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: AppColors.outline),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(value, style: AppTextStyles.title),
+            const SizedBox(height: 4),
+            Text(
+              label,
+              textAlign: TextAlign.center,
+              style: AppTextStyles.caption,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class _OptionChip extends StatelessWidget {
   const _OptionChip({
     required this.label,
     required this.selected,
     required this.onTap,
-    this.icon,
   });
 
   final String label;
   final bool selected;
   final VoidCallback onTap;
-  final IconData? icon;
 
   @override
   Widget build(BuildContext context) {
     return ChoiceChip(
       label: Text(label),
-      avatar: icon == null
-          ? null
-          : Icon(
-              icon,
-              size: 18,
-              color: selected ? AppColors.onOlive : AppColors.textPrimary,
-            ),
       showCheckmark: false,
       selected: selected,
       onSelected: (_) => onTap(),

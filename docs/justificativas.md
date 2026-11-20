@@ -47,14 +47,14 @@ Cada tela principal responde a uma única pergunta do usuário. O limite de quat
 
 | Tela | Pergunta que responde | Ordem das informações |
 | --- | --- | --- |
-| Início | Como está meu fígado? | Cartão de risco com o medidor de saúde do fígado de 0 a 100%, consumo das últimas 4 semanas, gráfico da evolução do risco e botão de registro rápido |
-| Drinks | Quanto eu bebi? | Tipo de bebida, volume e teor alcoólico, data e hora, quantidade, conversão em drinque padrão e histórico com opção de editar e excluir cada registro |
+| Início | Como está meu fígado? | Silhueta do corpo com o fígado na cor do risco, cartão de risco com o medidor de saúde do fígado de 0 a 100%, consumo das últimas 4 semanas, gráfico da evolução do risco e botão de registro rápido |
+| Drinks | Quanto eu bebi? | Tipo de bebida, volume e teor alcoólico, data e hora, quantidade, conversão em drinque padrão, consumo por tipo na semana, no mês ou no ano (em drinques padrão) e histórico com opção de editar e excluir cada registro |
 | Exames | Qual é o meu resultado? | Formulário do exame com a nota de que o FIB-4 é validado entre 35 e 65 anos (RF02), resultado com a faixa de risco e a data do exame, e histórico com a evolução |
 | Relatório | Como estou evoluindo? | Filtro de semana ou mês, risco atual, dashboard dos exames, cartões de resumo comparados com o período anterior, consumo por dia e por tipo, progresso das metas, modo consulta e exportação em PDF |
 
 O fluxo visual segue sempre a mesma ordem, de cima para baixo: primeiro o resultado ou a ação principal, depois os detalhes e por último o histórico. Assim, Ricardo resolve o que precisa sem rolar a tela, e Marisa encontra a evolução completa logo abaixo.
 
-Na tela Início, o medidor de saúde do fígado cumpre o papel do gráfico "vida do fígado" do RF07. Ele vai de 0 a 100% e muda de cor conforme a classificação de risco, que é atualizada a cada exame e registro de consumo. No protótipo da Unidade I esse papel era de uma silhueta do corpo. O medidor foi escolhido por mostrar um número e uma cor de leitura imediata. A tela deixa claro que ele é um indicador educativo, não um resultado clínico (RNF17).
+Na tela Início, o medidor de saúde do fígado cumpre o papel do gráfico "vida do fígado" do RF07. Ele vai de 0 a 100% e muda de cor conforme a classificação de risco, que é atualizada a cada exame e registro de consumo. No protótipo da Unidade I esse papel era de uma silhueta do corpo. O medidor foi escolhido por mostrar um número e uma cor de leitura imediata. Na Unidade II a silhueta voltou como fundo do cartão: o corpo aparece discreto, com os órgãos apagados, e o fígado fica à mostra acima do cartão, pintado com a cor do risco. Assim a cor no corpo e o número no medidor reforçam a mesma informação, e o medidor continua sendo a leitura principal. A figura é a mesma do protótipo de alta fidelidade, exportada do Figma em SVG (ilustração do corpo e dos órgãos da Figma Community, usada para fins acadêmicos). Para o leitor de tela, ela é só decoração. No registro rápido do botão + e na escolha do tipo de bebida da tela Drinks, as bebidas aparecem com os desenhos coloridos do Noto Emoji, do Google (licença Apache 2.0), guardados no próprio app para ficarem iguais em qualquer celular. A tela deixa claro que o medidor é um indicador educativo, não um resultado clínico (RNF17).
 
 O estudo de caso previa a orientação sobre quando procurar o médico como uma das quatro telas principais. No protótipo, ela passou a ser uma sobreposição aberta a partir do selo de risco do Início e do cartão de risco do Relatório, para aparecer exatamente quando o usuário vê o próprio resultado, sem precisar navegar. A orientação continua sendo uma função essencial e apenas mudou de formato. A vaga de tela principal passou para o Relatório, que reúne a visualização de indicadores e o modo consulta.
 
@@ -111,6 +111,21 @@ A interface usa componentes do Material Design, que o Flutter oferece prontos e 
 | Diálogo de confirmação | Excluir registros, apagar dados e compartilhar o PDF | Evita a perda de dados e o envio do resumo sem querer |
 | Controle segmentado | Relatório e histórico de Drinks | Troca o período ou a ordenação com um toque |
 | Sobreposição | Registro rápido e orientação médica | Mostra um conteúdo pontual sem trocar de tela |
+
+## Ajustes em relação ao protótipo de alta fidelidade
+
+No refinamento da Unidade II, cada tela foi comparada com o protótipo de alta fidelidade. A maior parte foi seguida; as diferenças abaixo foram decididas pela equipe para não perder função, privacidade ou facilidade de uso.
+
+| Tela | O que mudou em relação ao protótipo | Por quê |
+| --- | --- | --- |
+| Login, cadastro e recuperação de senha | Seguem o protótipo (ícone, frase de abertura, rótulos acima dos campos e links), mas o cadastro não pede o nome e a senha mínima é de 6 caracteres. A caixa "Li e aceito a Política de Privacidade" é obrigatória para criar a conta | O nome não é necessário e nunca vai para a nuvem. O mínimo de 6 é o do Firebase, e contas antigas com 6 ou 7 caracteres continuam entrando. O aceite deixa registrado o consentimento com a política (LGPD) |
+| Alterar senha | Criada como no protótipo, em Perfil. A lista "A nova senha precisa ter" mostra só as regras que o app exige (6 caracteres e confirmação igual) | Mostrar regras que o app não cobra confundiria a pessoa. A troca de senha tranca de novo a chave da cópia na nuvem, sem perder dados |
+| Registro rápido (botão +) | Continua abrindo de baixo para cima, e não como cartão no meio da tela. Recebeu as imagens coloridas das bebidas | A folha de baixo fica na zona do polegar e fecha arrastando para baixo, o que facilita o uso com uma mão, em pé e com pouca atenção (RNF11) |
+| Início | Sem o título e a legenda do topo; o corpo começa logo abaixo do ícone de conta. Na primeira abertura, uma animação de "scan" mostra o corpo, os órgãos e o fígado acendendo na cor do risco antes do cartão, que fica levemente transparente | O protótipo não tem título, e a frase repetia a do login. A animação é curta, roda só ao abrir, pode ser pulada com um toque e não roda quando o Android está com "remover animações" |
+| Drinks | O tipo de bebida virou cartões com imagem. Entrou o consumo por tipo na semana, no mês ou no ano, contado em drinques padrão (o protótipo conta unidades). A ordenação do histórico por tipo ou data ficou de fora | Drinque padrão é a medida do app inteiro e compara bebidas diferentes de forma justa (uma garrafa de vinho vale muito mais que uma lata de cerveja). O histórico já vem do mais recente para o mais antigo |
+| Exames | A data do exame ficou numa linha própria, e não ao lado da idade. Entrou o aviso "Confira a idade" quando a idade não combina com a de outro exame | Num celular de 360 px a data não cabia ao lado da idade e quebrava em duas linhas. O aviso evita dados incoerentes de um mesmo paciente, sem impedir de salvar |
+| Perfil | Organizado em cartões por assunto, como no protótipo. Sincronização e lembretes abrem as suas telas em vez de serem chaves de liga e desliga. Os itens não têm texto explicativo. Sair pede confirmação, e entraram Apagar a conta e o atalho do PDF | O consentimento precisa da tela que explica o que é enviado, e os lembretes têm várias opções. Apagar a conta atende ao direito de eliminação da LGPD; sem internet nada é apagado, para não deixar a nuvem cheia e o aparelho vazio |
+| Relatório e PDF | Os botões do resumo em PDF ficaram um embaixo do outro, com a mesma largura. O PDF não traz nome nem sexo, mas ganhou a escala das faixas do FIB-4, o aviso "Documento pessoal · confidencial" e a caixa "Importante" | Lado a lado, "Visualizar / salvar" quebrava em duas linhas. O app não coleta nome nem sexo. A escala ajuda o profissional a ver a faixa num relance, e a caixa avisa que os valores foram registrados pelo próprio usuário |
 
 ## Acessibilidade
 

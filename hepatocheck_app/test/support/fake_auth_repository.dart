@@ -46,6 +46,34 @@ class FakeAuthRepository implements AuthRepository {
     resetEmails.add(email);
   }
 
+  String password = '123456';
+  final passwordChanges = <String>[];
+  bool failUpdate = false;
+
+  @override
+  Future<AuthUser> reauthenticate(String password) async {
+    final user = _user;
+    if (user == null || password != this.password) {
+      throw const AuthFailure(AuthFailureCode.wrongCredentials);
+    }
+    return user;
+  }
+
+  @override
+  Future<void> updatePassword(String newPassword) async {
+    if (failUpdate) throw const AuthFailure(AuthFailureCode.network);
+    password = newPassword;
+    passwordChanges.add(newPassword);
+  }
+
+  bool deleted = false;
+
+  @override
+  Future<void> deleteAccount() async {
+    deleted = true;
+    _emit(null);
+  }
+
   @override
   Future<void> signOut() async => _emit(null);
 }

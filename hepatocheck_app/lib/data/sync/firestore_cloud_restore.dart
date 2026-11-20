@@ -144,9 +144,12 @@ class FirestoreCloudRestore implements CloudRestore {
   }
 
   @override
-  Future<void> deleteRemote(String uid) async {
+  Future<void> deleteRemote(String uid, {bool includeKey = false}) async {
     for (final type in SyncEntityType.values) {
-      final snapshot = await _collection(uid, type).get();
+      final snapshot = await _collection(
+        uid,
+        type,
+      ).get(const GetOptions(source: Source.server));
       final documents = snapshot.docs;
       for (var start = 0; start < documents.length; start += 400) {
         final batch = _firestore.batch();
@@ -155,6 +158,9 @@ class FirestoreCloudRestore implements CloudRestore {
         }
         await batch.commit();
       }
+    }
+    if (includeKey) {
+      await _firestore.collection('users').doc(uid).delete();
     }
   }
 

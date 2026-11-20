@@ -1,19 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../providers/auth_providers.dart';
 import '../providers/local_data_providers.dart';
 import '../theme/app_colors.dart';
 
 class EraseLocalDataTile extends ConsumerWidget {
   const EraseLocalDataTile({super.key});
 
+  static const offlineMessage =
+      'Conecte-se à internet para apagar também a cópia da nuvem. '
+      'Nada foi apagado.';
+
   Future<void> _confirmAndErase(BuildContext context, WidgetRef ref) async {
+    final signedIn = ref.read(authRepositoryProvider).currentUser != null;
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
         title: const Text('Apagar todos os dados?'),
-        content: const Text(
-          'Isso apaga deste aparelho todos os drinques, exames, metas e registros que aguardam envio, e desliga os lembretes. Não é possível desfazer. Dados que já foram sincronizados com a nuvem não são apagados.',
+        content: Text(
+          signedIn
+              ? 'Isso apaga deste aparelho e da nuvem todos os drinques, exames, metas e registros que aguardam envio, e desliga os lembretes. Não é possível desfazer. Sua conta continua existindo.'
+              : 'Isso apaga deste aparelho todos os drinques, exames, metas e registros que aguardam envio, e desliga os lembretes. Não é possível desfazer.',
         ),
         actions: [
           TextButton(
@@ -30,11 +38,17 @@ class EraseLocalDataTile extends ConsumerWidget {
     );
     if (confirmed != true) return;
 
-    await eraseAllLocalData(ref);
+    final erased = await eraseAllData(ref);
     if (!context.mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Todos os dados deste aparelho foram apagados.'),
+      SnackBar(
+        content: Text(
+          !erased
+              ? offlineMessage
+              : signedIn
+              ? 'Todos os dados deste aparelho e da nuvem foram apagados.'
+              : 'Todos os dados deste aparelho foram apagados.',
+        ),
       ),
     );
   }
@@ -47,8 +61,10 @@ class EraseLocalDataTile extends ConsumerWidget {
         Icons.delete_forever_outlined,
         color: AppColors.riskRed,
       ),
-      title: const Text('Apagar todos os dados'),
-      subtitle: const Text('Remove drinques, exames e metas deste aparelho'),
+      title: const Text(
+        'Apagar todos os dados',
+        style: TextStyle(color: AppColors.riskRed),
+      ),
       onTap: () => _confirmAndErase(context, ref),
     );
   }

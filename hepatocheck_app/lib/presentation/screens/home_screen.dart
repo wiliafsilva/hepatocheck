@@ -8,6 +8,8 @@ import '../providers/risk_evolution_provider.dart';
 import '../providers/risk_providers.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
+import '../theme/risk_colors.dart';
+import '../widgets/body_risk_figure.dart';
 import '../widgets/content_width.dart';
 import '../widgets/quick_drink_sheet.dart';
 import '../widgets/risk_card.dart';
@@ -18,11 +20,91 @@ import 'medical_guidance_sheet.dart';
 /// Tela Início: cartão de risco com o medidor e o botão + de registro rápido.
 ///
 /// Os dados vêm do Riverpod: o último exame e o consumo das últimas 4 semanas.
-class HomeScreen extends ConsumerWidget {
+final homeIntroProvider = Provider((ref) => HomeIntro());
+
+final jaundiceNoticeDismissedProvider =
+    NotifierProvider<JaundiceNoticeDismissed, bool>(
+      JaundiceNoticeDismissed.new,
+    );
+
+class JaundiceNoticeDismissed extends Notifier<bool> {
+  @override
+  bool build() => false;
+
+  void dismiss() => state = true;
+}
+
+class HomeIntro {
+  bool played = false;
+}
+
+class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
 
+  static const introDuration = Duration(milliseconds: 2000);
+  static const loadTimeout = Duration(seconds: 3);
+
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends ConsumerState<HomeScreen>
+    with SingleTickerProviderStateMixin {
+  late final _intro = AnimationController(
+    vsync: this,
+    duration: HomeScreen.introDuration,
+  );
+  late final _reveal = CurvedAnimation(
+    parent: _intro,
+    curve: BodyRiskFigure.revealInterval,
+  );
+  bool _started = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_started) return;
+    _started = true;
+    final intro = ref.read(homeIntroProvider);
+    if (intro.played || MediaQuery.disableAnimationsOf(context)) {
+      _intro.value = 1;
+    } else {
+      _startIntro();
+    }
+    intro.played = true;
+  }
+
+  Future<void> _startIntro() async {
+    final health = ref.read(liverHealthProvider);
+    final current = ref.read(currentRiskProvider);
+    try {
+      await BodyRiskFigure.precache(
+        context,
+        (current?.level ?? health.risk)?.color,
+      ).timeout(HomeScreen.loadTimeout);
+    } catch (_) {}
+    if (mounted) _intro.forward();
+  }
+
+  @override
+  void dispose() {
+    _reveal.dispose();
+    _intro.dispose();
+    super.dispose();
+  }
+
+  void _skipIntro() {
+    if (_intro.isAnimating) _intro.value = 1;
+  }
+
+  Widget _afterIntro(Widget child) => FadeTransition(
+    opacity: _reveal,
+    alwaysIncludeSemantics: true,
+    child: child,
+  );
+
+  @override
+  Widget build(BuildContext context) {
     final health = ref.watch(liverHealthProvider);
     final current = ref.watch(currentRiskProvider);
     final jaundice = (current?.level ?? health.risk) == RiskLevel.high;
@@ -40,36 +122,56 @@ class HomeScreen extends ConsumerWidget {
                 onPressed: () => openAccount(context, ref),
               ),
             ),
-            const Text('Seu fígado, sob controle.', style: AppTextStyles.title),
             const SizedBox(height: 4),
-            const Text(
-              'Resumo do seu risco hepático',
-              style: AppTextStyles.body,
+            BodyRiskFigure(
+              liverColor: (current?.level ?? health.risk)?.color,
+              progress: _intro,
+              child: RiskCard(health: health, current: current),
             ),
-            const SizedBox(height: 20),
-            if (jaundice) ...[
-              const JaundiceNotice(),
-              const SizedBox(height: 16),
-            ],
-            RiskCard(health: health, current: current),
             const SizedBox(height: 16),
-            _ConsumptionCard(health: health),
+            _afterIntro(_ConsumptionCard(health: health)),
             const SizedBox(height: 16),
-            RiskEvolutionChart(points: ref.watch(riskEvolutionProvider)),
+            _afterIntro(
+              RiskEvolutionChart(points: ref.watch(riskEvolutionProvider)),
+            ),
           ],
         ),
       ),
     );
 
     return Scaffold(
-      body: jaundice
-          ? Stack(
-              children: [
-                content,
-                const Positioned.fill(child: JaundiceFilter()),
-              ],
-            )
-          : content,
+      body: Listener(
+        behavior: HitTestBehavior.translucent,
+        onPointerDown: (_) => _skipIntro(),
+        child: jaundice
+            ? Stack(
+                children: [
+                  content,
+                  Positioned.fill(child: _afterIntro(const JaundiceFilter())),
+                  if (!ref.watch(jaundiceNoticeDismissedProvider))
+                    SafeArea(
+                      child: Align(
+                        alignment: Alignment.topCenter,
+                        child: Padding(
+                          padding: const EdgeInsets.fromLTRB(16, 56, 16, 0),
+                          child: ContentWidth(
+                            child: _afterIntro(
+                              JaundiceNotice(
+                                onClose: () => ref
+                                    .read(
+                                      jaundiceNoticeDismissedProvider.notifier,
+                                    )
+                                    .dismiss(),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              )
+            : content,
+      ),
       floatingActionButton: FloatingActionButton(
         tooltip: 'Registrar drinque',
         onPressed: () => showQuickDrinkSheet(context),
@@ -104,12 +206,18 @@ class JaundiceFilter extends StatelessWidget {
 }
 
 class JaundiceNotice extends StatelessWidget {
-  const JaundiceNotice({super.key});
+  const JaundiceNotice({super.key, required this.onClose});
+
+  final VoidCallback onClose;
 
   @override
   Widget build(BuildContext context) {
     return Card(
-      color: AppColors.riskYellow.withValues(alpha: 0.12),
+      elevation: 6,
+      color: Color.alphaBlend(
+        AppColors.riskYellow.withValues(alpha: 0.16),
+        AppColors.surface,
+      ),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(14),
         side: BorderSide(color: AppColors.riskYellow.withValues(alpha: 0.6)),
@@ -118,7 +226,7 @@ class JaundiceNotice extends StatelessWidget {
         borderRadius: BorderRadius.circular(14),
         onTap: () => showMedicalGuidance(context, currentRisk: RiskLevel.high),
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.fromLTRB(16, 16, 4, 16),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -129,6 +237,7 @@ class JaundiceNotice extends StatelessWidget {
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
+                  mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Text(
@@ -147,6 +256,11 @@ class JaundiceNotice extends StatelessWidget {
                     ),
                   ],
                 ),
+              ),
+              IconButton(
+                tooltip: 'Fechar aviso',
+                icon: const Icon(Icons.close),
+                onPressed: onClose,
               ),
             ],
           ),

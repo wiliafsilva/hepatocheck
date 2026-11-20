@@ -11,7 +11,11 @@ import 'package:hepatocheck_app/presentation/providers/exam_providers.dart';
 import 'package:hepatocheck_app/presentation/providers/goal_providers.dart';
 import 'package:hepatocheck_app/presentation/screens/auth/login_screen.dart';
 import 'package:hepatocheck_app/presentation/screens/home_screen.dart';
+import 'package:hepatocheck_app/presentation/theme/app_colors.dart';
 import 'package:hepatocheck_app/presentation/theme/app_theme.dart';
+import 'package:hepatocheck_app/presentation/widgets/body_risk_figure.dart';
+import 'package:hepatocheck_app/presentation/widgets/liver_gauge.dart';
+import 'package:hepatocheck_app/presentation/widgets/risk_card.dart';
 
 import '../support/test_data.dart';
 
@@ -40,12 +44,49 @@ void main() {
     return container;
   }
 
+  testWidgets('o fígado do corpo ao fundo segue a cor do risco', (
+    tester,
+  ) async {
+    final container = await pump(tester);
+    Color? liver() =>
+        tester.widget<BodyRiskFigure>(find.byType(BodyRiskFigure)).liverColor;
+    expect(liver(), isNull);
+
+    await container.read(examsProvider.notifier).save(testExam());
+    await tester.pumpAndSettle();
+
+    expect(find.text('Risco verde'), findsOneWidget);
+    expect(liver(), AppColors.riskGreen);
+  });
+
+  test('o fígado troca só as cores do degradê', () {
+    const mapper = LiverColorMapper(AppColors.riskRed);
+
+    expect(
+      mapper.substitute(null, 'stop', 'stop-color', const Color(0xFFFFEE00)),
+      AppColors.riskRed,
+    );
+    expect(
+      mapper.substitute(null, 'stop', 'stop-color', const Color(0xFF636001)),
+      Color.lerp(AppColors.riskRed, Colors.black, 0.6),
+    );
+    expect(
+      mapper.substitute(null, 'path', 'fill', const Color(0xFF3E8B4E)),
+      const Color(0xFF3E8B4E),
+    );
+    expect(mapper, const LiverColorMapper(AppColors.riskRed));
+  });
+
   testWidgets('selo sobe de nível quando o consumo passa da meta, como no '
       'Relatório', (tester) async {
     final container = await pump(tester);
     await container.read(examsProvider.notifier).save(testExam());
     await tester.pumpAndSettle();
     expect(find.text('Risco verde'), findsOneWidget);
+    expect(
+      tester.widget<LiverGauge>(find.byType(LiverGauge)).color,
+      AppColors.riskGreen,
+    );
 
     final monday = DateTime(2026, 11, 9);
     await container
@@ -69,6 +110,10 @@ void main() {
     expect(find.text('Risco amarelo'), findsOneWidget);
     expect(find.textContaining('Nível elevado para Amarelo'), findsOneWidget);
     expect(find.textContaining('passou da sua meta de 1'), findsOneWidget);
+    expect(
+      tester.widget<LiverGauge>(find.byType(LiverGauge)).color,
+      AppColors.riskYellow,
+    );
   });
 
   testWidgets('sem exame mostra o convite para registrar', (tester) async {
@@ -91,6 +136,11 @@ void main() {
         .save(testDrink(42, now.subtract(const Duration(days: 2))));
     await tester.pumpAndSettle();
     expect(find.text('65%'), findsOneWidget); // 72,3 - 7,5 = 64,8
+    await tester.scrollUntilVisible(
+      find.textContaining('Acima do limite'),
+      200,
+      scrollable: find.byType(Scrollable).first,
+    );
     expect(find.textContaining('Acima do limite'), findsOneWidget);
   });
 
@@ -146,6 +196,8 @@ void main() {
     final container = await pump(tester);
     expect(find.byType(JaundiceFilter), findsNothing);
     expect(find.byType(JaundiceNotice), findsNothing);
+    await tester.pumpAndSettle();
+    final cardTop = tester.getTopLeft(find.byType(RiskCard)).dy;
 
     await container
         .read(examsProvider.notifier)
@@ -154,10 +206,18 @@ void main() {
 
     expect(find.byType(JaundiceFilter), findsOneWidget);
     expect(find.text('Por que a tela está amarelada?'), findsOneWidget);
+    expect(tester.getTopLeft(find.byType(RiskCard)).dy, cardTop);
 
     await tester.tap(find.text('Por que a tela está amarelada?'));
     await tester.pumpAndSettle();
     expect(find.text('Quando procurar o médico'), findsOneWidget);
+    await tester.tapAt(const Offset(10, 10));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byTooltip('Fechar aviso'));
+    await tester.pumpAndSettle();
+    expect(find.byType(JaundiceNotice), findsNothing);
+    expect(find.byType(JaundiceFilter), findsOneWidget);
   });
 
   testWidgets('risco verde ou amarelo não mostra o filtro', (tester) async {
@@ -187,6 +247,9 @@ void main() {
   });
 
   testWidgets('login valida os campos e leva ao cadastro', (tester) async {
+    tester.view.physicalSize = const Size(1080, 2400);
+    tester.view.devicePixelRatio = 2.6;
+    addTearDown(tester.view.reset);
     await tester.pumpWidget(
       ProviderScope(
         child: MaterialApp(theme: AppTheme.dark, home: const LoginScreen()),
@@ -198,7 +261,13 @@ void main() {
     expect(find.text('Informe o e-mail.'), findsOneWidget);
     expect(find.text('Informe a senha.'), findsOneWidget);
 
+    await tester.scrollUntilVisible(
+      find.text('Criar conta'),
+      200,
+      scrollable: find.byType(Scrollable).first,
+    );
     await tester.ensureVisible(find.text('Criar conta'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Criar conta'));
     await tester.pumpAndSettle();
     expect(find.text('Confirmar senha'), findsOneWidget);

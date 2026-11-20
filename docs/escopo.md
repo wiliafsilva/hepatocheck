@@ -24,8 +24,8 @@ Adultos de 30 a 60 anos. A persona prioritária é **Ricardo, 45 anos, "o Negado
 | --- | --- |
 | Cálculo do FIB-4 no próprio aparelho, com validação das entradas e aviso quando a idade está fora de 35 a 65 anos | RF01, RF02 |
 | Classificação do risco em Verde, Amarelo e Vermelho a partir do FIB-4, subindo um nível quando o consumo semanal passa do limite definido pelo usuário | RF06 |
-| Cadastro, consulta, edição e exclusão de exames, com histórico e recálculo automático do FIB-4 | CRUD de exames |
-| Medidor de saúde do fígado de 0 a 100%, com a cor do risco | RF07 |
+| Cadastro, consulta, edição e exclusão de exames, com histórico, recálculo automático do FIB-4 e aviso de idade incoerente entre exames | CRUD de exames |
+| Medidor de saúde do fígado de 0 a 100%, com a cor do risco, sobre a silhueta do corpo com o fígado na cor do risco | RF07 |
 | Orientação sobre quando procurar o médico | RF14 |
 
 ### Diário de álcool
@@ -35,6 +35,7 @@ Adultos de 30 a 60 anos. A persona prioritária é **Ricardo, 45 anos, "o Negado
 | Registro por tipo de bebida, com volume e teor alcoólico | RF03 |
 | Conversão automática em drinque padrão, mostrada antes da confirmação | RF04 |
 | Registro rápido em até 3 toques | RF05, RNF11 |
+| Consumo por tipo de bebida na semana, no mês ou no ano, em drinques padrão | RF03, RF04 |
 | Registro de alterações do diário sem expor o conteúdo | Aditivo |
 | Metas de redução e dias sem consumo, com feedback | RF15 |
 
@@ -45,9 +46,10 @@ Adultos de 30 a 60 anos. A persona prioritária é **Ricardo, 45 anos, "o Negado
 | Funcionamento 100% offline, com banco local Hive | RF10, RNF05, RNF13 |
 | Criptografia AES dos registros locais e do banco inteiro com a camuflagem ativa | RNF03, RNF07, aditivo |
 | Modo Camuflagem: o diário se disfarça de calculadora, com troca instantânea | RF09 |
-| Modo convidado e login opcional com Firebase Authentication | RF08, RNF16 |
+| Modo convidado e login opcional com Firebase Authentication, com troca de senha | RF08, RNF16 |
 | Sincronização em lote com o Cloud Firestore só por Wi-Fi e com autorização, com anonimização e tratamento de falhas parciais | RF11, RNF08, RNF14, RNF15 |
 | Restauração automática dos dados ao entrar na conta em outro aparelho ou depois de reinstalar, com os valores exatos criptografados pela senha | RF25, RNF20 |
+| Apagar todos os dados do aparelho e da nuvem, e apagar a conta, sempre com confirmação | LGPD (direito de eliminação), RNF16 |
 
 ### Acompanhamento
 

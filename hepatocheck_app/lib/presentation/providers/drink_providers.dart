@@ -7,6 +7,7 @@ import '../../domain/entities/drink_entry.dart';
 import '../../domain/repositories/audit_log_repository.dart';
 import '../../domain/repositories/drink_repository.dart';
 import '../../domain/usecases/convert_to_standard_drinks.dart';
+import '../../domain/usecases/summarize_drinks_by_type.dart';
 import '../../domain/usecases/validate_drink_input.dart';
 import 'sync_providers.dart';
 
@@ -24,6 +25,10 @@ final drinkRepositoryProvider = Provider<DrinkRepository>(
 
 final convertToStandardDrinksProvider = Provider(
   (ref) => const ConvertToStandardDrinks(),
+);
+
+final summarizeDrinksByTypeProvider = Provider(
+  (ref) => SummarizeDrinksByType(ref.watch(convertToStandardDrinksProvider)),
 );
 
 final validateDrinkInputProvider = Provider(

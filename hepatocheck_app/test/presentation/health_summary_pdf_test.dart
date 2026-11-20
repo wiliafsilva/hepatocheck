@@ -128,4 +128,28 @@ void main() {
 
     expect(isPdf(bytes), isTrue);
   });
+
+  test('a seta da escala do FIB-4 fica no lugar certo e não sai da barra', () {
+    expect(HealthSummaryPdf.scaleFraction(0), 0);
+    expect(HealthSummaryPdf.scaleFraction(2), 0.5);
+    expect(HealthSummaryPdf.scaleFraction(9.4), 1);
+  });
+
+  test('gera a escala para risco alto e para mais de 65 anos', () async {
+    for (final exam in [
+      testExam(id: 'alto', ast: 120, platelets: 90),
+      testExam(id: 'idoso', age: 70),
+    ]) {
+      final bytes = await pdf.build(
+        build(
+          exams: [exam],
+          drinks: const [],
+          goals: const [],
+          period: ReportPeriod.containing(now, ReportPeriodType.month),
+          now: now,
+        ),
+      );
+      expect(isPdf(bytes), isTrue);
+    }
+  });
 }

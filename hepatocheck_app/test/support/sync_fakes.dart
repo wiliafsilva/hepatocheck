@@ -118,7 +118,12 @@ class FakeCloudVault implements CloudVault {
   }
 
   @override
-  Future<void> rewrap(String uid, String newPassword) async {}
+  Future<void> rewrap(String uid, String newPassword) async {
+    if (!unlocked) throw const VaultLockedException();
+    rewraps.add(newPassword);
+  }
+
+  final rewraps = <String>[];
 
   @override
   Future<void> lock() async => unlocked = false;
@@ -159,5 +164,12 @@ class FakeCloudRestore implements CloudRestore {
   }
 
   @override
-  Future<void> deleteRemote(String uid) async => deletedUids.add(uid);
+  Future<void> deleteRemote(String uid, {bool includeKey = false}) async {
+    if (offline) throw StateError('sem internet');
+    deletedUids.add(uid);
+    if (includeKey) deletedKeys.add(uid);
+  }
+
+  bool offline = false;
+  final deletedKeys = <String>[];
 }

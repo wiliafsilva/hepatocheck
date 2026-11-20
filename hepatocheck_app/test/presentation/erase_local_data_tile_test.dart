@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hepatocheck_app/domain/repositories/local_data_eraser.dart';
+import 'package:hepatocheck_app/presentation/providers/account_session.dart';
 import 'package:hepatocheck_app/presentation/providers/auth_providers.dart';
 import 'package:hepatocheck_app/presentation/providers/drink_providers.dart';
 import 'package:hepatocheck_app/presentation/providers/exam_providers.dart';
@@ -39,6 +40,7 @@ void main() {
   late _FakeEraser eraser;
   late FakeAuthRepository auth;
   late FakeCloudVault vault;
+  late FakeCloudRestore cloud;
   late ProviderContainer container;
 
   setUp(() async {
@@ -48,6 +50,7 @@ void main() {
     auth = FakeAuthRepository();
     await auth.signIn(email: 'a@b.com', password: '123456');
     vault = FakeCloudVault();
+    cloud = FakeCloudRestore();
     await drinks.save(testDrink(2, DateTime(2026, 11, 14)));
     await exams.save(testExam());
     container = ProviderContainer(
@@ -57,6 +60,7 @@ void main() {
         localDataEraserProvider.overrideWithValue(eraser),
         authRepositoryProvider.overrideWithValue(auth),
         cloudVaultProvider.overrideWithValue(vault),
+        cloudRestoreProvider.overrideWithValue(cloud),
       ],
     );
   });
@@ -103,6 +107,40 @@ void main() {
     expect(vault.isUnlocked, isFalse);
     expect(container.read(drinksProvider), isEmpty);
     expect(container.read(examsProvider), isEmpty);
+    expect(cloud.deletedUids, ['uid-1']);
+    expect(cloud.deletedKeys, isEmpty);
+    expect(
+      find.text('Todos os dados deste aparelho e da nuvem foram apagados.'),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('sem internet, não apaga nada e avisa', (tester) async {
+    await pump(tester);
+    cloud.offline = true;
+
+    await tester.tap(find.text('Apagar todos os dados'));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('deste aparelho e da nuvem'), findsOneWidget);
+    await tester.tap(find.text('Apagar tudo'));
+    await tester.pumpAndSettle();
+
+    expect(eraser.calls, 0);
+    expect(container.read(drinksProvider), hasLength(1));
+    expect(find.text(EraseLocalDataTile.offlineMessage), findsOneWidget);
+  });
+
+  testWidgets('sem conta, apaga só o aparelho', (tester) async {
+    await auth.signOut();
+    await pump(tester);
+
+    await tester.tap(find.text('Apagar todos os dados'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Apagar tudo'));
+    await tester.pumpAndSettle();
+
+    expect(eraser.calls, 1);
+    expect(cloud.deletedUids, isEmpty);
     expect(
       find.text('Todos os dados deste aparelho foram apagados.'),
       findsOneWidget,

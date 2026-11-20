@@ -4,6 +4,7 @@ import 'package:uuid/uuid.dart';
 
 import '../../domain/entities/fib4_result.dart';
 import '../../domain/entities/lab_exam.dart';
+import '../../domain/usecases/check_exam_age_consistency.dart';
 import '../../domain/usecases/validate_exam_input.dart';
 import '../formatters.dart';
 import '../input/exam_number_input_formatter.dart';
@@ -35,7 +36,6 @@ class _ExamsScreenState extends ConsumerState<ExamsScreen> {
   String _draftId = const Uuid().v4();
   Map<ExamField, String> _errors = const {};
   double? _plateletSuggestion;
-  LabExam? _lastSaved;
   bool _saving = false;
 
   @override
@@ -105,8 +105,17 @@ class _ExamsScreenState extends ConsumerState<ExamsScreen> {
     });
     if (!validation.isValid) return;
 
-    final now = DateTime.now();
     final editing = _editing;
+    final conflict = ref.read(checkExamAgeConsistencyProvider)(
+      examDate: validation.examDate!,
+      age: validation.age!,
+      exams: ref.read(examsProvider),
+      ignoreId: editing?.id ?? _draftId,
+    );
+    if (conflict != null && !await _confirmAgeConflict(conflict)) return;
+    if (!mounted) return;
+
+    final now = DateTime.now();
     final exam = editing == null
         ? LabExam(
             id: _draftId,
@@ -140,10 +149,49 @@ class _ExamsScreenState extends ConsumerState<ExamsScreen> {
 
     setState(() {
       _saving = false;
-      _lastSaved = exam;
       _resetForm(keepAge: true);
     });
-    _showMessage(editing == null ? 'Exame salvo.' : 'Exame atualizado.');
+    final result = ref.read(calculateFib4Provider)(exam);
+    _showMessage(
+      '${editing == null ? 'Exame salvo' : 'Exame atualizado'}. '
+      'FIB-4: ${formatScore(result.score)} (${result.riskLevel.label}).',
+    );
+  }
+
+  Future<bool> _confirmAgeConflict(ExamAgeConflict conflict) async {
+    final expected = conflict.minAge == conflict.maxAge
+        ? '${conflict.minAge} anos'
+        : '${conflict.minAge} ou ${conflict.maxAge} anos';
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Confira a idade'),
+        content: Text(
+          'No exame de ${formatDate(conflict.exam.examDate)} a idade era '
+          '${conflict.exam.age} anos. Na data deste exame, a idade esperada '
+          'é $expected.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Salvar assim mesmo'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Corrigir'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) {
+      setState(
+        () => _errors = {
+          ..._errors,
+          ExamField.age: 'Idade esperada nesta data: $expected.',
+        },
+      );
+    }
+    return confirmed == true;
   }
 
   void _resetForm({bool keepAge = false}) {
@@ -213,7 +261,6 @@ class _ExamsScreenState extends ConsumerState<ExamsScreen> {
     if (!mounted) return;
     setState(() {
       if (_editing?.id == exam.id) _resetForm(keepAge: true);
-      if (_lastSaved?.id == exam.id) _lastSaved = null;
     });
     _showMessage('Exame excluído.');
   }
@@ -229,10 +276,6 @@ class _ExamsScreenState extends ConsumerState<ExamsScreen> {
     final exams = ref.watch(examsProvider);
     final calculate = ref.watch(calculateFib4Provider);
     final latest = exams.isEmpty ? null : exams.first;
-    final shown = _lastSaved == null
-        ? latest
-        : exams.where((exam) => exam.id == _lastSaved!.id).firstOrNull ??
-              latest;
 
     return ListView(
       controller: _scrollController,
@@ -272,15 +315,11 @@ class _ExamsScreenState extends ConsumerState<ExamsScreen> {
             ),
           ),
         ),
-        if (shown != null) ...[
+        if (latest != null) ...[
           const SizedBox(height: 24),
           const SectionLabel('RESULTADO'),
           const SizedBox(height: 8),
-          _ResultCard(
-            exam: shown,
-            result: calculate(shown),
-            isLatest: shown.id == latest?.id,
-          ),
+          _ResultCard(exam: latest, result: calculate(latest)),
         ],
         const SizedBox(height: 24),
         SectionLabel(
@@ -319,22 +358,15 @@ class _ExamsScreenState extends ConsumerState<ExamsScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: _NumberField(
-                    label: 'Idade',
-                    controller: _ageController,
-                    suffix: 'anos',
-                    error: _errors[ExamField.age],
-                    decimal: false,
-                    maxIntegerDigits: 3,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(child: _buildDateField()),
-              ],
+            _buildDateField(),
+            const SizedBox(height: 14),
+            _NumberField(
+              label: 'Idade',
+              controller: _ageController,
+              suffix: 'anos',
+              error: _errors[ExamField.age],
+              decimal: false,
+              maxIntegerDigits: 3,
             ),
             const SizedBox(height: 6),
             Row(
@@ -501,15 +533,10 @@ class _NumberField extends StatelessWidget {
 }
 
 class _ResultCard extends StatelessWidget {
-  const _ResultCard({
-    required this.exam,
-    required this.result,
-    required this.isLatest,
-  });
+  const _ResultCard({required this.exam, required this.result});
 
   final LabExam exam;
   final Fib4Result result;
-  final bool isLatest;
 
   @override
   Widget build(BuildContext context) {
@@ -537,16 +564,6 @@ class _ResultCard extends StatelessWidget {
               'Exame de ${formatDate(exam.examDate)}',
               style: AppTextStyles.caption,
             ),
-            if (!isLatest) ...[
-              const SizedBox(height: 6),
-              Text(
-                'Este não é o exame mais recente. O risco atual usa o último '
-                'exame do histórico.',
-                style: AppTextStyles.caption.copyWith(
-                  color: AppColors.textPrimary,
-                ),
-              ),
-            ],
             const SizedBox(height: 8),
             Text(
               result.riskLevel.description,

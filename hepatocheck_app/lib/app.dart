@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
 import 'core/platform/app_switcher_privacy.dart';
@@ -11,16 +10,13 @@ import 'presentation/screens/camouflage_calculator_screen.dart';
 import 'presentation/screens/drinks_screen.dart';
 import 'presentation/screens/exams_screen.dart';
 import 'presentation/screens/home_screen.dart';
+import 'presentation/screens/profile_screen.dart';
 import 'presentation/screens/report_screen.dart';
 import 'presentation/screens/goals_screen.dart';
-import 'presentation/screens/follow_up_screen.dart';
 import 'presentation/providers/goal_providers.dart';
 import 'presentation/providers/report_providers.dart';
-import 'presentation/screens/sync_status_screen.dart';
 import 'presentation/theme/app_colors.dart';
 import 'presentation/theme/app_theme.dart';
-import 'presentation/widgets/account_section.dart';
-import 'presentation/widgets/erase_local_data_tile.dart';
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -220,7 +216,7 @@ class _AppNavigationShellState extends ConsumerState<AppNavigationShell>
             const ReportScreen(),
             const DrinksScreen(),
             const ExamsScreen(),
-            _ProfileScreen(
+            ProfileScreen(
               camouflageEnabled: _camouflageController.isEnabled,
               onEnableCamouflage: _enableCamouflage,
               onDisableCamouflage: _disableCamouflage,
@@ -294,138 +290,4 @@ class _AppTab {
   final String label;
   final IconData icon;
   final IconData selectedIcon;
-}
-
-class _ProfileScreen extends StatelessWidget {
-  const _ProfileScreen({
-    required this.camouflageEnabled,
-    required this.onEnableCamouflage,
-    required this.onDisableCamouflage,
-  });
-
-  final bool camouflageEnabled;
-  final Future<void> Function(String code) onEnableCamouflage;
-  final Future<void> Function() onDisableCamouflage;
-
-  Future<void> _configureCamouflage(BuildContext context) async {
-    final controller = TextEditingController();
-    String? error;
-
-    final code = await showDialog<String>(
-      context: context,
-      builder: (dialogContext) => StatefulBuilder(
-        builder: (context, setDialogState) => AlertDialog(
-          title: const Text('Criar código secreto'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'Use um código numérico de 4 a 8 dígitos para voltar ao diário. Ele funciona mesmo após uma conta; basta digitá-lo na calculadora.',
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: controller,
-                autofocus: true,
-                keyboardType: TextInputType.number,
-                obscureText: true,
-                maxLength: 8,
-                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                decoration: InputDecoration(
-                  labelText: 'Código secreto',
-                  errorText: error,
-                ),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(dialogContext),
-              child: const Text('Cancelar'),
-            ),
-            FilledButton(
-              onPressed: () {
-                if (controller.text.length < 4) {
-                  setDialogState(() => error = 'Use pelo menos 4 dígitos.');
-                  return;
-                }
-                Navigator.pop(dialogContext, controller.text);
-              },
-              child: const Text('Ativar'),
-            ),
-          ],
-        ),
-      ),
-    );
-    controller.dispose();
-
-    if (code != null) await onEnableCamouflage(code);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return ListView(
-      padding: const EdgeInsets.all(24),
-      children: [
-        const AccountSection(),
-        const Divider(height: 32),
-        ListTile(
-          contentPadding: EdgeInsets.zero,
-          leading: const Icon(Icons.flag_outlined),
-          title: const Text('Metas de redução'),
-          trailing: const Icon(Icons.chevron_right),
-          onTap: () => Navigator.push(
-            context,
-            MaterialPageRoute<void>(builder: (_) => const GoalsScreen()),
-          ),
-        ),
-        ListTile(
-          contentPadding: EdgeInsets.zero,
-          leading: const Icon(Icons.notifications_outlined),
-          title: const Text('Notificações e lembretes'),
-          trailing: const Icon(Icons.chevron_right),
-          onTap: () => Navigator.push(
-            context,
-            MaterialPageRoute<void>(builder: (_) => const FollowUpScreen()),
-          ),
-        ),
-        const Divider(height: 32),
-        Text('Privacidade', style: Theme.of(context).textTheme.headlineMedium),
-        const SizedBox(height: 12),
-        const Text(
-          'Disfarce o diário como uma calculadora e proteja sua visualização ao sair do aplicativo.',
-        ),
-        const SizedBox(height: 24),
-        SwitchListTile.adaptive(
-          contentPadding: EdgeInsets.zero,
-          title: const Text('Modo Camuflagem'),
-          subtitle: Text(
-            camouflageEnabled
-                ? 'Ativo. O código secreto abre o diário.'
-                : 'Use uma calculadora discreta para ocultar o diário.',
-          ),
-          value: camouflageEnabled,
-          onChanged: (enabled) async {
-            if (enabled) {
-              await _configureCamouflage(context);
-            } else {
-              await onDisableCamouflage();
-            }
-          },
-        ),
-        const Divider(height: 32),
-        ListTile(
-          contentPadding: EdgeInsets.zero,
-          leading: const Icon(Icons.cloud_sync_outlined),
-          title: const Text('Sincronização'),
-          subtitle: const Text('Envio dos registros para a nuvem'),
-          trailing: const Icon(Icons.chevron_right),
-          onTap: () => Navigator.of(context).push(
-            MaterialPageRoute<void>(builder: (_) => const SyncStatusScreen()),
-          ),
-        ),
-        const EraseLocalDataTile(),
-      ],
-    );
-  }
 }

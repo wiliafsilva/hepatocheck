@@ -1,3 +1,4 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -8,6 +9,7 @@ import '../../widgets/cloud_key_warning.dart';
 import '../../widgets/content_width.dart';
 import 'auth_flow.dart';
 import 'auth_validators.dart';
+import 'auth_widgets.dart';
 import 'privacy_policy_screen.dart';
 
 /// Tela de cadastro com e-mail e senha. Nome não é pedido: dados pessoais
@@ -27,7 +29,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   final _email = TextEditingController();
   final _password = TextEditingController();
   final _confirm = TextEditingController();
+  late final _policyLink = TapGestureRecognizer()..onTap = _openPolicy;
   bool _obscure = true;
+  bool _accepted = false;
   bool _busy = false;
   String? _error;
 
@@ -36,11 +40,16 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     _email.dispose();
     _password.dispose();
     _confirm.dispose();
+    _policyLink.dispose();
     super.dispose();
   }
 
+  void _openPolicy() => Navigator.of(
+    context,
+  ).push(MaterialPageRoute<void>(builder: (_) => const PrivacyPolicyScreen()));
+
   Future<void> _submit() async {
-    if (_busy) return;
+    if (_busy || !_accepted) return;
     if (!_formKey.currentState!.validate()) return;
     if (!await showCloudKeyWarning(context)) return;
     if (!mounted) return;
@@ -75,90 +84,148 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           child: ListView(
             padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
             children: [
-              const Text('Criar conta', style: AppTextStyles.title),
+              const Text('Criar Conta', style: AppTextStyles.title),
               const SizedBox(height: 4),
-              const Text(
-                'Use e-mail e senha. Seus registros continuam guardados no '
-                'aparelho e só são enviados com a sua autorização.',
-                style: AppTextStyles.body,
+              Text(
+                'Leva menos de um minuto. Você pode sincronizar depois.',
+                style: AppTextStyles.body.copyWith(
+                  color: AppColors.textSecondary,
+                ),
               ),
               const SizedBox(height: 24),
               Form(
                 key: _formKey,
                 child: Column(
                   children: [
-                    TextFormField(
+                    AuthTextField(
+                      label: 'E-mail',
+                      hint: 'seuemail@exemplo.com',
                       controller: _email,
                       keyboardType: TextInputType.emailAddress,
                       autofillHints: const [AutofillHints.email],
                       textInputAction: TextInputAction.next,
-                      decoration: const InputDecoration(labelText: 'E-mail'),
                       validator: AuthValidators.email,
                     ),
                     const SizedBox(height: 16),
-                    TextFormField(
+                    AuthTextField(
+                      label: 'Senha',
+                      hint:
+                          'Mínimo ${AuthValidators.minPasswordLength} caracteres',
                       controller: _password,
                       obscureText: _obscure,
                       autofillHints: const [AutofillHints.newPassword],
                       textInputAction: TextInputAction.next,
-                      decoration: InputDecoration(
-                        labelText: 'Senha',
-                        suffixIcon: IconButton(
-                          tooltip: _obscure ? 'Mostrar senha' : 'Ocultar senha',
-                          icon: Icon(
-                            _obscure
-                                ? Icons.visibility_outlined
-                                : Icons.visibility_off_outlined,
-                          ),
-                          onPressed: () => setState(() => _obscure = !_obscure),
-                        ),
+                      suffixIcon: PasswordVisibilityButton(
+                        obscured: _obscure,
+                        onPressed: () => setState(() => _obscure = !_obscure),
                       ),
                       validator: AuthValidators.password,
                     ),
                     const SizedBox(height: 16),
-                    TextFormField(
+                    AuthTextField(
+                      label: 'Confirmar senha',
+                      hint: 'Repita sua senha',
                       controller: _confirm,
                       obscureText: _obscure,
                       textInputAction: TextInputAction.done,
                       onFieldSubmitted: (_) => _submit(),
-                      decoration: const InputDecoration(
-                        labelText: 'Confirmar senha',
-                      ),
                       validator: (v) =>
                           AuthValidators.confirmPassword(v, _password.text),
                     ),
                   ],
                 ),
               ),
-              if (_error != null) ...[
-                const SizedBox(height: 12),
-                Text(
-                  _error!,
-                  style: AppTextStyles.body.copyWith(color: AppColors.riskRed),
+              const SizedBox(height: 16),
+              _buildAcceptance(),
+              if (_error != null) AuthErrorText(_error!),
+              const SizedBox(height: 20),
+              AuthSubmitButton(
+                label: 'Criar conta',
+                busy: _busy,
+                onPressed: _accepted ? _submit : null,
+              ),
+              if (!_accepted) ...[
+                const SizedBox(height: 8),
+                const Text(
+                  'Aceite a política de privacidade para continuar',
+                  textAlign: TextAlign.center,
+                  style: AppTextStyles.caption,
                 ),
               ],
               const SizedBox(height: 24),
-              FilledButton(
-                onPressed: _busy ? null : _submit,
-                child: _busy
-                    ? const SizedBox.square(
-                        dimension: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : const Text('Criar conta'),
+              Text(
+                'Prefere não se cadastrar agora?',
+                textAlign: TextAlign.center,
+                style: AppTextStyles.body.copyWith(
+                  color: AppColors.textSecondary,
+                ),
               ),
-              const SizedBox(height: 12),
-              TextButton(
-                onPressed: () => Navigator.of(context).push(
-                  MaterialPageRoute<void>(
-                    builder: (_) => const PrivacyPolicyScreen(),
+              Center(
+                child: TextButton(
+                  onPressed: () =>
+                      Navigator.of(context).popUntil((route) => route.isFirst),
+                  child: Text(
+                    'Continuar como Convidado',
+                    style: AppTextStyles.label.copyWith(color: AppColors.olive),
                   ),
                 ),
-                child: const Text('Política de privacidade'),
               ),
-              TextButton(
+              const SizedBox(height: 8),
+              AuthPromptLink(
+                prompt: 'Já tem conta? ',
+                action: 'Entrar',
                 onPressed: () => Navigator.of(context).maybePop(),
-                child: const Text('Já tenho conta'),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAcceptance() {
+    return Material(
+      color: AppColors.surface,
+      borderRadius: BorderRadius.circular(12),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: () => setState(() => _accepted = !_accepted),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(4, 8, 12, 8),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Checkbox(
+                value: _accepted,
+                onChanged: (value) =>
+                    setState(() => _accepted = value ?? false),
+              ),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 12),
+                  child: Text.rich(
+                    TextSpan(
+                      style: AppTextStyles.caption,
+                      children: [
+                        const TextSpan(text: 'Li e aceito a '),
+                        TextSpan(
+                          text: 'Política de Privacidade',
+                          recognizer: _policyLink,
+                          style: const TextStyle(
+                            color: AppColors.olive,
+                            decoration: TextDecoration.underline,
+                            decorationColor: AppColors.olive,
+                          ),
+                        ),
+                        const TextSpan(
+                          text:
+                              '. Sei que meu diário de álcool só é '
+                              'sincronizado se eu autorizar.',
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
               ),
             ],
           ),

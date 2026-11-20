@@ -54,6 +54,7 @@ dependencies:
   printing: ^5.15.1
   cryptography: ^2.9.0
   cryptography_flutter: ^2.3.4
+  flutter_svg: ^2.5.0
 
 dev_dependencies:
   flutter_test:
@@ -80,6 +81,12 @@ flutter:
   # included with your application, so that you can use the icons in
   # the material Icons class.
   uses-material-design: true
+
+  assets:
+    - assets/images/contorno.svg
+    - assets/images/orgaos.svg
+    - assets/images/figado.svg
+    - assets/images/bebidas/
 
   fonts:
     - family: Inter
