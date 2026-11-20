@@ -8,6 +8,8 @@ import '../providers/risk_evolution_provider.dart';
 import '../providers/risk_providers.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
+import '../theme/risk_colors.dart';
+import '../widgets/body_risk_figure.dart';
 import '../widgets/content_width.dart';
 import '../widgets/quick_drink_sheet.dart';
 import '../widgets/risk_card.dart';
@@ -18,11 +20,79 @@ import 'medical_guidance_sheet.dart';
 /// Tela Início: cartão de risco com o medidor e o botão + de registro rápido.
 ///
 /// Os dados vêm do Riverpod: o último exame e o consumo das últimas 4 semanas.
-class HomeScreen extends ConsumerWidget {
+final homeIntroProvider = Provider((ref) => HomeIntro());
+
+class HomeIntro {
+  bool played = false;
+}
+
+class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
 
+  static const introDuration = Duration(milliseconds: 2000);
+  static const loadTimeout = Duration(seconds: 3);
+
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends ConsumerState<HomeScreen>
+    with SingleTickerProviderStateMixin {
+  late final _intro = AnimationController(
+    vsync: this,
+    duration: HomeScreen.introDuration,
+  );
+  late final _reveal = CurvedAnimation(
+    parent: _intro,
+    curve: BodyRiskFigure.revealInterval,
+  );
+  bool _started = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_started) return;
+    _started = true;
+    final intro = ref.read(homeIntroProvider);
+    if (intro.played || MediaQuery.disableAnimationsOf(context)) {
+      _intro.value = 1;
+    } else {
+      _startIntro();
+    }
+    intro.played = true;
+  }
+
+  Future<void> _startIntro() async {
+    final health = ref.read(liverHealthProvider);
+    final current = ref.read(currentRiskProvider);
+    try {
+      await BodyRiskFigure.precache(
+        context,
+        (current?.level ?? health.risk)?.color,
+      ).timeout(HomeScreen.loadTimeout);
+    } catch (_) {}
+    if (mounted) _intro.forward();
+  }
+
+  @override
+  void dispose() {
+    _reveal.dispose();
+    _intro.dispose();
+    super.dispose();
+  }
+
+  void _skipIntro() {
+    if (_intro.isAnimating) _intro.value = 1;
+  }
+
+  Widget _afterIntro(Widget child) => FadeTransition(
+    opacity: _reveal,
+    alwaysIncludeSemantics: true,
+    child: child,
+  );
+
+  @override
+  Widget build(BuildContext context) {
     final health = ref.watch(liverHealthProvider);
     final current = ref.watch(currentRiskProvider);
     final jaundice = (current?.level ?? health.risk) == RiskLevel.high;
@@ -40,36 +110,40 @@ class HomeScreen extends ConsumerWidget {
                 onPressed: () => openAccount(context, ref),
               ),
             ),
-            const Text('Seu fígado, sob controle.', style: AppTextStyles.title),
             const SizedBox(height: 4),
-            const Text(
-              'Resumo do seu risco hepático',
-              style: AppTextStyles.body,
-            ),
-            const SizedBox(height: 20),
             if (jaundice) ...[
-              const JaundiceNotice(),
+              _afterIntro(const JaundiceNotice()),
               const SizedBox(height: 16),
             ],
-            RiskCard(health: health, current: current),
+            BodyRiskFigure(
+              liverColor: (current?.level ?? health.risk)?.color,
+              progress: _intro,
+              child: RiskCard(health: health, current: current),
+            ),
             const SizedBox(height: 16),
-            _ConsumptionCard(health: health),
+            _afterIntro(_ConsumptionCard(health: health)),
             const SizedBox(height: 16),
-            RiskEvolutionChart(points: ref.watch(riskEvolutionProvider)),
+            _afterIntro(
+              RiskEvolutionChart(points: ref.watch(riskEvolutionProvider)),
+            ),
           ],
         ),
       ),
     );
 
     return Scaffold(
-      body: jaundice
-          ? Stack(
-              children: [
-                content,
-                const Positioned.fill(child: JaundiceFilter()),
-              ],
-            )
-          : content,
+      body: Listener(
+        behavior: HitTestBehavior.translucent,
+        onPointerDown: (_) => _skipIntro(),
+        child: jaundice
+            ? Stack(
+                children: [
+                  content,
+                  Positioned.fill(child: _afterIntro(const JaundiceFilter())),
+                ],
+              )
+            : content,
+      ),
       floatingActionButton: FloatingActionButton(
         tooltip: 'Registrar drinque',
         onPressed: () => showQuickDrinkSheet(context),
