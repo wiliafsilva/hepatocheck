@@ -138,7 +138,7 @@ Outras telas são abertas a partir dessas abas: metas de redução, notificaçõ
 ### 4. Risco e medidor do fígado
 
 - Classificação **Verde**, **Amarelo** ou **Vermelho** a partir do FIB-4 (`ClassifyRisk`). O nível sobe quando o consumo da semana passa da meta definida pelo usuário (`AssessCurrentRisk`).
-- Medidor de 0 a 100% no Início (`CalculateLiverHealth`): parte do FIB-4 e desconta o consumo das últimas 4 semanas acima do limite de baixo risco. É um indicador educativo, não um resultado clínico.
+- Medidor de 0 a 100% no Início (`CalculateLiverHealth`): parte do FIB-4 e desconta o consumo das últimas 4 semanas acima do limite de baixo risco. A cor do arco é a mesma do selo de risco (inclusive quando o nível sobe pelo consumo), para o medidor, o selo e o fígado do corpo nunca discordarem. É um indicador educativo, não um resultado clínico.
 - Ao fundo do cartão, a silhueta do corpo com o fígado pintado na cor do risco (`BodyRiskFigure`), com a animação de "scan" na primeira abertura.
 - Gráfico da evolução do risco ao longo dos exames (`BuildRiskEvolution`).
 

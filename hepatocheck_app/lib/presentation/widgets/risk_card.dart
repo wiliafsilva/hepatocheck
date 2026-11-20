@@ -22,7 +22,7 @@ class RiskCard extends StatelessWidget {
     final exam = health.exam;
     final risk = current?.level ?? health.risk;
     final fib4 = health.fib4;
-    final color = health.risk?.color ?? AppColors.outline;
+    final color = risk?.color ?? AppColors.outline;
     final raised = current != null && current!.raisedByConsumption;
 
     return Card(

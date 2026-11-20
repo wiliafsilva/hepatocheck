@@ -14,6 +14,8 @@ import 'package:hepatocheck_app/presentation/screens/home_screen.dart';
 import 'package:hepatocheck_app/presentation/theme/app_colors.dart';
 import 'package:hepatocheck_app/presentation/theme/app_theme.dart';
 import 'package:hepatocheck_app/presentation/widgets/body_risk_figure.dart';
+import 'package:hepatocheck_app/presentation/widgets/liver_gauge.dart';
+import 'package:hepatocheck_app/presentation/widgets/risk_card.dart';
 
 import '../support/test_data.dart';
 
@@ -81,6 +83,10 @@ void main() {
     await container.read(examsProvider.notifier).save(testExam());
     await tester.pumpAndSettle();
     expect(find.text('Risco verde'), findsOneWidget);
+    expect(
+      tester.widget<LiverGauge>(find.byType(LiverGauge)).color,
+      AppColors.riskGreen,
+    );
 
     final monday = DateTime(2026, 11, 9);
     await container
@@ -104,6 +110,10 @@ void main() {
     expect(find.text('Risco amarelo'), findsOneWidget);
     expect(find.textContaining('Nível elevado para Amarelo'), findsOneWidget);
     expect(find.textContaining('passou da sua meta de 1'), findsOneWidget);
+    expect(
+      tester.widget<LiverGauge>(find.byType(LiverGauge)).color,
+      AppColors.riskYellow,
+    );
   });
 
   testWidgets('sem exame mostra o convite para registrar', (tester) async {
@@ -186,6 +196,8 @@ void main() {
     final container = await pump(tester);
     expect(find.byType(JaundiceFilter), findsNothing);
     expect(find.byType(JaundiceNotice), findsNothing);
+    await tester.pumpAndSettle();
+    final cardTop = tester.getTopLeft(find.byType(RiskCard)).dy;
 
     await container
         .read(examsProvider.notifier)
@@ -194,10 +206,18 @@ void main() {
 
     expect(find.byType(JaundiceFilter), findsOneWidget);
     expect(find.text('Por que a tela está amarelada?'), findsOneWidget);
+    expect(tester.getTopLeft(find.byType(RiskCard)).dy, cardTop);
 
     await tester.tap(find.text('Por que a tela está amarelada?'));
     await tester.pumpAndSettle();
     expect(find.text('Quando procurar o médico'), findsOneWidget);
+    await tester.tapAt(const Offset(10, 10));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byTooltip('Fechar aviso'));
+    await tester.pumpAndSettle();
+    expect(find.byType(JaundiceNotice), findsNothing);
+    expect(find.byType(JaundiceFilter), findsOneWidget);
   });
 
   testWidgets('risco verde ou amarelo não mostra o filtro', (tester) async {

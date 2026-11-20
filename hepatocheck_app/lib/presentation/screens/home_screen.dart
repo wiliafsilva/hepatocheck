@@ -22,6 +22,18 @@ import 'medical_guidance_sheet.dart';
 /// Os dados vêm do Riverpod: o último exame e o consumo das últimas 4 semanas.
 final homeIntroProvider = Provider((ref) => HomeIntro());
 
+final jaundiceNoticeDismissedProvider =
+    NotifierProvider<JaundiceNoticeDismissed, bool>(
+      JaundiceNoticeDismissed.new,
+    );
+
+class JaundiceNoticeDismissed extends Notifier<bool> {
+  @override
+  bool build() => false;
+
+  void dismiss() => state = true;
+}
+
 class HomeIntro {
   bool played = false;
 }
@@ -111,10 +123,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
               ),
             ),
             const SizedBox(height: 4),
-            if (jaundice) ...[
-              _afterIntro(const JaundiceNotice()),
-              const SizedBox(height: 16),
-            ],
             BodyRiskFigure(
               liverColor: (current?.level ?? health.risk)?.color,
               progress: _intro,
@@ -140,6 +148,26 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                 children: [
                   content,
                   Positioned.fill(child: _afterIntro(const JaundiceFilter())),
+                  if (!ref.watch(jaundiceNoticeDismissedProvider))
+                    SafeArea(
+                      child: Align(
+                        alignment: Alignment.topCenter,
+                        child: Padding(
+                          padding: const EdgeInsets.fromLTRB(16, 56, 16, 0),
+                          child: ContentWidth(
+                            child: _afterIntro(
+                              JaundiceNotice(
+                                onClose: () => ref
+                                    .read(
+                                      jaundiceNoticeDismissedProvider.notifier,
+                                    )
+                                    .dismiss(),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
                 ],
               )
             : content,
@@ -178,12 +206,18 @@ class JaundiceFilter extends StatelessWidget {
 }
 
 class JaundiceNotice extends StatelessWidget {
-  const JaundiceNotice({super.key});
+  const JaundiceNotice({super.key, required this.onClose});
+
+  final VoidCallback onClose;
 
   @override
   Widget build(BuildContext context) {
     return Card(
-      color: AppColors.riskYellow.withValues(alpha: 0.12),
+      elevation: 6,
+      color: Color.alphaBlend(
+        AppColors.riskYellow.withValues(alpha: 0.16),
+        AppColors.surface,
+      ),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(14),
         side: BorderSide(color: AppColors.riskYellow.withValues(alpha: 0.6)),
@@ -192,7 +226,7 @@ class JaundiceNotice extends StatelessWidget {
         borderRadius: BorderRadius.circular(14),
         onTap: () => showMedicalGuidance(context, currentRisk: RiskLevel.high),
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.fromLTRB(16, 16, 4, 16),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -203,6 +237,7 @@ class JaundiceNotice extends StatelessWidget {
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
+                  mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Text(
@@ -221,6 +256,11 @@ class JaundiceNotice extends StatelessWidget {
                     ),
                   ],
                 ),
+              ),
+              IconButton(
+                tooltip: 'Fechar aviso',
+                icon: const Icon(Icons.close),
+                onPressed: onClose,
               ),
             ],
           ),
