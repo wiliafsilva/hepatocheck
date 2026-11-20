@@ -86,6 +86,7 @@ flutter:
     - assets/images/contorno.svg
     - assets/images/orgaos.svg
     - assets/images/figado.svg
+    - assets/images/bebidas/
 
   fonts:
     - family: Inter

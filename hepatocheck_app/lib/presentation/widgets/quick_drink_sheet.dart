@@ -8,6 +8,7 @@ import '../../domain/entities/drink_type.dart';
 import '../providers/drink_providers.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
+import 'drink_type_image.dart';
 import '../theme/drink_type_labels.dart';
 
 Future<void> showQuickDrinkSheet(BuildContext context) async {
@@ -196,11 +197,7 @@ class _TypeOption extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(
-                type.icon,
-                size: 28,
-                color: selected ? AppColors.olive : AppColors.textPrimary,
-              ),
+              DrinkTypeImage(type: type, selected: selected),
               const SizedBox(height: 6),
               Text(
                 type.label,
