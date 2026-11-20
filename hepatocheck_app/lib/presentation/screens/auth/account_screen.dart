@@ -5,6 +5,7 @@ import '../../providers/auth_providers.dart';
 import '../../providers/consent_providers.dart';
 import '../../theme/app_text_styles.dart';
 import '../../widgets/content_width.dart';
+import '../../widgets/sign_out_dialog.dart';
 import '../sync_consent_screen.dart';
 import 'change_password_screen.dart';
 import 'login_screen.dart';
@@ -73,6 +74,7 @@ class AccountScreen extends ConsumerWidget {
               OutlinedButton.icon(
                 onPressed: () async {
                   final navigator = Navigator.of(context);
+                  if (!await confirmSignOut(context)) return;
                   await signOutAndRevokeConsent(ref);
                   navigator.popUntil((route) => route.isFirst);
                 },

@@ -102,5 +102,16 @@ class FirebaseAuthRepository implements AuthRepository {
   }
 
   @override
+  Future<void> deleteAccount() async {
+    final user = _auth.currentUser;
+    if (user == null) throw const AuthFailure(AuthFailureCode.unknown);
+    try {
+      await user.delete();
+    } on FirebaseAuthException catch (error) {
+      throw AuthFailure(codeFor(error.code));
+    }
+  }
+
+  @override
   Future<void> signOut() => _auth.signOut();
 }

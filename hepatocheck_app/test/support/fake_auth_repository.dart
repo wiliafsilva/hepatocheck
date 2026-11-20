@@ -66,6 +66,14 @@ class FakeAuthRepository implements AuthRepository {
     passwordChanges.add(newPassword);
   }
 
+  bool deleted = false;
+
+  @override
+  Future<void> deleteAccount() async {
+    deleted = true;
+    _emit(null);
+  }
+
   @override
   Future<void> signOut() async => _emit(null);
 }

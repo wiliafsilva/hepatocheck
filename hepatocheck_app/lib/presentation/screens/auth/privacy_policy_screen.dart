@@ -45,9 +45,10 @@ class PrivacyPolicyScreen extends StatelessWidget {
     ),
     (
       'Seus direitos',
-      'Você pode apagar todos os dados do aparelho no Perfil e revogar o '
-          'consentimento a qualquer momento. O aplicativo é um indicador '
-          'educativo e não substitui avaliação médica.',
+      'No Perfil, você pode apagar todos os seus dados do aparelho e da '
+          'nuvem, apagar a sua conta e revogar o consentimento a qualquer '
+          'momento. O aplicativo é um indicador educativo e não substitui '
+          'avaliação médica.',
     ),
   ];
 

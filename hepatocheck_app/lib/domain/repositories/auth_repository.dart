@@ -37,5 +37,7 @@ abstract interface class AuthRepository {
 
   Future<void> updatePassword(String newPassword);
 
+  Future<void> deleteAccount();
+
   Future<void> signOut();
 }

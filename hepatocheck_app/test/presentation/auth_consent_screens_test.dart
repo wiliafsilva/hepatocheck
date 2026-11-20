@@ -252,6 +252,8 @@ void main() {
 
     await tester.tap(find.text('Sair da conta'));
     await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(TextButton, 'Sair'));
+    await tester.pumpAndSettle();
 
     expect(auth.currentUser, isNull);
     expect(consent.isGranted, isFalse);

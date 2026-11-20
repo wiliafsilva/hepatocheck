@@ -220,7 +220,7 @@ O CRUD do HepatoCheck foi definido a partir das necessidades identificadas na pe
 | **Criar** | Ao configurar o aplicativo, o usuário pode criar preferências locais, como lembretes, modo camuflagem e autorização de sincronização. | A pessoa deve escolher como e quando o aplicativo acessa ou apresenta seus dados. |
 | **Consultar** | O usuário visualiza as permissões, o estado da sincronização e os lembretes ativos. | Torna o tratamento de dados sensíveis transparente. |
 | **Atualizar** | O usuário pode alterar lembretes, ativar ou desativar o modo camuflagem e conceder ou retirar a autorização de sincronização. | A autorização deve ser revogável; ela não pode ser presumida nem permanente. |
-| **Excluir** | O usuário pode remover lembretes e apagar os dados locais do aplicativo. No modo convidado, não há conta obrigatória a ser excluída. | O modo convidado reduz a exposição de dados. A exclusão dos dados locais preserva o controle do usuário sobre informações de saúde e consumo de álcool. |
+| **Excluir** | O usuário pode remover lembretes e apagar todos os dados, depois de confirmar. Com conta, a cópia da nuvem é apagada junto (sem internet, nada é apagado); no modo convidado, só os dados do aparelho. | O modo convidado reduz a exposição de dados. A exclusão dos dados locais preserva o controle do usuário sobre informações de saúde e consumo de álcool. |
 
 ### Conta opcional (incluído na Unidade II)
 
@@ -229,8 +229,8 @@ O CRUD do HepatoCheck foi definido a partir das necessidades identificadas na pe
 | **Criar** | O usuário cria a conta com e-mail e senha, apenas se quiser sincronizar. Antes, o aplicativo mostra o aviso de que a cópia na nuvem fica trancada com a senha, com "Entendi" obrigatório. Depois do cadastro, o aplicativo pergunta se ele autoriza o envio. | A conta é opcional (RF21); o modo convidado continua disponível. O aviso deixa clara a consequência de perder a senha (RF25). |
 | **Consultar** | O usuário vê se está conectado, com qual e-mail, e se autorizou a sincronização. | Deixa claro quando os dados podem sair do aparelho. |
 | **Consultar (outro aparelho)** | Ao entrar na conta, os dados sincronizados voltam automaticamente para o aparelho. | Permite trocar de aparelho ou reinstalar o app sem perder o acompanhamento (RF25). |
-| **Atualizar** | O usuário pode recuperar a senha por e-mail, depois do mesmo aviso do cadastro, e conceder ou revogar a autorização de sincronização. | A autorização deve ser revogável a qualquer momento (LGPD). Com a senha recuperada, a cópia antiga não abre e o aparelho reenvia os dados. |
-| **Excluir** | O usuário pode sair da conta; ao sair, a autorização de sincronização é revogada e a chave da cópia na nuvem é esquecida no aparelho. Os dados continuam no aparelho. | A autorização vale para a conta que a deu, não para quem usar o aparelho depois. |
+| **Atualizar** | O usuário pode trocar a senha informando a atual (a chave da cópia na nuvem é trancada de novo com a senha nova), recuperar a senha por e-mail, depois do mesmo aviso do cadastro, e conceder ou revogar a autorização de sincronização. | A autorização deve ser revogável a qualquer momento (LGPD). Com a senha recuperada, a cópia antiga não abre e o aparelho reenvia os dados. |
+| **Excluir** | O usuário pode sair da conta, depois de confirmar; ao sair, a autorização de sincronização é revogada e a chave da cópia na nuvem é esquecida no aparelho, e os dados continuam no aparelho. Pode também apagar a conta, confirmando com a senha: isso apaga a conta, a cópia da nuvem (com a chave) e os dados do aparelho. Sem internet, nada é apagado. | A autorização vale para a conta que a deu, não para quem usar o aparelho depois. Apagar a conta atende ao direito de eliminação dos dados da LGPD. |
 
 ### Informações que não formam um CRUD próprio
 

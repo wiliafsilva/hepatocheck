@@ -23,5 +23,5 @@ abstract interface class RestorableRepository<T> {
 abstract interface class CloudRestore {
   Future<RestoreReport> restore(String uid);
 
-  Future<void> deleteRemote(String uid);
+  Future<void> deleteRemote(String uid, {bool includeKey = false});
 }

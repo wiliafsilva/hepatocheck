@@ -2,15 +2,18 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../data/sync/firestore_cloud_restore.dart';
+import '../../domain/entities/auth_user.dart';
 import '../../domain/entities/drink_entry.dart';
 import '../../domain/entities/lab_exam.dart';
 import '../../domain/entities/reduction_goal.dart';
+import '../../domain/repositories/auth_repository.dart';
 import '../../domain/repositories/cloud_restore.dart';
 import '../../domain/repositories/cloud_vault.dart';
 import 'auth_providers.dart';
 import 'drink_providers.dart';
 import 'exam_providers.dart';
 import 'goal_providers.dart';
+import 'local_data_providers.dart';
 import 'sync_providers.dart';
 
 final cloudRestoreProvider = Provider<CloudRestore>(
@@ -58,6 +61,8 @@ class SignInResult {
     return 'Seus dados foram restaurados: $list.';
   }
 }
+
+enum DeleteAccountResult { deleted, wrongPassword, offline, accountKept }
 
 final accountSessionProvider = Provider(AccountSession.new);
 
@@ -131,6 +136,38 @@ class AccountSession {
     }
     await vault.rewrap(uid, newPassword);
     return true;
+  }
+
+  Future<DeleteAccountResult> deleteAccount(
+    String password, {
+    Duration timeout = const Duration(seconds: 20),
+  }) async {
+    final auth = _ref.read(authRepositoryProvider);
+    final AuthUser user;
+    try {
+      user = await auth.reauthenticate(password);
+    } on AuthFailure catch (failure) {
+      return failure.code == AuthFailureCode.wrongCredentials
+          ? DeleteAccountResult.wrongPassword
+          : DeleteAccountResult.offline;
+    }
+    try {
+      await _ref
+          .read(cloudRestoreProvider)
+          .deleteRemote(user.uid, includeKey: true)
+          .timeout(timeout);
+    } catch (_) {
+      return DeleteAccountResult.offline;
+    }
+    await _ref.read(cloudVaultProvider).forget(user.uid);
+    await _ref.read(localDataEraserProvider).eraseAll();
+    refreshAfterErase(_ref.invalidate);
+    try {
+      await auth.deleteAccount();
+    } catch (_) {
+      return DeleteAccountResult.accountKept;
+    }
+    return DeleteAccountResult.deleted;
   }
 
   void _refresh() {

@@ -164,5 +164,12 @@ class FakeCloudRestore implements CloudRestore {
   }
 
   @override
-  Future<void> deleteRemote(String uid) async => deletedUids.add(uid);
+  Future<void> deleteRemote(String uid, {bool includeKey = false}) async {
+    if (offline) throw StateError('sem internet');
+    deletedUids.add(uid);
+    if (includeKey) deletedKeys.add(uid);
+  }
+
+  bool offline = false;
+  final deletedKeys = <String>[];
 }
