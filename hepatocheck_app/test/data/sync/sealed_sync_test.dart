@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -69,7 +71,11 @@ void main() {
     expect(document.containsKey('age'), isFalse);
     expect(document['keyVersion'], 1);
     expect(document['sealed'], isA<String>());
-    expect(document['sealed'], isNot(contains('47')));
+    final cipher = utf8.decode(
+      base64Decode(document['sealed'] as String),
+      allowMalformed: true,
+    );
+    expect(cipher, isNot(contains('"age":47')));
 
     final opened = await vault.open(SealedData.fromFields(document)!);
     expect(opened['age'], 47);

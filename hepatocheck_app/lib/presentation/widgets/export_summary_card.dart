@@ -95,25 +95,24 @@ class _ExportSummaryCardState extends ConsumerState<ExportSummaryCard> {
               style: AppTextStyles.caption,
             ),
             const SizedBox(height: 12),
-            Wrap(
-              spacing: 10,
-              runSpacing: 10,
-              children: [
-                OutlinedButton.icon(
-                  onPressed: _running == null
-                      ? () => _run(_PdfAction.preview)
-                      : null,
-                  icon: _icon(_PdfAction.preview, Icons.visibility_outlined),
-                  label: const Text('Visualizar / salvar'),
-                ),
-                FilledButton.icon(
-                  onPressed: _running == null
-                      ? () => _run(_PdfAction.share)
-                      : null,
-                  icon: _icon(_PdfAction.share, Icons.share_outlined),
-                  label: const Text('Compartilhar'),
-                ),
-              ],
+            OutlinedButton.icon(
+              style: OutlinedButton.styleFrom(
+                minimumSize: const Size.fromHeight(52),
+              ),
+              onPressed: _running == null
+                  ? () => _run(_PdfAction.preview)
+                  : null,
+              icon: _icon(_PdfAction.preview, Icons.visibility_outlined),
+              label: const Text('Visualizar / salvar'),
+            ),
+            const SizedBox(height: 10),
+            FilledButton.icon(
+              style: FilledButton.styleFrom(
+                minimumSize: const Size.fromHeight(52),
+              ),
+              onPressed: _running == null ? () => _run(_PdfAction.share) : null,
+              icon: _icon(_PdfAction.share, Icons.share_outlined),
+              label: const Text('Compartilhar'),
             ),
           ],
         ),
