@@ -52,7 +52,24 @@ Também funcionou pedir, antes de qualquer código, um plano com os arquivos que
 | 3 | Corrigir a precedência das operações e o uso de parênteses na calculadora, voltar à aba Drinks ao desbloquear e limitar as metas de consumo a 0–100 drinques | Calculadora e navegação ajustadas, com validação do limite no formulário e no repositório |
 | 4 | Conferir o documento de navegação com o código atual sem editar o arquivo durante a revisão, e aplicar os ajustes depois da autorização | Diagramas atualizados com o Modo consulta e os destinos corretos após alterar a senha ou cancelar o compartilhamento do PDF |
 
+### Victor Castelo Branco Brasileiro Pereira
+
+| Semana | Pedido (resumo) | Resultado |
+| --- | --- | --- |
+| 1 | Configurar a fonte Inter com os níveis de texto e montar a estrutura da tela Início com o cartão de risco e o botão de registro rápido | Fonte Inter embutida no app, funcionando offline, com seis níveis de texto, tema escuro e tela Início com o cartão de risco e o botão `+`, ainda sem ação |
+| 1 | Desenhar o layout do medidor do fígado de 0 a 100% e criar o diagrama de casos de uso | `LiverGauge` com valor fixo, ainda sem cálculo, e o diagrama de casos de uso em PDF |
+| 2 | Calcular o medidor do fígado com dados reais, usando o exame mais recente e o consumo das últimas 4 semanas, e ligar a tela Início aos exames e ao diário | `CalculateLiverHealth`, com a base pelo FIB-4 e desconto de até 15 pontos pelo consumo acima do limite semanal, e tela Início com a cor do risco, com testes |
+| 2 | Criar as telas de login e cadastro com validação de e-mail e senha, mantendo o modo convidado | Telas Entrar e Cadastro com `AuthValidators` e a opção de continuar como convidado, ainda sem autenticação, que entrou na semana 3 |
+| 3 | Implementar a autenticação opcional com o Firebase mantendo o modo convidado, com cadastro, recuperação de senha e política de privacidade | `FirebaseAuthRepository` e telas de login, cadastro, recuperação de senha, conta e política de privacidade, com testes |
+| 3 | Pedir consentimento antes de sincronizar, com opção de revogar, e anonimizar os dados antes do envio, com faixa etária no lugar da idade e datas sem horário | Tela de consentimento, `HiveSyncConsentRepository` e `AnonymizeSyncPayload`, com testes |
+| 3 | Mostrar a evolução temporal do risco na tela Início | `BuildRiskEvolution` e `RiskEvolutionChart`, com testes |
+| 4 | Corrigir os erros da tela Início, do login e da anonimização | O medidor passou a usar o exame cadastrado por último quando há dois na mesma data, o login passou a ignorar um segundo envio enquanto está entrando e datas inválidas deixaram de ir para a nuvem, com testes |
+| 4 | Criar a orientação "Quando procurar o médico", aberta pelo selo de risco | `MedicalGuidanceSheet`, aberta pelo selo de risco no Início e no Relatório, com testes |
+| 4 | Analisar se o diagrama de casos de uso atendia todas as funcionalidades do sistema e, caso não, gerar um atualizado | Diagrama refeito com as funcionalidades que faltavam, como restaurar os dados da nuvem, alterar a senha e apagar a conta, e com as relações corrigidas conforme o código |
+
 ## 3. Erros da IA e como foram resolvidos
+
+### Gabriel de Oliveira Alves
 
 | Erro | Como percebemos | Como foi resolvido |
 | --- | --- | --- |
@@ -74,6 +91,16 @@ Também funcionou pedir, antes de qualquer código, um plano com os arquivos que
 | O diagrama indicava que salvar a senha voltava sempre ao Perfil | A revisão mostrou que a tela Alterar senha pode ser aberta por Conta ou Perfil e fecha voltando à rota anterior | O diagrama passou a indicar o retorno à tela de origem |
 | O fluxo do PDF indicava que cancelar o compartilhamento voltava sempre ao Relatório | A conferência do código mostrou que o mesmo diálogo também pode ser aberto pela tela Resumo em PDF do Perfil | O diagrama passou a mostrar as duas origens possíveis |
 | A IA preencheu meu resumo, mas deixou meus pedidos e erros fora das tabelas do documento | Na leitura do arquivo, as seções 2 e 3 ainda continham apenas os exemplos já preenchidos | As duas seções ganharam tabelas com meus exemplos, e o registro individual passou a apontar para elas |
+
+### Victor Castelo Branco Brasileiro Pereira
+
+| Erro | Como percebemos | Como foi resolvido |
+| --- | --- | --- |
+| Na anonimização da semana 3, uma data em formato inválido seguia sem tratamento para o documento da nuvem, e podia levar um texto livre junto | Revisão do código na semana 4, com um texto no lugar da data | A data inválida deixou de entrar no documento, e uma idade sem número válido passou a ser ignorada. Testes para os dois casos |
+| Entre dois exames da mesma data, o medidor do fígado dependia da ordem da lista para escolher qual usar | Revisão do cálculo na semana 4 | O desempate passou a ser pela data de cadastro, valendo o exame mais recente. Teste de tela |
+| O login podia ser enviado duas vezes enquanto a entrada ainda estava em andamento | Revisão da tela: o botão era desativado, mas a função de envio, também chamada pelo teclado, não tinha proteção | A função passou a ignorar um novo envio enquanto está entrando. Teste com dois toques seguidos |
+| O diagrama de casos de uso ligava o RF02 à validação das entradas e indicava que o diário abria com o código seguido de "=", o que o app não faz | Comparação do diagrama com os requisitos e com o código na semana 4 | O RF02 passou a indicar o aviso de idade, a relação passou a ser "código digitado" e as funções que faltavam foram incluídas |
+| Na primeira versão do diagrama refeito, a linha entre o registro do drinque e o log de auditoria passava por trás de outro caso de uso e parecia sair dele | Revisão visual da prévia do PDF antes de entregar | Os casos de uso foram reposicionados e o PDF foi gerado novamente |
 
 O que o grupo aprendeu: a IA erra mais em **casos de borda**, como virada do dia, meses de tamanhos diferentes, falha no meio de uma gravação e arredondamento. Ela também erra quando **descreve o código sem conferir**. Por isso os erros acima foram encontrados com testes e com a leitura do código, não confiando na resposta.
 
