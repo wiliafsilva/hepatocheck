@@ -71,10 +71,12 @@ Versões conforme o `pubspec.yaml` do aplicativo.
 | `hive_ce` e `hive_ce_flutter` | ^2.22.0 e ^2.5.0 | Banco local | Já traz criptografia AES-256 (`HiveAesCipher`), exigida para os registros e para a camuflagem, sem biblioteca extra. É a versão mantida pela comunidade do Hive |
 | `flutter_secure_storage` | ^11.2.0 | Guarda a chave AES e as preferências da camuflagem | Usa o Keystore do Android, então a chave nunca fica no código nem no banco |
 | `crypto` | ^3.0.7 | Hash SHA-256 do log de alterações e do código secreto | Pacote oficial do time do Dart, sem dependências nativas |
+| `cryptography` e `cryptography_flutter` | ^2.9.0 e ^2.3.4 | Criptografia da cópia na nuvem | O `crypto` só faz hash. Este pacote traz AES-GCM, que cifra e detecta qualquer alteração nos dados, e PBKDF2, que deriva a chave da senha do usuário. Com isso, o Firestore guarda só dados cifrados. O `cryptography_flutter` faz essas operações usarem a criptografia nativa do Android, e as 200.000 iterações do PBKDF2 não travam a tela |
 | `uuid` | ^4.6.0 | ID de cada registro | O ID aleatório não revela nome nem data e serve de ID do documento no Firestore, o que evita duplicatas ao reenviar |
 | `firebase_core`, `firebase_auth` e `cloud_firestore` | ^5.1.0, ^7.0.1 e ^7.1.0 | Login opcional e cópia na nuvem | Exigidos pela disciplina. O `WriteBatch` do Firestore grava o lote inteiro ou nada |
 | `connectivity_plus` | ^7.3.2 | Saber se a conexão é Wi-Fi | A sincronização só pode acontecer no Wi-Fi (RNF14) |
-| `fl_chart` | ^1.3.1 | Gráficos do Início e do Relatório | Gráficos de linha e de barras com faixas de fundo e toque nos pontos, sem precisar desenhar com `CustomPainter` |
+| `fl_chart` | ^1.3.1 | Gráficos do Início e do Relatório | Biblioteca leve, escrita só em Dart, sem código nativo, testada no Android 8. Faz os gráficos de linha e de barras com faixas de fundo e toque nos pontos. O medidor do fígado, que é o gráfico exigido pelo estudo de caso, é desenhado com `CustomPainter` em `liver_gauge.dart` |
+| `flutter_svg` | ^2.5.0 | Imagens do corpo, do fígado e das bebidas | O Flutter não abre SVG sozinho. Em SVG, as imagens ficam nítidas em qualquer tamanho de tela, e a cor do fígado pode mudar conforme o risco |
 | `pdf` | ^3.13.1 | Montar o resumo em PDF | Gera o PDF no próprio aparelho, sem servidor, e aceita a fonte Inter do app |
 | `printing` | ^5.15.1 | Visualizar, salvar e compartilhar o PDF | Abre a visualização e o menu de compartilhar do Android, e baixa o arquivo na versão web |
 | `flutter_local_notifications` | ^23.0.2 | Notificações educativas e lembretes | Notificações locais, sem servidor e sem internet |
