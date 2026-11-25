@@ -108,7 +108,7 @@ _A preencher._
 
 ### Victor Castelo Branco
 
-_A preencher._
+Utilizei alguns Agentes de IA para o desenvolvimento e estruturação do projeto, Claude, codex e Athenas Agent. Tanto para desenvolvimento das atividades referente a cada entrega como para validações e busca de erros.
 
 ### Lizandra Bispo Nascimento
 
