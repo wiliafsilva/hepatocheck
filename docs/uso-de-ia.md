@@ -42,6 +42,16 @@ Os pedidos que deram melhor resultado tinham três coisas: a tarefa do plano com
 
 Também funcionou pedir, antes de qualquer código, um plano com os arquivos que seriam alterados. No modo de planejamento, a IA só lê o projeto e devolve o plano para aprovação. Foi assim que surgiram as perguntas sobre o que pertencia à área de outro integrante, como a navegação do `app.dart` e a camuflagem.
 
+### Lizandra Bispo Nascimento
+
+| Semana | Pedido (resumo) | Resultado |
+| --- | --- | --- |
+| 1 | Montar a navegação inferior com Início, Relatório, Drinks, Exames e Perfil | Barra com cinco abas e troca de tela no `app.dart` |
+| 2 | Criar o Modo Camuflagem com uma calculadora funcional, código secreto para voltar ao diário e bloqueio ao sair do primeiro plano | Calculadora, controlador de camuflagem e testes do código secreto e da tela |
+| 3 | Permitir criar, editar, excluir e acompanhar metas de redução e configurar lembretes de exame e de registro | Telas de Metas e Notificações e lembretes, com testes de avaliação de metas e agendamento |
+| 3 | Corrigir a precedência das operações e o uso de parênteses na calculadora, voltar à aba Drinks ao desbloquear e limitar as metas de consumo a 0–100 drinques | Calculadora e navegação ajustadas, com validação do limite no formulário e no repositório |
+| 4 | Conferir o documento de navegação com o código atual sem editar o arquivo durante a revisão, e aplicar os ajustes depois da autorização | Diagramas atualizados com o Modo consulta e os destinos corretos após alterar a senha ou cancelar o compartilhamento do PDF |
+
 ## 3. Erros da IA e como foram resolvidos
 
 | Erro | Como percebemos | Como foi resolvido |
@@ -56,6 +66,14 @@ Também funcionou pedir, antes de qualquer código, um plano com os arquivos que
 | Na semana 4, ao formatar o código, a IA rodou `dart format` no projeto inteiro e alterou arquivos de outros integrantes | Conferência do `git status` antes de terminar | Os arquivos foram devolvidos ao conteúdo original e a formatação passou a ser feita só nos arquivos alterados |
 | Ao atualizar `justificativas.md`, a IA descreveu a sincronização com espera crescente e divisão de lotes, como estava no plano, mas isso não existe no código | Conferência do texto com `sync_pending_items.dart` antes de entregar | O texto foi corrigido para descrever o que o código faz: lotes de até 20 e botão "Tentar de novo" |
 | Os documentos da Unidade I falavam em SQLite, e a primeira versão do plano repetia isso | Decisão do grupo de usar Hive, que já tem AES | Arquitetura e justificativas atualizadas para o Hive |
+
+### Lizandra Bispo Nascimento
+
+| Erro | Como percebemos | Como foi resolvido |
+| --- | --- | --- |
+| O diagrama indicava que salvar a senha voltava sempre ao Perfil | A revisão mostrou que a tela Alterar senha pode ser aberta por Conta ou Perfil e fecha voltando à rota anterior | O diagrama passou a indicar o retorno à tela de origem |
+| O fluxo do PDF indicava que cancelar o compartilhamento voltava sempre ao Relatório | A conferência do código mostrou que o mesmo diálogo também pode ser aberto pela tela Resumo em PDF do Perfil | O diagrama passou a mostrar as duas origens possíveis |
+| A IA preencheu meu resumo, mas deixou meus pedidos e erros fora das tabelas do documento | Na leitura do arquivo, as seções 2 e 3 ainda continham apenas os exemplos já preenchidos | As duas seções ganharam tabelas com meus exemplos, e o registro individual passou a apontar para elas |
 
 O que o grupo aprendeu: a IA erra mais em **casos de borda**, como virada do dia, meses de tamanhos diferentes, falha no meio de uma gravação e arredondamento. Ela também erra quando **descreve o código sem conferir**. Por isso os erros acima foram encontrados com testes e com a leitura do código, não confiando na resposta.
 
@@ -112,7 +130,7 @@ Utilizei alguns Agentes de IA para o desenvolvimento e estruturação do projeto
 
 ### Lizandra Bispo Nascimento
 
-_A preencher._
+Tarefas: navegação principal, Modo Camuflagem, metas de redução, notificações e lembretes, testes e documentação do fluxo de navegação. Os pedidos estão na seção 2 e os erros na seção 3. A IA ajudou a transformar regras claras em testes e a conferir se os diagramas descreviam os caminhos disponíveis no aplicativo.
 
 ### Leon Mendonça
 
