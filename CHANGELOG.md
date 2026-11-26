@@ -106,9 +106,15 @@
 - Restauração - Os dados voltam sozinhos ao entrar na conta em outro aparelho ou depois de reinstalar o app, com os valores exatos (RF25)
 - Criptografia na nuvem - Valores exatos numa parte selada, criptografada com AES-GCM por uma chave trancada pela senha (PBKDF2), que nem a equipe consegue ler
 - Aviso da senha - Ao criar a conta e antes de recuperar a senha, com "Entendi" obrigatório
-- Documentação - Registro do uso de IA com a justificativa das bibliotecas, fluxo de navegação real em diagramas, versão final do diagrama de classes e restauração na modelagem do Firestore
+- Alterar senha - Nova tela, aberta pelo Perfil e pela Conta, que troca a senha e mantém a cópia na nuvem legível com a senha nova
+- Apagar conta - Pede a senha, apaga os dados da nuvem, do aparelho e a conta, e não apaga nada sem internet
+- Confira a idade - Aviso na tela Exames quando a idade não combina com a dos outros exames do mesmo paciente, com as opções Corrigir e Salvar assim mesmo
+- Início - Corpo humano do protótipo ao fundo, com o fígado na cor do risco e animação de abertura que pode ser pulada com um toque
+- Drinks - Imagens dos tipos de bebida no registro rápido e na tela Drinks, e resumo de drinques padrão por tipo na semana, no mês e no ano
+- PDF - Escala do FIB-4 com a posição do resultado, aviso "Importante" e a linha "Documento pessoal · confidencial"
+- Documentação - Registro do uso de IA com a justificativa das bibliotecas, fluxo de navegação real em diagramas, diagrama de casos de uso refeito, versão final do diagrama de classes e restauração e exclusão na modelagem do Firestore
 - Readme - Como rodar, testar e gerar o APK do app
-- Testes - Teste completo no Android 8.0 e no Android 12 (restauração entre dois aparelhos, troca de senha, consentimento revogado e envio sem Wi-Fi), testes do cofre, da parte selada e da restauração, 387 testes automatizados passando
+- Testes - Teste completo no Android 8.0 e no Android 12 (restauração entre dois aparelhos, troca de senha, consentimento revogado e envio sem Wi-Fi), testes do cofre, da parte selada, da restauração, da idade dos exames e do resumo por tipo de bebida, 424 testes automatizados passando
 
 ### Alterado
 - Tema - Barra de navegação em pílula e cartões, campos e botões no estilo do protótipo de alta fidelidade
@@ -119,8 +125,15 @@
 - Sincronização - Envio automático também ao entrar na conta, ao autorizar e ao mudar uma meta
 - Regras do Firestore - Documento da chave em users/{uid} e parte selada obrigatória em drinques, exames e metas
 - Conta - Sair da conta e Apagar todos os dados esquecem a chave neste aparelho
-- Consentimento e política de privacidade - Explicam a criptografia pela senha e a restauração
-- Documentação - Requisitos (RF25), arquitetura, justificativas, escopo e modelagem do Firestore atualizados para a Unidade II
+- Entrar, Criar conta e Esqueceu a senha - Telas no estilo do protótipo, com o logo, cadastro sem o campo Nome e aceite obrigatório da política de privacidade
+- Perfil - Opções agrupadas em cartões, aviso de confirmação ao sair da conta e cartão do convidado que leva ao login
+- Apagar todos os dados - Apaga também a cópia na nuvem e não apaga nada sem internet
+- Relatório - Botões do resumo em PDF um embaixo do outro, com a largura da tela
+- Exames - Cartão Resultado sempre com o exame mais recente e FIB-4 do exame salvo na confirmação
+- Medidor do fígado - Arco com a mesma cor do selo de risco
+- Aviso de icterícia - Aparece por cima da tela e tem botão para fechar
+- Consentimento e política de privacidade - Explicam a criptografia pela senha, a restauração e como apagar os dados e a conta
+- Documentação - Requisitos (RF25), arquitetura, justificativas, escopo e modelagem do Firestore atualizados para a Unidade II, com os ajustes em relação ao protótipo de alta fidelidade
 
 ### Corrigido
 - Exames - Exame duplicado evitado, classificação pelo FIB-4 exibido e corte de 65 anos no dashboard
