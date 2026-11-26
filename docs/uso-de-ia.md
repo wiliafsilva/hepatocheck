@@ -40,6 +40,19 @@ Os pedidos que deram melhor resultado tinham três coisas: a tarefa do plano com
 | 3 | Criar o dashboard de exames na aba Relatório e exportar o resumo em PDF, com confirmação antes de compartilhar | Dashboard com `fl_chart` e PDF com `pdf` e `printing` |
 | 4 | "Corrigir os erros de Exames, Relatório e PDF, registro de uso de IA com a justificativa das bibliotecas, atualizar justificativas.md e modo consulta para o profissional de saúde" | Revisão das três áreas com a lista de erros abaixo, modo consulta seguindo o protótipo de alta fidelidade e esta documentação |
 
+### Wilia Francisco da Silva
+
+| Semana | Pedido (resumo) | Resultado |
+| --- | --- | --- |
+| 1 | Montar a estrutura do projeto em camadas (Presentation, Domain e Data) com Riverpod, as dependências e o planejamento em sprints a partir dos documentos da Unidade I | Pastas e providers do projeto, `sprints.md` e o fluxo de branches e pull requests do grupo |
+| 2 | Criar a fila offline de sincronização e a detecção de Wi-Fi, guardando cada criação, edição e exclusão no aparelho mesmo sem internet | `SyncQueueRepository`, `WifiMonitor` e os testes da fila |
+| 3 | Enviar a fila em lote para o Firestore só com conta, consentimento e Wi-Fi, tratando a falha parcial ("5 enviados, 2 falharam"), anonimizando antes do envio e validando os campos nas regras do Firestore | `SyncPendingItems` com `WriteBatch`, tela de status da sincronização, `firestore.rules` e os testes 4 e 5 |
+| 4 | "Monte os testes que devo fazer passo a passo, para testarmos tudo", com dados de um único paciente | Roteiro de teste no Android 8 e no Android 12, que encontrou os erros da tabela abaixo |
+| 4 | Fazer os dados voltarem sozinhos ao entrar na conta em outro aparelho, sem perder a privacidade. A IA apresentou duas opções e a escolhida foi a B: parte legível anonimizada e parte selada com a chave trancada pela senha | Restauração automática (RF25), `CloudVault` com AES-GCM e PBKDF2, aviso da senha com "Entendi" e testes com dois aparelhos simulados |
+| 4 | "Vamos começar pela tela de login, depois criar conta, esqueceu a senha e alterar a senha. Qualquer dúvida pergunte, não invente nada nem crie algo novo sem permissão" | Telas de conta no estilo do protótipo; a IA perguntou antes de cada desvio (nome, senha mínima, aceite da política, tela Alterar senha) |
+| 4 | Comparar cada tela com o protótipo de alta fidelidade e só depois propor mudanças, separando o que é visual do que muda o funcionamento | Início com o corpo do protótipo e a animação de "scan", tipos de bebida com imagens, Perfil em cartões, PDF com a escala do FIB-4 e as decisões registradas em `justificativas.md` |
+| 4 | "Verifique nas exigências de entrega e liste o que falta" | Tabela de pendências por integrante, comparando o repositório com o documento da avaliação e o estudo de caso |
+
 Também funcionou pedir, antes de qualquer código, um plano com os arquivos que seriam alterados. No modo de planejamento, a IA só lê o projeto e devolve o plano para aprovação. Foi assim que surgiram as perguntas sobre o que pertencia à área de outro integrante, como a navegação do `app.dart` e a camuflagem.
 
 ### Lizandra Bispo Nascimento
@@ -83,6 +96,22 @@ Também funcionou pedir, antes de qualquer código, um plano com os arquivos que
 | Na semana 4, ao formatar o código, a IA rodou `dart format` no projeto inteiro e alterou arquivos de outros integrantes | Conferência do `git status` antes de terminar | Os arquivos foram devolvidos ao conteúdo original e a formatação passou a ser feita só nos arquivos alterados |
 | Ao atualizar `justificativas.md`, a IA descreveu a sincronização com espera crescente e divisão de lotes, como estava no plano, mas isso não existe no código | Conferência do texto com `sync_pending_items.dart` antes de entregar | O texto foi corrigido para descrever o que o código faz: lotes de até 20 e botão "Tentar de novo" |
 | Os documentos da Unidade I falavam em SQLite, e a primeira versão do plano repetia isso | Decisão do grupo de usar Hive, que já tem AES | Arquitetura e justificativas atualizadas para o Hive |
+
+### Wilia Francisco da Silva
+
+| Erro | Como percebemos | Como foi resolvido |
+| --- | --- | --- |
+| A tela de Sincronização mostrava "0 aguardando" com o Wi-Fi desligado, embora o drinque estivesse na fila | Teste no emulador, desligando o Wi-Fi antes de registrar | A tela passou a recalcular os pendentes sempre que é aberta. Teste novo para esse caso |
+| Os dados de teste sugeridos pela IA tinham idades incoerentes para um mesmo paciente (60 anos em março e 45 em junho) | Leitura do roteiro antes de testar | Os dados passaram a representar um único paciente. A ideia virou o aviso "Confira a idade" na tela Exames |
+| Um teste falhava de vez em quando: ele conferia se o texto criptografado não tinha "47", mas o texto é aleatório e às vezes tem esses caracteres | Rodadas completas da suíte que falhavam sem mudança no código | O teste passou a decodificar os bytes e conferir que os dados não aparecem em texto claro |
+| Na abertura do Início, o cartão aparecia antes da silhueta do corpo | Teste no emulador, que é lento para carregar os arquivos SVG | A figura passou a ser carregada antes de a animação começar, com limite de 3 segundos |
+| Com risco alto, o aviso de icterícia empurrava o corpo e o cartão para baixo; ao virar sobreposição, ele esticava até o fim da tela | Simulação de exames ruins de propósito e imagem gerada no teste | Aviso por cima da tela, com botão para fechar, e coluna do texto com a altura do conteúdo |
+| O selo dizia "Risco amarelo", mas o arco do medidor continuava verde | Simulação com consumo acima da meta | O arco passou a usar a mesma cor do selo. Teste confere a cor antes e depois |
+| O cartão "Resultado" da tela Exames ficava preso no último exame salvo, mesmo não sendo o mais recente | Comparação entre a tela Exames, o Início e o Relatório | O cartão mostra sempre o exame mais recente, e o FIB-4 do exame salvo aparece na confirmação |
+| O logo da tela de login ficou diferente do protótipo | Comparação lado a lado com o Figma | Logo redesenhado com o círculo tracejado, os anéis e a linha de pulso |
+| A IA editou um documento da Unidade I quando isso ainda não estava liberado | Conferência do arquivo alterado | O original foi restaurado. Depois que a professora liberou, as mudanças foram feitas com permissão |
+| A IA tentou rodar `git stash` sem pedir, contra a regra do grupo | O comando foi bloqueado antes de executar | Regra reforçada: a IA só passa os comandos do Git, e o integrante executa |
+| A IA afirmou que "Sair da conta" pedia confirmação, mas o código saía direto | Conferência do código antes de aceitar a resposta | Correção registrada; depois, o aviso "Sair da conta?" foi criado a pedido |
 
 ### Lizandra Bispo Nascimento
 
@@ -149,7 +178,7 @@ Tarefas: FIB-4 e validação, classificação de risco, tela Exames, relatórios
 
 ### Wilia Francisco da Silva
 
-_A preencher._
+Tarefas: estrutura do projeto e sprints, configuração do Firebase, fila offline e detecção de Wi-Fi, sincronização em lote com falha parcial, regras do Firestore, restauração dos dados com a cópia na nuvem criptografada pela senha, revisão dos pull requests, testes no Android 8 e no Android 12, refinamento das telas com base no protótipo, Changelog e Readme. Os pedidos estão na seção 2 e os erros na seção 3. A IA foi mais útil para montar roteiros de teste, comparar telas com o protótipo e encontrar a causa de um erro depois de ele aparecer no aparelho. Foi menos confiável quando descrevia o código sem conferir e quando sugeria dados de teste. Por isso, cada mudança foi testada no emulador, e as decisões de produto, como a opção B da restauração, apagar a conta e o que seguir ou não do protótipo, foram sempre do integrante.
 
 ### Victor Castelo Branco
 
