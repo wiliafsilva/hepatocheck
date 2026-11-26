@@ -3,7 +3,7 @@
 Este documento registra como o grupo usou inteligência artificial no desenvolvimento do HepatoCheck na Unidade II:
 
 - os pedidos que funcionaram;
-- os erros que a IA  ometeu e como cada um foi resolvido;
+- os erros que a IA  cometeu e como cada um foi resolvido;
 - a justificativa das bibliotecas do aplicativo.
 
 ## 1. Como a IA foi usada
